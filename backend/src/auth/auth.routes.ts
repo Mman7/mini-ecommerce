@@ -1,19 +1,18 @@
 import { Router } from "express";
 import {
-  loginAccount,
-  logoutAccount,
-  registerAccount,
-  refreshToken,
+  handleLogin,
+  handleLogout,
+  handleRegister,
+  handleRefreshToken,
 } from "./auth.controller.ts";
 
 const authRouter = Router();
-// TODO implement login
 
 // auth routes for login/logout to controller
 // route to controller
-authRouter.post("/login", loginAccount);
-authRouter.post("/logout", logoutAccount);
-authRouter.post("/register", registerAccount);
-authRouter.post("/refresh", refreshToken);
+authRouter.post("/login", handleLogin);
+authRouter.post("/logout", handleLogout);
+authRouter.post("/register", handleRegister);
+authRouter.post("/refresh", handleRefreshToken);
 
 export default authRouter;

@@ -5,10 +5,10 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "rootDir": "./src",
+    "rootDir": "./",
     "outDir": "./dist",
+    "types": ["node"],
     "esModuleInterop": true,
-
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     // For nodejs:
