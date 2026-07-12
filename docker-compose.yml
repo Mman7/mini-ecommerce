@@ -24,9 +24,34 @@ services:
       - ./backend/.env
     ports:
       - "5000:5000"
+
+    # Keep this if you want node_modules inside the container
     volumes:
-      - ./backend:/app
-      - backend_modules:/app/node_modules
+      - /app/node_modules
+
+    command: npm run dev
+
+    develop:
+      watch:
+        # Sync source code only
+        - action: sync
+          path: ./backend
+          target: /app
+          ignore:
+            - node_modules/
+            - dist/
+            - .git/
+
+        # Rebuild only when dependencies change
+        - action: rebuild
+          path: ./backend/package.json
+
+        - action: rebuild
+          path: ./backend/package-lock.json
+
+        # Optional: rebuild if Dockerfile changes
+        - action: rebuild
+          path: ./backend/Dockerfile
 
   frontend:
     build:
@@ -38,13 +63,37 @@ services:
       - backend
     ports:
       - "3000:3000"
+
+    environment:
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_USEPOLLING: "true"
+
     volumes:
-      - ./frontend:/app
-      - frontend_modules:/app/node_modules
-      - frontend_next:/app/.next
+      - /app/node_modules
+
+    command: npm run dev
+
+    develop:
+      watch:
+        # Sync Next.js source
+        - action: sync
+          path: ./frontend
+          target: /app
+          ignore:
+            - node_modules/
+            - .next/
+            - .git/
+
+        # Rebuild only if dependencies change
+        - action: rebuild
+          path: ./frontend/package.json
+
+        - action: rebuild
+          path: ./frontend/package-lock.json
+
+        # Optional
+        - action: rebuild
+          path: ./frontend/Dockerfile
 
 volumes:
   postgres_data:
-  backend_modules: # Named volume for backend dependencies
-  frontend_modules: # Named volume for frontend dependencies
-  frontend_next: # Named volume for Next.js build cache
