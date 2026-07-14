@@ -4,10 +4,15 @@ import { prisma } from "./prisma.ts";
 const accessSecretKey = process.env.JWT_ACCESS_SECRET;
 const refreshSecretKey = process.env.JWT_REFRESH_SECRET;
 
+interface TokenPayload {
+  userId: string;
+  email: string;
+  iat: number; // Issued at (automatically added by JWT)
+  exp: number; // Expiration time (automatically added by JWT)
+}
+
 if (!accessSecretKey || !refreshSecretKey) {
-  throw new Error(
-    "JWT_ACCESS_SECRET or JWT_REFRESH_SECRET is not defined in environment variables.",
-  );
+  throw new Error("JWT config is not defined in environment variables.");
 }
 
 // sign access token
@@ -115,4 +120,21 @@ export async function deleteRefreshToken(userId: number) {
       if (result.count === 0) throw new Error("Refresh token not found");
       return result;
     });
+}
+
+export function parseAccessToken(token: string): TokenPayload | null {
+  // Your secret key used to sign the token (keep this in your .env file)
+
+  try {
+    // jwt.verify throws an error if the token is invalid or expired
+    if (!accessSecretKey) {
+      throw new Error("Access secret key is not defined");
+    }
+    const decoded = jwt.verify(token, accessSecretKey) as TokenPayload;
+    return decoded;
+  } catch (error) {
+    // Token is expired, invalid, or malformed
+    console.error("JWT verification failed:", error);
+    return null;
+  }
 }
