@@ -5,7 +5,6 @@ import {
   logoutAccount,
   refreshAccessToken,
 } from "./auth.service.ts";
-
 // info after build auth, add simple validation using zod
 
 interface RegisterBody {
@@ -21,19 +20,24 @@ export const COOKIE_OPTIONS = {
   path: "/", // Critical: Ensures cookies are accessible across all routes
 };
 
+export const jwtAccessExpired = 1000 * 60 * 30; // 30 minutes
+
 export const handleLogin = async (req: Request, res: Response) => {
-  const { email, password } = req.body as { email: string; password: string };
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ message: "Email and password are required" });
+
   try {
     const { accessToken, refreshToken } = await loginAccount(email, password);
 
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 1000 * 60 * 30, // 30 分钟
+        maxAge: jwtAccessExpired, // 30 mins
       })
       .cookie("refreshToken", refreshToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 天
+        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
       })
       .status(200)
       .json({ message: "Login successful!" });
@@ -96,7 +100,7 @@ export const handleRegister = async (req: Request, res: Response) => {
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 1000 * 60 * 30, // 30 分钟
+        maxAge: jwtAccessExpired, // 30 mins
       })
       .cookie("refreshToken", refreshToken, {
         ...COOKIE_OPTIONS,
@@ -105,7 +109,6 @@ export const handleRegister = async (req: Request, res: Response) => {
       .status(201) // 201 Created status code is very appropriate for user creation
       .json({
         message: "Register successful!",
-        accessToken, // If the frontend needs to use the accessToken for in-memory storage, it can be provided, but the refreshToken must never be exposed
       });
   } catch (error: any) {
     // 4. Map error status codes accurately
