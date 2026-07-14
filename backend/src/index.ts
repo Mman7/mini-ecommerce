@@ -1,15 +1,14 @@
+import "dotenv/config";
 import express, { type Express } from "express";
-import session from "express-session";
-import dotenv from "dotenv";
 import mainRouter from "./routes.js";
-
-dotenv.config();
+import cookieParser from "cookie-parser";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
 
 // Built-in JSON parsing middleware
 app.use(express.json());
+app.use(cookieParser());
 
 // Type-safe Route Handling
 // Mount the main router under /api
