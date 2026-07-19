@@ -1,14 +1,21 @@
-import jwt from "jsonwebtoken";
+import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "./prisma.ts";
 
 const accessSecretKey = process.env.JWT_ACCESS_SECRET;
 const refreshSecretKey = process.env.JWT_REFRESH_SECRET;
 
+export const accessTokenExpiresIn = 1000 * 60 * 15; // 15 minutes
+export const refreshTokenExpiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
+
+const ACCESS_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${accessTokenExpiresIn}m`;
+const REFRESH_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${refreshTokenExpiresIn}d`;
+
 interface TokenPayload {
   userId: string;
   email: string;
-  iat: number; // Issued at (automatically added by JWT)
-  exp: number; // Expiration time (automatically added by JWT)
+  role: string;
+  iat?: number; // Issued at (automatically added by JWT)
+  exp?: number; // Expiration time (automatically added by JWT)
 }
 
 if (!accessSecretKey || !refreshSecretKey) {
@@ -22,11 +29,14 @@ if (!accessSecretKey || !refreshSecretKey) {
  * @param userId - The ID of the user to fetch.
  * @returns string - jwt access token
  */
-export const signAccessToken = (
-  userId: string,
-  expiresIn: jwt.SignOptions["expiresIn"] = "30m",
-): string => {
-  return jwt.sign({ userId }, accessSecretKey, { expiresIn });
+export const signAccessToken = ({
+  userId,
+  email,
+  role,
+}: TokenPayload): string => {
+  return jwt.sign({ userId, email, role }, accessSecretKey, {
+    expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+  });
 };
 
 /**
@@ -35,11 +45,10 @@ export const signAccessToken = (
  * @param expiresIn - Optional expiration time for the token (default is 7 days).
  * @returns string - jwt refresh token
  */
-export const signRefreshToken = (
-  userId: string,
-  expiresIn: jwt.SignOptions["expiresIn"] = "7d",
-): string => {
-  return jwt.sign({ userId }, refreshSecretKey, { expiresIn });
+export const signRefreshToken = (userId: string): string => {
+  return jwt.sign({ userId }, refreshSecretKey, {
+    expiresIn: REFRESH_TOKEN_EXPIRES_IN,
+  });
 };
 
 // verify access token
@@ -58,7 +67,7 @@ export function verifyAccessToken(token: string): string | jwt.JwtPayload {
  * @returns string | jwt.JwtPayload - The decoded token payload if valid.
  * @throws Error - If the token is invalid or the secret key is not defined.
  */
-function verifyRefreshToken(token: string): string | jwt.JwtPayload {
+export function verifyRefreshToken(token: string): string | jwt.JwtPayload {
   if (!refreshSecretKey)
     throw new Error(
       "JWT_REFRESH_SECRET is not defined in environment variables.",

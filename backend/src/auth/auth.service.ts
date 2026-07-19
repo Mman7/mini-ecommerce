@@ -8,11 +8,13 @@ import {
   getUserRefreshToken,
   deleteRefreshToken,
 } from "../utils/jwt.ts";
+import type { UserData } from "../interfaces/user.interface.ts";
 
 interface ServiceResponse {
   msg: string;
   accessToken?: string;
   refreshToken?: string;
+  user?: UserData;
 }
 
 /**
@@ -43,7 +45,11 @@ export async function registerAccount(
     },
   });
 
-  const accessToken = signAccessToken(user.userId.toString());
+  const accessToken = signAccessToken({
+    userId: user.userId.toString(),
+    email: user.email,
+    role: user.role,
+  });
   const refreshToken = signRefreshToken(user.userId.toString());
 
   await saveRefreshToken(refreshToken, user.userId);
@@ -78,7 +84,11 @@ export async function loginAccount(
   // Generate access token and refresh token
   const passwordMatch = await comparePassword(password, user.passwordHash);
   if (passwordMatch) {
-    const accessToken = signAccessToken(user.userId.toString());
+    const accessToken = signAccessToken({
+      userId: user.userId.toString(),
+      email: user.email,
+      role: user.role,
+    });
     const refreshToken = signRefreshToken(user.userId.toString());
 
     await saveRefreshToken(refreshToken, user.userId);
@@ -87,6 +97,12 @@ export async function loginAccount(
       msg: "Login successful!",
       accessToken,
       refreshToken,
+      user: {
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      } satisfies UserData,
     };
   } else {
     throw new Error("Invalid email or password");
@@ -108,9 +124,17 @@ export async function refreshAccessToken(
   refreshToken: string,
 ): Promise<ServiceResponse> {
   try {
+    // TODO need to add more security check for refresh token
     const { trustedUserId } = await validateUserRefreshToken(refreshToken);
-
-    const newAccessToken = signAccessToken(trustedUserId.toString());
+    const { userId, email, role } = await prisma.user.findUniqueOrThrow({
+      where: { userId: parseInt(trustedUserId) },
+      select: { userId: true, email: true, role: true },
+    });
+    const newAccessToken = signAccessToken({
+      userId: trustedUserId.toString(),
+      email: email,
+      role: role,
+    });
 
     return {
       msg: "Token refreshed successfully!",

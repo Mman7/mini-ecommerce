@@ -5,6 +5,7 @@ import {
   logoutAccount,
   refreshAccessToken,
 } from "./auth.service.ts";
+import { accessTokenExpiresIn, refreshTokenExpiresIn } from "../utils/jwt.ts";
 // info after build auth, add simple validation using zod
 
 interface RegisterBody {
@@ -20,24 +21,29 @@ export const COOKIE_OPTIONS = {
   path: "/", // Critical: Ensures cookies are accessible across all routes
 };
 
-export const jwtAccessExpired = 1000 * 60 * 30; // 30 minutes
-
 export const handleLogin = async (req: Request, res: Response) => {
   const { email, password } = req.body;
   if (!email || !password)
     return res.status(400).json({ message: "Email and password are required" });
 
   try {
-    const { accessToken, refreshToken } = await loginAccount(email, password);
+    const { accessToken, refreshToken, user } = await loginAccount(
+      email,
+      password,
+    );
 
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
-        maxAge: jwtAccessExpired, // 30 mins
+        maxAge: accessTokenExpiresIn, // 15 mins
       })
       .cookie("refreshToken", refreshToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        maxAge: refreshTokenExpiresIn, // 7 days
+      })
+      .cookie("user", JSON.stringify(user), {
+        ...COOKIE_OPTIONS,
+        maxAge: refreshTokenExpiresIn, // 7 days
       })
       .status(200)
       .json({ message: "Login successful!" });
@@ -66,6 +72,7 @@ export const handleLogout = async (req: Request, res: Response) => {
     return res
       .clearCookie("accessToken", COOKIE_OPTIONS)
       .clearCookie("refreshToken", COOKIE_OPTIONS)
+      .clearCookie("user", COOKIE_OPTIONS)
       .status(200)
       .json({ message: "Logout successful!" });
   } catch (error: any) {
@@ -100,11 +107,11 @@ export const handleRegister = async (req: Request, res: Response) => {
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
-        maxAge: jwtAccessExpired, // 30 mins
+        maxAge: accessTokenExpiresIn, // 15 mins
       })
       .cookie("refreshToken", refreshToken, {
         ...COOKIE_OPTIONS,
-        maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+        maxAge: refreshTokenExpiresIn, // 7 days
       })
       .status(201) // 201 Created status code is very appropriate for user creation
       .json({
@@ -127,16 +134,18 @@ export const handleRegister = async (req: Request, res: Response) => {
 export const handleRefreshToken = async (req: Request, res: Response) => {
   // decode the refresh token from the cookie
   const refreshToken = req.cookies?.refreshToken;
-  if (!refreshToken) {
-    return res.status(401).json({ message: "Refresh token is required" });
-  }
+  if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
 
   try {
     const { accessToken } = await refreshAccessToken(refreshToken);
 
     return res
       .status(200)
-      .json({ message: "Token refreshed successfully!", accessToken });
+      .cookie("accessToken", accessToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: accessTokenExpiresIn, // 15 mins
+      })
+      .json({ message: "Token refreshed successfully!" });
   } catch (error: any) {
     return res.status(400).json({ message: error.message });
   }
