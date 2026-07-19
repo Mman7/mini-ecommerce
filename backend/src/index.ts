@@ -9,6 +9,19 @@ const port = process.env.PORT || 3000;
 // Built-in JSON parsing middleware
 app.use(express.json());
 app.use(cookieParser());
+// Custom middleware to enforce Content-Type for specific HTTP methods
+app.use((req, res, next) => {
+  if (
+    ["POST", "PUT", "PATCH"].includes(req.method) &&
+    !req.is("application/json")
+  ) {
+    return res.status(415).json({
+      message: "Content-Type must be application/json",
+    });
+  }
+
+  next();
+});
 
 // Type-safe Route Handling
 // Mount the main router under /api
