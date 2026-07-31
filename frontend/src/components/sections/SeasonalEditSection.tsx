@@ -20,7 +20,7 @@ type SeasonalCardProps = {
 
 function SeasonalCard({ product }: SeasonalCardProps) {
   return (
-    <article className="group relative aspect-square">
+    <article className="group relative aspect-square overflow-hidden">
       <section className="relative overflow-hidden rounded-sm">
         <div
           className="size-80 rounded-sm bg-cover bg-center transition-transform duration-500 group-hover:scale-[1.05]"

@@ -1,11 +1,12 @@
 import { Search, Heart, ShoppingBag, User } from "lucide-react";
+import Link from "next/link";
 
 const navLinks = [
-  "Shop All",
-  "New Arrivals",
-  "Collectibles",
-  "Curated Sets",
-  "Journal",
+  { label: "Shop All", link: "/products" },
+  { label: "New Arrivals" },
+  { label: "Collectibles" },
+  { label: "Curated Sets" },
+  { label: "Journal" },
 ];
 
 export function NavbarSection() {
@@ -14,21 +15,24 @@ export function NavbarSection() {
       <nav className="bg-surface-1 border-surface-3 border-b">
         <div className="mx-auto flex max-w-330 items-center justify-between gap-4 px-4 py-3 sm:px-5">
           <div className="flex items-center">
-            <p className="title-font text-primary-soft text-lg font-semibold tracking-wide">
+            <Link
+              href="/"
+              className="title-font text-primary-soft! text-lg font-semibold tracking-wide"
+            >
               Komorebi Gift Atelier
-            </p>
+            </Link>
           </div>
 
           <div className="hidden flex-1 items-center justify-center gap-6 lg:flex">
             <ul className="flex items-center gap-6 text-sm">
               {navLinks.map((link, i) => (
-                <li key={link}>
-                  <a
-                    href="#"
+                <li key={link.label}>
+                  <Link
+                    href={link.link || "#"}
                     className={`meta-font border-b-2 border-transparent pb-1 transition-colors duration-200 ${"text-text-muted hover:text-primary-soft hover:border-primary"}`}
                   >
-                    {link}
-                  </a>
+                    {link.label}
+                  </Link>
                 </li>
               ))}
             </ul>

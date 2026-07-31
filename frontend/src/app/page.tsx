@@ -106,7 +106,6 @@ export default function Home() {
       <SeasonalEditSection products={seasonalItems} />
       <NewsletterSection />
       <TestimonialsSection entries={testimonials} />
-      <FooterSection />
     </main>
   );
 }

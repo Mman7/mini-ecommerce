@@ -6,12 +6,12 @@ export function HeroSection() {
     <section className="">
       <div className="reveal relative" style={{ paddingTop: "56.25%" }}>
         <BackgroundImage />
-        {/* gradient linear */}
-        <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-r from-black/40 to-transparent" />
+        {/* gradient overlay */}
+        <div className="pointer-events-none absolute inset-0 z-20 bg-linear-to-r from-black/50 via-black/60 to-transparent" />
 
-        <div className="padding-inline absolute inset-0 z-20 flex items-center">
-          <div className="relative max-w-xl space-y-5">
-            <p className="meta-font reveal text-secondary inline-flex rounded-full border border-(--outline-strong) bg-[rgba(255,174,218,0.14)] px-3 py-1 text-xs tracking-[0.12em] delay-1">
+        <div className="padding-inline absolute inset-0 z-30 flex items-center">
+          <div className="relative z-30 max-w-xl space-y-5">
+            <p className="meta-font reveal text-secondary border-secondary bg-secondary/15 inline-flex rounded-full border px-3 py-1 text-xs tracking-[0.12em] delay-1">
               Tokyo's Curated Sanctuary
             </p>
             <h1 className="title-font reveal text-4xl leading-tight font-semibold delay-1 sm:text-5xl">

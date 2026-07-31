@@ -8,6 +8,7 @@ import {
 } from "next/font/google";
 import "./globals.css";
 import { NavbarSection } from "../components/sections/NavbarSection";
+import { FooterSection } from "../components/sections/FooterSection";
 
 const displayFont = Fredoka({
   variable: "--font-display",
@@ -57,6 +58,7 @@ export default function RootLayout({
       <body className="flex min-h-full flex-col">
         <NavbarSection />
         {children}
+        <FooterSection />
       </body>
     </html>
   );
