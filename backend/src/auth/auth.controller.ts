@@ -27,21 +27,13 @@ export const handleLogin = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email and password are required" });
 
   try {
-    const { accessToken, refreshToken, user } = await loginAccount(
-      email,
-      password,
-    );
-
+    const { accessToken, refreshToken } = await loginAccount(email, password);
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
         maxAge: accessTokenExpiresIn, // 15 mins
       })
       .cookie("refreshToken", refreshToken, {
-        ...COOKIE_OPTIONS,
-        maxAge: refreshTokenExpiresIn, // 7 days
-      })
-      .cookie("user", JSON.stringify(user), {
         ...COOKIE_OPTIONS,
         maxAge: refreshTokenExpiresIn, // 7 days
       })
@@ -58,15 +50,15 @@ export const handleLogin = async (req: Request, res: Response) => {
 };
 
 export const handleLogout = async (req: Request, res: Response) => {
-  const { userId }: { userId: number } = req.body;
+  const { refreshToken } = req.cookies ?? {};
 
-  if (!userId) {
+  if (!refreshToken) {
     return res.status(401).json({ message: "Unauthorized" });
   }
 
   try {
     // 1. removed refresh token from database
-    await logoutAccount(userId);
+    await logoutAccount(refreshToken);
 
     // 2 . clear cookies
     return res

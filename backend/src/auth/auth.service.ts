@@ -14,7 +14,6 @@ interface ServiceResponse {
   msg: string;
   accessToken?: string;
   refreshToken?: string;
-  user?: UserData;
 }
 
 /**
@@ -46,10 +45,12 @@ export async function registerAccount(
   });
 
   const accessToken = signAccessToken({
-    userId: user.userId.toString(),
-    email: user.email,
+    sub: user.userId.toString(),
     role: user.role,
+    email: user.email,
+    name: user.name,
   });
+
   const refreshToken = signRefreshToken(user.userId.toString());
 
   await saveRefreshToken(refreshToken, user.userId);
@@ -84,34 +85,32 @@ export async function loginAccount(
   // Generate access token and refresh token
   const passwordMatch = await comparePassword(password, user.passwordHash);
   if (passwordMatch) {
+    // Generate access token and refresh token
     const accessToken = signAccessToken({
-      userId: user.userId.toString(),
-      email: user.email,
+      sub: user.userId,
       role: user.role,
+      email: user.email,
+      name: user.name,
     });
-    const refreshToken = signRefreshToken(user.userId.toString());
-
+    // Generate refresh token and save it to the database
+    const refreshToken = signRefreshToken(user.userId);
     await saveRefreshToken(refreshToken, user.userId);
 
     return {
       msg: "Login successful!",
       accessToken,
       refreshToken,
-      user: {
-        userId: user.userId,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      } satisfies UserData,
     };
   } else {
     throw new Error("Invalid email or password");
   }
 }
 
-export async function logoutAccount(userId: number): Promise<ServiceResponse> {
+export async function logoutAccount(
+  refreshToken: string,
+): Promise<ServiceResponse> {
   // delete refresh token from database
-  await deleteRefreshToken(userId);
+  await deleteRefreshToken(refreshToken);
 
   return { msg: "Logout successful!" };
 }
@@ -126,14 +125,15 @@ export async function refreshAccessToken(
   try {
     // TODO need to add more security check for refresh token
     const { trustedUserId } = await validateUserRefreshToken(refreshToken);
-    const { userId, email, role } = await prisma.user.findUniqueOrThrow({
-      where: { userId: parseInt(trustedUserId) },
-      select: { userId: true, email: true, role: true },
+    const { userId, email, role, name } = await prisma.user.findUniqueOrThrow({
+      where: { userId: trustedUserId },
+      select: { userId: true, email: true, role: true, name: true },
     });
     const newAccessToken = signAccessToken({
-      userId: trustedUserId.toString(),
-      email: email,
+      sub: trustedUserId.toString(),
       role: role,
+      email: email,
+      name: name,
     });
 
     return {

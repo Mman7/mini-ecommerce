@@ -18,7 +18,7 @@ enum Role {
 }
 
 model User {
-  userId       Int    @id @default(autoincrement())
+  userId       String @id @default(cuid())
   name         String
   passwordHash String
   email        String @unique
@@ -37,9 +37,44 @@ model RefreshToken {
   token String @unique
 
   // pointing to the user that owns this refresh token 
-  userId Int
-  user   User @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  userId String
+  user   User   @relation(fields: [userId], references: [userId], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   expiresAt DateTime
+}
+
+model Product {
+  productId   Int      @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  categoryId Int
+  category   Category   @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
+  inventory  Inventory?
+}
+
+model Inventory {
+  id String @id @default(cuid())
+
+  productId Int     @unique
+  product   Product @relation(fields: [productId], references: [productId], onDelete: Cascade)
+
+  quantity  Int  @default(0)
+  reorderAt Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  categoryId Int      @id @default(autoincrement())
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  products Product[]
 }

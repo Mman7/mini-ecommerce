@@ -1,5 +1,6 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "./prisma.ts";
+import type { JwtPayload } from "../interfaces/jwtpayload.interface.ts";
 
 const accessSecretKey = process.env.JWT_ACCESS_SECRET;
 const refreshSecretKey = process.env.JWT_REFRESH_SECRET;
@@ -10,14 +11,6 @@ export const refreshTokenExpiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
 const ACCESS_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${accessTokenExpiresIn}m`;
 const REFRESH_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${refreshTokenExpiresIn}d`;
 
-interface TokenPayload {
-  userId: string;
-  email: string;
-  role: string;
-  iat?: number; // Issued at (automatically added by JWT)
-  exp?: number; // Expiration time (automatically added by JWT)
-}
-
 if (!accessSecretKey || !refreshSecretKey) {
   throw new Error("JWT config is not defined in environment variables.");
 }
@@ -25,16 +18,27 @@ if (!accessSecretKey || !refreshSecretKey) {
 // sign access token
 // what does this function do? it takes a userId and an optional expiresIn parameter (defaulting to 30 minutes) and returns a signed JWT access token containing the userId as payload. The token is signed using the accessSecretKey and will expire after the specified duration.
 /**
- * Fetches user data from the database.
- * @param userId - The ID of the user to fetch.
+ * Generates a JWT access token for a user.
+ * @param userId - The ID of the user for whom the token is generated.
+ * @param role - The role of the user.
+ * @param name - The name of the user.
+ * @param email - The email of the user.
  * @returns string - jwt access token
  */
 export const signAccessToken = ({
-  userId,
-  email,
+  sub,
   role,
-}: TokenPayload): string => {
-  return jwt.sign({ userId, email, role }, accessSecretKey, {
+  name,
+  email,
+}: JwtPayload): string => {
+  console.log(
+    verifyAccessToken(
+      jwt.sign({ sub, role, name, email }, accessSecretKey, {
+        expiresIn: ACCESS_TOKEN_EXPIRES_IN,
+      }),
+    ),
+  );
+  return jwt.sign({ sub, role, name, email }, accessSecretKey, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   });
 };
@@ -52,13 +56,13 @@ export const signRefreshToken = (userId: string): string => {
 };
 
 // verify access token
-export function verifyAccessToken(token: string): string | jwt.JwtPayload {
+export function verifyAccessToken(token: string): JwtPayload {
   if (!accessSecretKey)
     throw new Error(
       "JWT_ACCESS_SECRET is not defined in environment variables.",
     );
 
-  return jwt.verify(token, accessSecretKey);
+  return jwt.verify(token, accessSecretKey) as JwtPayload;
 }
 
 /**
@@ -67,16 +71,16 @@ export function verifyAccessToken(token: string): string | jwt.JwtPayload {
  * @returns string | jwt.JwtPayload - The decoded token payload if valid.
  * @throws Error - If the token is invalid or the secret key is not defined.
  */
-export function verifyRefreshToken(token: string): string | jwt.JwtPayload {
+function verifyRefreshToken(token: string): JwtPayload {
   if (!refreshSecretKey)
     throw new Error(
       "JWT_REFRESH_SECRET is not defined in environment variables.",
     );
-  return jwt.verify(token, refreshSecretKey);
+  return jwt.verify(token, refreshSecretKey) as JwtPayload;
 }
 
 // save refresh token to database
-export function saveRefreshToken(token: string, userId: number) {
+export function saveRefreshToken(token: string, userId: string) {
   const sevenDays = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
   return prisma.refreshToken.create({
     data: {
@@ -93,13 +97,13 @@ export async function validateUserRefreshToken(
   // 1. Verify the refresh token using the secret key
   let decoded;
   try {
-    decoded = verifyRefreshToken(refreshToken) as { userId: string };
+    decoded = verifyRefreshToken(refreshToken);
   } catch {
     throw new Error("Refresh token expired or invalid");
   }
 
   // 2. Check if the refresh token exists in the database for the given userId
-  const tokenInDB = await getUserRefreshToken(parseInt(decoded.userId));
+  const tokenInDB = await getUserRefreshToken(decoded.userId);
 
   if (tokenInDB !== refreshToken) {
     throw new Error("Refresh token revoked or invalid");
@@ -108,7 +112,7 @@ export async function validateUserRefreshToken(
   return { trustedUserId: decoded.userId, token: refreshToken };
 }
 
-export async function getUserRefreshToken(userId: number): Promise<string> {
+export async function getUserRefreshToken(userId: string): Promise<string> {
   return prisma.refreshToken
     .findFirst({
       where: { userId: userId },
@@ -120,30 +124,15 @@ export async function getUserRefreshToken(userId: number): Promise<string> {
 }
 
 // will implement device based refresh token, and will delete the refresh token for the user
-export async function deleteRefreshToken(userId: number) {
+export async function deleteRefreshToken(
+  refreshToken: string,
+): Promise<{ count: number }> {
   return prisma.refreshToken
     .deleteMany({
-      where: { userId: userId },
+      where: { token: refreshToken },
     })
     .then((result) => {
       if (result.count === 0) throw new Error("Refresh token not found");
       return result;
     });
-}
-
-export function parseAccessToken(token: string): TokenPayload | null {
-  // Your secret key used to sign the token (keep this in your .env file)
-
-  try {
-    // jwt.verify throws an error if the token is invalid or expired
-    if (!accessSecretKey) {
-      throw new Error("Access secret key is not defined");
-    }
-    const decoded = jwt.verify(token, accessSecretKey) as TokenPayload;
-    return decoded;
-  } catch (error) {
-    // Token is expired, invalid, or malformed
-    console.error("JWT verification failed:", error);
-    return null;
-  }
 }

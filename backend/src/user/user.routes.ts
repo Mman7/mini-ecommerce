@@ -1,17 +1,18 @@
 import { Router } from "express";
-import { handleMe } from "./user.service.ts";
-
-/* 
-TODO: Implement the following features in the user controller:
-User Profile
-Update User
-User CRUD
-*/
+import {
+  handleMe,
+  handleUpdateUser,
+  handleDeleteUser,
+} from "./user.controller.ts";
+import { authMiddleware, isAdmin } from "../middleware/authMiddleware.ts";
+import { getTotalUsers } from "./user.service.ts";
 
 const userRoute = Router();
-userRoute.get("/me", handleMe);
 
-// auth routes for login/logout to controller
+userRoute.get("/me", authMiddleware, handleMe);
+userRoute.patch("/:id/profile", authMiddleware, handleUpdateUser);
+userRoute.delete("/:id/profile", authMiddleware, handleDeleteUser);
+userRoute.get("/profile", authMiddleware, isAdmin, getTotalUsers);
 // route to controller
 
 export default userRoute;
