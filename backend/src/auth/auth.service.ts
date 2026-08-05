@@ -123,33 +123,37 @@ export async function refreshAccessToken(
   refreshToken: string,
 ): Promise<ServiceResponse> {
   try {
-    // TODO need to add more security check for refresh token
     const { trustedUserId } = await validateUserRefreshToken(refreshToken);
     const { userId, email, role, name } = await prisma.user.findUniqueOrThrow({
       where: { userId: trustedUserId },
       select: { userId: true, email: true, role: true, name: true },
     });
+
     const newAccessToken = signAccessToken({
-      sub: trustedUserId.toString(),
+      sub: trustedUserId,
       role: role,
       email: email,
       name: name,
     });
 
+    const newRefreshToken = signRefreshToken(userId);
+    await saveRefreshToken(newRefreshToken, userId);
+
     return {
       msg: "Token refreshed successfully!",
       accessToken: newAccessToken,
+      refreshToken: newRefreshToken,
     };
   } catch (error: Error | any) {
-    // 3. Cleaned up error handling mapping
-    if (error.message === "Refresh token revoked or invalid") {
-      throw new Error("Invalid refresh token");
-    }
+    switch (error.message) {
+      case "Refresh token revoked or invalid":
+        throw new Error("Invalid refresh token");
 
-    if (error.message === "Refresh token expired or invalid") {
-      throw new Error("Refresh token expired");
-    }
+      case "Refresh token expired or invalid":
+        throw new Error("Refresh token expired");
 
-    throw new Error("Invalid refresh token");
+      default:
+        throw new Error("Invalid refresh token");
+    }
   }
 }

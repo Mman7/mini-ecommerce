@@ -31,13 +31,6 @@ export const signAccessToken = ({
   name,
   email,
 }: JwtPayload): string => {
-  console.log(
-    verifyAccessToken(
-      jwt.sign({ sub, role, name, email }, accessSecretKey, {
-        expiresIn: ACCESS_TOKEN_EXPIRES_IN,
-      }),
-    ),
-  );
   return jwt.sign({ sub, role, name, email }, accessSecretKey, {
     expiresIn: ACCESS_TOKEN_EXPIRES_IN,
   });
@@ -115,6 +108,7 @@ export async function validateUserRefreshToken(
 export async function getUserRefreshToken(userId: string): Promise<string> {
   return prisma.refreshToken
     .findFirst({
+      orderBy: { createdAt: "desc" },
       where: { userId: userId },
     })
     .then((token) => {
