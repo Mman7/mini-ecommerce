@@ -1,8 +1,10 @@
 import type { Request, Response } from "express";
 import {
+  activeUser,
   deleteUserData,
   getTotalUsers,
   getUserData,
+  inactiveUser,
   updateUserData,
 } from "./user.service.ts";
 
@@ -30,7 +32,12 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
 
 export const handleDeleteUser = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-
+  // check if the user is trying to delete their own account
+  if (req.user.sub !== req.params.id) {
+    return res
+      .status(403)
+      .json({ message: "Forbidden: You can only delete your own account." });
+  }
   await deleteUserData(req.user.sub);
 
   return res.status(200).json({ message: "User deleted successfully!" });
@@ -45,4 +52,36 @@ export const getAllUsers = async (req: Request, res: Response) => {
   return res
     .status(200)
     .json({ message: "Total users retrieved successfully!", totalUser });
+};
+
+export const activeUserController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Invalid or missing User ID." });
+    }
+    const user = await activeUser(id);
+
+    return res
+      .status(200)
+      .json({ message: "User activated successfully!", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
+};
+
+export const inactiveUserController = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    if (!id || typeof id !== "string") {
+      return res.status(400).json({ message: "Invalid or missing User ID." });
+    }
+    const user = await inactiveUser(id);
+
+    return res
+      .status(200)
+      .json({ message: "User deactivated successfully!", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
 };

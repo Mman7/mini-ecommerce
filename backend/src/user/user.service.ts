@@ -39,3 +39,21 @@ export const getTotalUsers = async () => {
   const totalUsers = await prisma.user.count();
   return totalUsers;
 };
+
+export const activeUser = async (userId: string) => {
+  // update user status to active in the database using prisma
+  const user = await prisma.user.update({
+    where: { userId },
+    data: { isActive: true },
+  });
+  return user;
+};
+
+export const inactiveUser = async (userId: string) => {
+  // update user status to inactive in the database using prisma
+  const user = await prisma.user.update({
+    where: { userId },
+    data: { isActive: false },
+  });
+  return user;
+};

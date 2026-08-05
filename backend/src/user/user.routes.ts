@@ -3,16 +3,25 @@ import {
   handleMe,
   handleUpdateUser,
   handleDeleteUser,
+  activeUserController,
+  inactiveUserController,
+  getAllUsers,
 } from "./user.controller.ts";
 import { authMiddleware, isAdmin } from "../middleware/authMiddleware.ts";
-import { getTotalUsers } from "./user.service.ts";
 
 const userRoute = Router();
 
 userRoute.get("/me", authMiddleware, handleMe);
 userRoute.patch("/:id/profile", authMiddleware, handleUpdateUser);
 userRoute.delete("/:id/profile", authMiddleware, handleDeleteUser);
-userRoute.get("/profile", authMiddleware, isAdmin, getTotalUsers);
+userRoute.get("/profile", authMiddleware, isAdmin, getAllUsers);
+userRoute.patch("/:id/activate", authMiddleware, isAdmin, activeUserController);
+userRoute.patch(
+  "/:id/deactivate",
+  authMiddleware,
+  isAdmin,
+  inactiveUserController,
+);
 // route to controller
 
 export default userRoute;
