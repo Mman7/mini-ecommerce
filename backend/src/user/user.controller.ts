@@ -7,6 +7,10 @@ import {
   inactiveUser,
   updateUserData,
 } from "./user.service.ts";
+import type {
+  ProductUpdateInput,
+  UserUpdateInput,
+} from "../generated/prisma/models.ts";
 
 // RUD ---------------------------------------------------------------------------------
 export const handleMe = async (req: Request, res: Response) => {
@@ -24,10 +28,37 @@ export const handleMe = async (req: Request, res: Response) => {
 export const handleUpdateUser = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-  const updatePayload = req.body;
-  await updateUserData(req.user.sub, updatePayload);
+  const { name, email, deliveryAddress, phoneNumber }: UserUpdateInput =
+    req.body;
 
-  return res.status(200).json({ message: "User updated successfully!" });
+  if (!name && !email && !deliveryAddress && !phoneNumber) {
+    return res
+      .status(400)
+      .json({ message: "At least one field must be provided for update" });
+  }
+  const updateData: UserUpdateInput = {};
+  // include only the fields that are provided in the request body
+  if (name !== undefined) updateData.name = name;
+  if (email !== undefined) updateData.email = email;
+  if (deliveryAddress !== undefined)
+    updateData.deliveryAddress = deliveryAddress;
+  if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+
+  if (Object.keys(updateData).length === 0) {
+    return res
+      .status(400)
+      .json({ message: "At least one field must be provided for update" });
+  }
+
+  try {
+    const updatedData = await updateUserData(req.user.sub, updateData);
+
+    return res
+      .status(200)
+      .json({ message: "User updated successfully!", updatedData });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
 };
 
 export const handleDeleteUser = async (req: Request, res: Response) => {

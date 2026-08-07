@@ -1,4 +1,5 @@
 import { prisma } from "../utils/prisma.ts";
+import type { UserUpdateInput } from "../generated/prisma/models.ts";
 
 export const getUserData = async (accessTokenSub: string) => {
   // get data from database using prisma
@@ -19,7 +20,7 @@ export const getUserData = async (accessTokenSub: string) => {
 
 export const updateUserData = async (
   accessTokenSub: string,
-  updatePayload: Record<string, unknown>,
+  updatePayload: UserUpdateInput,
 ) => {
   const user = await prisma.user.update({
     where: { userId: accessTokenSub },

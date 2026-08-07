@@ -12,8 +12,8 @@ import { authMiddleware, isAdmin } from "../middleware/authMiddleware.ts";
 const userRoute = Router();
 
 userRoute.get("/me", authMiddleware, handleMe);
-userRoute.patch("/:id/profile", authMiddleware, handleUpdateUser);
-userRoute.delete("/:id/profile", authMiddleware, handleDeleteUser);
+userRoute.patch("/profile", authMiddleware, handleUpdateUser);
+userRoute.delete("/profile", authMiddleware, handleDeleteUser);
 userRoute.get("/profile", authMiddleware, isAdmin, getAllUsers);
 userRoute.patch("/:id/activate", authMiddleware, isAdmin, activeUserController);
 userRoute.patch(
