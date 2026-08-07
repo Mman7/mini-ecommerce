@@ -129,13 +129,18 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
   if (!refreshToken) return res.status(401).json({ message: "Unauthorized" });
 
   try {
-    const { accessToken } = await refreshAccessToken(refreshToken);
+    const { accessToken, refreshToken: newRefreshToken } =
+      await refreshAccessToken(refreshToken);
 
     return res
       .status(200)
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
         maxAge: accessTokenExpiresIn, // 15 mins
+      })
+      .cookie("refreshToken", newRefreshToken, {
+        ...COOKIE_OPTIONS,
+        maxAge: refreshTokenExpiresIn, // 7 days
       })
       .json({ message: "Token refreshed successfully!" });
   } catch (error: any) {
