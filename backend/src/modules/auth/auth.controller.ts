@@ -5,7 +5,10 @@ import {
   logoutAccount,
   refreshAccessToken,
 } from "./auth.service.ts";
-import { accessTokenExpiresIn, refreshTokenExpiresIn } from "../utils/jwt.ts";
+import {
+  accessTokenExpiresIn,
+  refreshTokenExpiresIn,
+} from "../../utils/jwt.ts";
 // info after build auth, add simple validation using zod
 
 interface RegisterBody {

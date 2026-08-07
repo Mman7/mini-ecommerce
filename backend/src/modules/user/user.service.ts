@@ -1,5 +1,5 @@
-import { prisma } from "../utils/prisma.ts";
-import type { UserUpdateInput } from "../generated/prisma/models.ts";
+import { prisma } from "../../utils/prisma.ts";
+import type { UserUpdateInput } from "../../generated/prisma/models.ts";
 
 export const getUserData = async (accessTokenSub: string) => {
   // get data from database using prisma

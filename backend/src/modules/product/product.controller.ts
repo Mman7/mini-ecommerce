@@ -1,7 +1,7 @@
 import type { Request, Response } from "express";
 import * as productService from "./product.service.ts";
-import type { Product, ProductSearchQuery } from "../types/product.js";
-import type { ProductUpdateInput } from "../generated/prisma/models.ts";
+import type { Product, ProductSearchQuery } from "../../types/product.js";
+import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
 export const createProduct = async (req: Request, res: Response) => {
   const { name, description, price } = req.body;

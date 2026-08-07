@@ -1,14 +1,12 @@
-import { comparePassword, hashPassword } from "../utils/password.ts";
-import { prisma } from "../utils/prisma.ts";
+import { comparePassword, hashPassword } from "../../utils/password.ts";
+import { prisma } from "../../utils/prisma.ts";
 import {
   signAccessToken,
   saveRefreshToken,
   signRefreshToken,
   validateUserRefreshToken,
-  getUserRefreshToken,
   deleteRefreshToken,
-} from "../utils/jwt.ts";
-import type { UserData } from "../interfaces/user.interface.ts";
+} from "../../utils/jwt.ts";
 
 interface ServiceResponse {
   msg: string;

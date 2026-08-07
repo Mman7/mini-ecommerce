@@ -1,7 +1,7 @@
 import { Router } from "express";
-import authRoutes from "./auth/auth.routes.ts";
-import userRoute from "./user/user.routes.ts";
-import productRoutes from "./product/product.route.ts";
+import authRoutes from "./modules/auth/auth.routes.ts";
+import userRoute from "./modules/user/user.routes.ts";
+import productRoutes from "./modules/product/product.route.ts";
 
 // Main router to aggregate all sub-routers
 const mainRouter = Router();

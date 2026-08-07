@@ -7,10 +7,7 @@ import {
   inactiveUser,
   updateUserData,
 } from "./user.service.ts";
-import type {
-  ProductUpdateInput,
-  UserUpdateInput,
-} from "../generated/prisma/models.ts";
+import type { UserUpdateInput } from "../../generated/prisma/models.ts";
 
 // RUD ---------------------------------------------------------------------------------
 export const handleMe = async (req: Request, res: Response) => {

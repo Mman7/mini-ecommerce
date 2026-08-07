@@ -7,7 +7,7 @@ import {
   inactiveUserController,
   getAllUsers,
 } from "./user.controller.ts";
-import { authMiddleware, isAdmin } from "../middleware/authMiddleware.ts";
+import { authMiddleware, isAdmin } from "../../middleware/authMiddleware.ts";
 
 const userRoute = Router();
 
