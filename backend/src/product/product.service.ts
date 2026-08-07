@@ -1,5 +1,6 @@
 import { prisma } from "../utils/prisma.ts";
-import type { Product, ProductUpdate } from "../types/product.js";
+import type { Product, ProductSearchQuery } from "../types/product.js";
+import type { ProductUpdateInput } from "../generated/prisma/models.ts";
 export const createProduct = ({ name, description, price }: Product) => {
   return prisma.product.create({
     data: {
@@ -16,17 +17,29 @@ export const getProductById = (id: number) => {
   });
 };
 
-export const getProducts = (page: number, limit: number) => {
+export const getProducts = ({
+  page,
+  limit,
+  maxPrice,
+  minPrice,
+  name,
+}: ProductSearchQuery) => {
   return prisma.product.findMany({
     skip: (page - 1) * limit,
     take: limit,
+    where: {
+      AND: [
+        { name: { contains: name, mode: "insensitive" } },
+        { price: { gte: minPrice ?? 0, lte: maxPrice ?? Number.MAX_VALUE } },
+      ],
+    },
     orderBy: {
       productId: "asc",
     },
   });
 };
 
-export const updateProductById = (id: number, data: ProductUpdate) => {
+export const updateProductById = (id: number, data: ProductUpdateInput) => {
   return prisma.product.update({
     where: { productId: id },
     data,

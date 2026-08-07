@@ -10,9 +10,8 @@ productRoutes.post(
   isAdmin,
   productController.createProduct,
 );
+productRoutes.get("/", productController.getProducts);
 productRoutes.get("/:id", productController.getProduct);
-productRoutes.get("/", productController.getProductsFromTo);
-productRoutes.get("/search", productController.searchProductsByName);
 productRoutes.get("/totalCount", productController.getProductsCount);
 productRoutes.patch(
   "/:id",

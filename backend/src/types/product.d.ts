@@ -3,10 +3,13 @@ export type Product = {
   name: string;
   description: string;
   price: number;
+  isActive?: boolean;
 };
 
-export type ProductUpdate = {
-  name?: string;
-  description?: string;
-  price?: number;
+export type ProductSearchQuery = {
+  page: number;
+  limit: number;
+  name: string;
+  minPrice?: number;
+  maxPrice?: number;
 };
