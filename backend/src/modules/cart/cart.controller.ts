@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import * as CartService from "./cart.service.ts";
 import type { CartItem } from "../../types/cart.d.ts";
+import * as ProductService from "../product/product.service.ts";
 
 export const getCart = async (req: Request, res: Response) => {
   const { user } = req;
@@ -23,27 +24,36 @@ export const addToCart = async (req: Request, res: Response) => {
     return res.status(401).json({ message: "Unauthorized" });
   }
   try {
-    // const userCart = await CartService.getCart(user.userId);
     const { item }: { item: CartItem } = req.body;
     if (!item) {
       return res.status(400).json({ message: "Item is required" });
     }
+    // check product exits
+    const product = await ProductService.getProductById(item.productId);
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
     // check if the item already exists in the cart
     const existingItem = await CartService.getCartItem(
       user.userId,
       item.productId,
     );
-    // if the item already exists, return an error
+    // if the item already exists, add the quantity to the existing item instead of creating a new one
     if (existingItem) {
-      return res
-        .status(400)
-        .json({ message: "Item already exists in the cart" });
+      const updatedCart = await CartService.updateCartItem({
+        userId: user.userId,
+        itemId: existingItem.id,
+        quantity: existingItem.quantity + item.quantity,
+      });
+      return res.status(200).json(updatedCart);
     }
 
     const updatedCart = await CartService.addCartItem(user.userId, item);
-    return res.status(200).json(updatedCart);
+    return res
+      .status(200)
+      .json({ msg: "Item added to cart", cart: updatedCart });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ message: "Internal server error" });
   }
 };
@@ -64,6 +74,14 @@ export const updateCartItem = async (req: Request, res: Response) => {
 
   if (quantity === undefined) {
     return res.status(400).json({ message: "Quantity is required" });
+  }
+  // check if the item exists in the cart
+  const existingItem = await CartService.getCartItem(
+    user.userId,
+    parseInt(itemId),
+  );
+  if (!existingItem) {
+    return res.status(404).json({ message: "Item not found in cart" });
   }
 
   try {
@@ -92,6 +110,14 @@ export const deleteCartItem = async (req: Request, res: Response) => {
   }
 
   try {
+    // check if the item exists in the cart
+    const existingItem = await CartService.getCartItem(
+      user.userId,
+      parseInt(itemId),
+    );
+    if (!existingItem) {
+      return res.status(404).json({ message: "Item not found in cart" });
+    }
     const updatedCart = await CartService.deleteCartItem({
       userId: user.userId,
       itemId,
