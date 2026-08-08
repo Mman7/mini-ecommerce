@@ -7,12 +7,16 @@ export const handleMe = async (req: Request, res: Response) => {
   // check user cookies and return authorized user info
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-  const { userId } = req.user;
-  const user = await userService.getUserData(req.user.userId);
+  try {
+    const { userId } = req.user;
+    const user = await userService.getUserData(userId);
 
-  return res
-    .status(200)
-    .json({ message: "User info retrieved successfully!", user });
+    return res
+      .status(200)
+      .json({ message: "User info retrieved successfully!", user });
+  } catch (error) {
+    return res.status(500).json({ message: "Internal server error", error });
+  }
 };
 
 export const handleUpdateUser = async (req: Request, res: Response) => {
