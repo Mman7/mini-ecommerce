@@ -21,30 +21,23 @@ const cartItemSelect = {
 } as const;
 
 export const getCartProducts = async (userId: string) => {
-  try {
-    const cartProducts = await prisma.cart.findUnique({
-      where: {
-        userId: userId,
-      },
-      select: cartItemSelect,
-    });
-
-    return cartProducts;
-  } catch (error) {
-    throw new Error("Failed to retrieve cart products");
-  }
+  return prisma.cart.findUnique({
+    where: {
+      userId,
+    },
+    select: cartItemSelect,
+  });
 };
 
 const createCart = async (userId: string, data: CartItem[]) => {
-  const cart = await prisma.cart.create({
+  return prisma.cart.create({
     data: {
-      userId: userId,
+      userId,
       items: {
         create: data,
       },
     },
   });
-  return cart;
 };
 
 export const getCartItem = async (userId: string, itemId: string) => {
@@ -73,47 +66,42 @@ export const updateCartItem = async ({
   itemId: string;
   quantity: number;
 }) => {
-  try {
-    const cart = await prisma.cart.update({
-      where: {
-        userId: userId,
-      },
-      data: {
-        items: {
-          update: {
-            where: {
-              id: itemId,
-            },
-            data: {
-              quantity: quantity,
-            },
+  return prisma.cart.update({
+    where: {
+      userId,
+    },
+    data: {
+      items: {
+        update: {
+          where: {
+            id: itemId,
+          },
+          data: {
+            quantity,
           },
         },
       },
-      select: cartItemSelect,
-    });
-    return cart;
-  } catch (error) {
-    throw new Error("Failed to update cart item");
-  }
+    },
+    select: cartItemSelect,
+  });
 };
 
 export const addCartItem = async (userId: string, item: CartItem) => {
-  const cart = await getCartProducts(userId);
-  if (!cart) {
-    return createCart(userId, [item]);
-  }
-  if (item.quantity <= 0 || !item.quantity) {
+  if (item.quantity <= 0) {
     throw new Error("Quantity must be greater than zero");
   }
 
-  // check if the item already exists in the cart
+  const cart = await getCartProducts(userId);
+
+  if (!cart) {
+    return createCart(userId, [item]);
+  }
+
   const existingItem = cart.items.find(
     (cartItem) => cartItem.productId === item.productId,
   );
 
   if (existingItem) {
-    // If the item already exists, update its quantity
     return updateCartItem({
       userId,
       itemId: existingItem.id,
@@ -123,7 +111,7 @@ export const addCartItem = async (userId: string, item: CartItem) => {
 
   return prisma.cart.update({
     where: {
-      userId: userId,
+      userId,
     },
     data: {
       items: {
@@ -141,43 +129,34 @@ export const deleteCartItem = async ({
   userId: string;
   itemId: string;
 }) => {
-  try {
-    // validate if the cart exists for the user
-    await getCartItem(userId, itemId);
-    const updatedCart = await prisma.cart.update({
-      where: {
-        userId: userId,
-      },
-      data: {
-        items: {
-          delete: {
-            id: itemId,
-          },
+  // Check if the item exists in the cart before attempting to delete it
+  await getCartItem(userId, itemId);
+
+  return prisma.cart.update({
+    where: {
+      userId,
+    },
+    data: {
+      items: {
+        delete: {
+          id: itemId,
         },
       },
-      select: cartItemSelect,
-    });
-    return updatedCart;
-  } catch (error) {
-    throw new Error("Failed to delete cart item");
-  }
+    },
+    select: cartItemSelect,
+  });
 };
 
 export const clearCart = async (userId: string) => {
-  try {
-    const updatedCart = await prisma.cart.update({
-      where: {
-        userId: userId,
+  return prisma.cart.update({
+    where: {
+      userId,
+    },
+    data: {
+      items: {
+        deleteMany: {},
       },
-      data: {
-        items: {
-          deleteMany: {},
-        },
-      },
-      select: cartItemSelect,
-    });
-    return updatedCart;
-  } catch (error) {
-    throw new Error("Failed to clear cart");
-  }
+    },
+    select: cartItemSelect,
+  });
 };

@@ -12,7 +12,7 @@ productRoutes.post(
 );
 productRoutes.get("/", productController.getProducts);
 productRoutes.get("/:id", productController.getProduct);
-productRoutes.get("/totalCount", productController.getProductsCount);
+productRoutes.get("/count", productController.getProductsCount);
 productRoutes.patch(
   "/:id",
   authMiddleware,
