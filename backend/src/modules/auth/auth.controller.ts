@@ -25,7 +25,7 @@ export const handleLogin = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email and password are required" });
 
   try {
-    const { accessToken, refreshToken } = await authService.loginAccount(
+    const { accessToken, refreshToken, user } = await authService.loginAccount(
       email,
       password,
     );
@@ -39,7 +39,7 @@ export const handleLogin = async (req: Request, res: Response) => {
         maxAge: refreshTokenExpiresIn, // 7 days
       })
       .status(200)
-      .json({ message: "Login successful!" });
+      .json({ message: "Login successful!", user });
   } catch (error: Error | any) {
     if (error.message === "Invalid email or password") {
       return res.status(401).json({ message: "Invalid email or password" });

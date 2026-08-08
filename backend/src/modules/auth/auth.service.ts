@@ -7,9 +7,14 @@ import {
   validateUserRefreshToken,
   deleteRefreshToken,
 } from "../../utils/jwt.ts";
+import type {
+  AuthUserData,
+  UserData,
+} from "../../interfaces/user.interface.ts";
 
 interface ServiceResponse {
   msg: string;
+  user?: Partial<UserData>;
   accessToken?: string;
   refreshToken?: string;
 }
@@ -55,6 +60,7 @@ export async function registerAccount(
 
   return {
     msg: "Register successful!",
+    user,
     accessToken,
     refreshToken,
   };
@@ -85,7 +91,7 @@ export async function loginAccount(
   if (passwordMatch) {
     // Generate access token and refresh token
     const accessToken = signAccessToken({
-      sub: user.userId,
+      sub: user.userId.toString(),
       role: user.role,
       email: user.email,
       name: user.name,
@@ -94,8 +100,16 @@ export async function loginAccount(
     const refreshToken = signRefreshToken(user.userId);
     await saveRefreshToken(refreshToken, user.userId);
 
+    const buildUserData: AuthUserData = {
+      userId: user.userId.toString(),
+      role: user.role,
+      email: user.email,
+      name: user.name,
+    };
+
     return {
       msg: "Login successful!",
+      user: buildUserData,
       accessToken,
       refreshToken,
     };
