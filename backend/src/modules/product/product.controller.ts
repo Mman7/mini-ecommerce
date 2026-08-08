@@ -12,6 +12,12 @@ export const createProduct = async (req: Request, res: Response) => {
       .json({ error: "Name, description, and price are required" });
   }
 
+  if (typeof price !== "number" || price < 0) {
+    return res
+      .status(400)
+      .json({ error: "Price must be a non-negative number" });
+  }
+
   const productData: Product = {
     name,
     description,
