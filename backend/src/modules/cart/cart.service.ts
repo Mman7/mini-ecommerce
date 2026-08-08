@@ -20,7 +20,7 @@ const cartItemSelect = {
   },
 } as const;
 
-export const getCartProducts = async (userId: string) => {
+export const getCartItems = async (userId: string) => {
   return prisma.cart.findUnique({
     where: {
       userId,
@@ -40,13 +40,13 @@ const createCart = async (userId: string, data: CartItem[]) => {
   });
 };
 
-export const getCartItem = async (userId: string, itemId: string) => {
+export const getCartItem = async (userCartId: string, productId: number) => {
   const item = await prisma.cartItem.findFirst({
     where: {
-      id: itemId,
       cart: {
-        userId,
+        userId: userCartId,
       },
+      productId,
     },
   });
 
@@ -91,24 +91,6 @@ export const addCartItem = async (userId: string, item: CartItem) => {
     throw new Error("Quantity must be greater than zero");
   }
 
-  const cart = await getCartProducts(userId);
-
-  if (!cart) {
-    return createCart(userId, [item]);
-  }
-
-  const existingItem = cart.items.find(
-    (cartItem) => cartItem.productId === item.productId,
-  );
-
-  if (existingItem) {
-    return updateCartItem({
-      userId,
-      itemId: existingItem.id,
-      quantity: existingItem.quantity + item.quantity,
-    });
-  }
-
   return prisma.cart.update({
     where: {
       userId,
@@ -130,7 +112,7 @@ export const deleteCartItem = async ({
   itemId: string;
 }) => {
   // Check if the item exists in the cart before attempting to delete it
-  await getCartItem(userId, itemId);
+  await getCartItems(userId);
 
   return prisma.cart.update({
     where: {

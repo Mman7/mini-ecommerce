@@ -10,7 +10,7 @@ export const getCart = async (req: Request, res: Response) => {
   }
 
   try {
-    const cart = (await CartService.getCartProducts(user.userId)) ?? [];
+    const cart = (await CartService.getCartItems(user.userId)) ?? [];
     return res.status(200).json(cart);
   } catch (error) {
     return res.status(500).json({ message: "Internal server error" });
@@ -28,6 +28,18 @@ export const addToCart = async (req: Request, res: Response) => {
     if (!item) {
       return res.status(400).json({ message: "Item is required" });
     }
+    // check if the item already exists in the cart
+    const existingItem = await CartService.getCartItem(
+      user.userId,
+      item.productId,
+    );
+    // if the item already exists, return an error
+    if (existingItem) {
+      return res
+        .status(400)
+        .json({ message: "Item already exists in the cart" });
+    }
+
     const updatedCart = await CartService.addCartItem(user.userId, item);
     return res.status(200).json(updatedCart);
   } catch (error) {
