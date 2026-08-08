@@ -19,6 +19,7 @@ model User {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   refreshTokens   RefreshToken[]
+  carts           Cart[]
 }
 
 model RefreshToken {
@@ -41,6 +42,7 @@ model Product {
   categoryId  Int?
   inventory   Inventory?
   category    Category?  @relation(fields: [categoryId], references: [categoryId], onDelete: Cascade)
+  cartItems   CartItem[]
 }
 
 model Inventory {
@@ -59,6 +61,26 @@ model Category {
   createdAt  DateTime  @default(now())
   updatedAt  DateTime  @updatedAt
   products   Product[]
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  productId Int
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  cart      Cart     @relation(fields: [cartId], references: [cartId], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [productId], onDelete: Cascade)
+}
+
+model Cart {
+  cartId    String     @id @default(cuid())
+  userId    String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  user      User       @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  items     CartItem[]
 }
 
 enum Role {

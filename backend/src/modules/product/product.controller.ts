@@ -12,19 +12,20 @@ export const createProduct = async (req: Request, res: Response) => {
       .json({ error: "Name, description, and price are required" });
   }
 
-  if (typeof price !== "number" || price < 0) {
-    return res
-      .status(400)
-      .json({ error: "Price must be a non-negative number" });
-  }
-
-  const productData: Product = {
-    name,
-    description,
-    price,
-  };
-
   try {
+    // try parse price to number
+    const parsedPrice = Number(price);
+    if (isNaN(parsedPrice) || parsedPrice < 0) {
+      return res
+        .status(400)
+        .json({ error: "Price must be a non-negative number" });
+    }
+
+    const productData: Product = {
+      name,
+      description,
+      price: parsedPrice,
+    };
     const product = await productService.createProduct(productData);
     return res.status(201).json(product);
   } catch (error) {

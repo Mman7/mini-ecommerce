@@ -1,9 +1,10 @@
 import { prisma } from "../../utils/prisma.ts";
 import type { UserUpdateInput } from "../../generated/prisma/models.ts";
+import type { AuthUserData } from "../../interfaces/user.interface.ts";
 
 export const getUserData = async (accessTokenSub: string) => {
   // get data from database using prisma
-  const user = await prisma.user.findUnique({
+  const user: AuthUserData | null = await prisma.user.findUnique({
     where: { userId: accessTokenSub },
     select: {
       userId: true,

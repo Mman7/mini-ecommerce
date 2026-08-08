@@ -1,11 +1,11 @@
-import type { JwtPayload } from "../interfaces/jwtpayload.interface.ts";
+import type { AuthUserData, UserData } from "../interfaces/user.interface.ts";
 import { verifyAccessToken } from "../utils/jwt.ts";
 import type { Request, Response, NextFunction } from "express";
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload;
+      user?: AuthUserData;
     }
   }
 }
@@ -24,7 +24,13 @@ export function authMiddleware(
   try {
     // Verify the access token and decode it
     const decoded = verifyAccessToken(accessToken);
-    req.user = decoded; // Attach the decoded payload to the request object
+    const userData: AuthUserData = {
+      userId: decoded.sub,
+      role: decoded.role,
+      name: decoded.name,
+      email: decoded.email,
+    };
+    req.user = userData; // Attach the decoded payload to the request object
     next();
   } catch {
     return res.status(401).json({ message: "Invalid token" });
