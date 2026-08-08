@@ -1,12 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  activeUser,
-  deleteUserData,
-  getTotalUsers,
-  getUserData,
-  inactiveUser,
-  updateUserData,
-} from "./user.service.ts";
+import * as userService from "./user.service.ts";
 import type { UserUpdateInput } from "../../generated/prisma/models.ts";
 
 // RUD ---------------------------------------------------------------------------------
@@ -14,8 +7,8 @@ export const handleMe = async (req: Request, res: Response) => {
   // check user cookies and return authorized user info
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
 
-  const { sub } = req.user;
-  const user = await getUserData(sub);
+  const { userId } = req.user;
+  const user = await userService.getUserData(req.user.userId);
 
   return res
     .status(200)
@@ -48,7 +41,10 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const updatedData = await updateUserData(req.user.sub, updateData);
+    const updatedData = await userService.updateUserData(
+      req.user.userId,
+      updateData,
+    );
 
     return res
       .status(200)
@@ -61,12 +57,12 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
 export const handleDeleteUser = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
   // check if the user is trying to delete their own account
-  if (req.user.sub !== req.params.id) {
+  if (req.user.userId !== req.params.id) {
     return res
       .status(403)
       .json({ message: "Forbidden: You can only delete your own account." });
   }
-  await deleteUserData(req.user.sub);
+  await userService.deleteUserData(req.user.userId);
 
   return res.status(200).json({ message: "User deleted successfully!" });
 };
@@ -75,7 +71,7 @@ export const handleDeleteUser = async (req: Request, res: Response) => {
 
 // admin only
 export const getAllUsers = async (req: Request, res: Response) => {
-  const totalUser = await getTotalUsers();
+  const totalUser = await userService.getTotalUsers();
 
   return res
     .status(200)
@@ -88,7 +84,7 @@ export const activeUserController = async (req: Request, res: Response) => {
     if (!id || typeof id !== "string") {
       return res.status(400).json({ message: "Invalid or missing User ID." });
     }
-    const user = await activeUser(id);
+    const user = await userService.activeUser(id);
 
     return res
       .status(200)
@@ -104,7 +100,7 @@ export const inactiveUserController = async (req: Request, res: Response) => {
     if (!id || typeof id !== "string") {
       return res.status(400).json({ message: "Invalid or missing User ID." });
     }
-    const user = await inactiveUser(id);
+    const user = await userService.inactiveUser(id);
 
     return res
       .status(200)

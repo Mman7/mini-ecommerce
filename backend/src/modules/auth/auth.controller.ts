@@ -1,10 +1,5 @@
 import type { Request, Response } from "express";
-import {
-  registerAccount,
-  loginAccount,
-  logoutAccount,
-  refreshAccessToken,
-} from "./auth.service.ts";
+import * as authService from "./auth.service.ts";
 import {
   accessTokenExpiresIn,
   refreshTokenExpiresIn,
@@ -30,7 +25,10 @@ export const handleLogin = async (req: Request, res: Response) => {
     return res.status(400).json({ message: "Email and password are required" });
 
   try {
-    const { accessToken, refreshToken } = await loginAccount(email, password);
+    const { accessToken, refreshToken } = await authService.loginAccount(
+      email,
+      password,
+    );
     return res
       .cookie("accessToken", accessToken, {
         ...COOKIE_OPTIONS,
@@ -44,11 +42,11 @@ export const handleLogin = async (req: Request, res: Response) => {
       .json({ message: "Login successful!" });
   } catch (error: Error | any) {
     if (error.message === "Invalid email or password") {
-      return res.status(401).json({ message: error.message });
+      return res.status(401).json({ message: "Invalid email or password" });
     }
-
+    console.log(error);
     // Fallback for other errors (e.g., missing credentials, database errors)
-    return res.status(400).json({ message: error.message });
+    return res.status(400).json({ message: "Bad request" });
   }
 };
 
@@ -61,7 +59,7 @@ export const handleLogout = async (req: Request, res: Response) => {
 
   try {
     // 1. removed refresh token from database
-    await logoutAccount(refreshToken);
+    await authService.logoutAccount(refreshToken);
 
     // 2 . clear cookies
     return res
@@ -92,7 +90,7 @@ export const handleRegister = async (req: Request, res: Response) => {
 
   try {
     // 2. Call the Service layer to create a user and generate tokens
-    const { accessToken, refreshToken } = await registerAccount(
+    const { accessToken, refreshToken } = await authService.registerAccount(
       name,
       password,
       email,
@@ -133,7 +131,7 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
 
   try {
     const { accessToken, refreshToken: newRefreshToken } =
-      await refreshAccessToken(refreshToken);
+      await authService.refreshAccessToken(refreshToken);
 
     return res
       .status(200)
