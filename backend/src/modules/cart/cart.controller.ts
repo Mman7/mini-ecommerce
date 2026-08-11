@@ -25,13 +25,28 @@ export const addToCart = async (req: Request, res: Response) => {
   }
   try {
     const { item }: { item: CartItem } = req.body;
-    if (!item) {
-      return res.status(400).json({ message: "Item is required" });
+    if (
+      !item ||
+      !Number.isInteger(item.productId) ||
+      !Number.isInteger(item.quantity) ||
+      item.quantity <= 0
+    ) {
+      return res
+        .status(400)
+        .json({ message: "Valid product and quantity are required" });
     }
     // check product exits
     const product = await ProductService.getProductById(item.productId);
     if (!product) {
       return res.status(404).json({ message: "Product not found" });
+    }
+    if (!product.isActive) {
+      return res.status(400).json({ message: "Product is inactive" });
+    }
+
+    const availableStock = await ProductService.getProductStock(item.productId);
+    if (availableStock < item.quantity) {
+      return res.status(400).json({ message: "Insufficient stock" });
     }
 
     // check if the item already exists in the cart
@@ -41,6 +56,10 @@ export const addToCart = async (req: Request, res: Response) => {
     );
     // if the item already exists, add the quantity to the existing item instead of creating a new one
     if (existingItem) {
+      const newQuantity = existingItem.quantity + item.quantity;
+      if (availableStock < newQuantity) {
+        return res.status(400).json({ message: "Insufficient stock" });
+      }
       const updatedCart = await CartService.updateCartItem({
         userId: user.userId,
         itemId: existingItem.id,
@@ -75,13 +94,22 @@ export const updateCartItem = async (req: Request, res: Response) => {
   if (quantity === undefined) {
     return res.status(400).json({ message: "Quantity is required" });
   }
+  if (!Number.isInteger(quantity) || quantity <= 0) {
+    return res
+      .status(400)
+      .json({ message: "Quantity must be greater than zero" });
+  }
   // check if the item exists in the cart
-  const existingItem = await CartService.getCartItem(
-    user.userId,
-    parseInt(itemId),
-  );
+  const existingItem = await CartService.getCartItemById(user.userId, itemId);
   if (!existingItem) {
     return res.status(404).json({ message: "Item not found in cart" });
+  }
+
+  const availableStock = await ProductService.getProductStock(
+    existingItem.productId,
+  );
+  if (quantity > availableStock) {
+    return res.status(400).json({ message: "Insufficient stock" });
   }
 
   try {
@@ -111,10 +139,7 @@ export const deleteCartItem = async (req: Request, res: Response) => {
 
   try {
     // check if the item exists in the cart
-    const existingItem = await CartService.getCartItem(
-      user.userId,
-      parseInt(itemId),
-    );
+    const existingItem = await CartService.getCartItemById(user.userId, itemId);
     if (!existingItem) {
       return res.status(404).json({ message: "Item not found in cart" });
     }

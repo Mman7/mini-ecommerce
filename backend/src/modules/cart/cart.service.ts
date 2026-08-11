@@ -50,11 +50,16 @@ export const getCartItem = async (userCartId: string, productId: number) => {
     },
   });
 
-  if (!item) {
-    throw new Error("Cart item not found");
-  }
-
   return item;
+};
+
+export const getCartItemById = async (userId: string, itemId: string) => {
+  return prisma.cartItem.findFirst({
+    where: {
+      id: itemId,
+      cart: { userId },
+    },
+  });
 };
 
 export const updateCartItem = async ({
@@ -91,17 +96,23 @@ export const addCartItem = async (userId: string, item: CartItem) => {
     throw new Error("Quantity must be greater than zero");
   }
 
-  return prisma.cart.update({
-    where: {
+  const cart = await prisma.cart.upsert({
+    where: { userId },
+    create: {
       userId,
+      items: {
+        create: [item],
+      },
     },
-    data: {
+    update: {
       items: {
         create: [item],
       },
     },
     select: cartItemSelect,
   });
+
+  return cart;
 };
 
 export const deleteCartItem = async ({

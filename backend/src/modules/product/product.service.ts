@@ -23,6 +23,15 @@ export const getProductById = (id: number) => {
   });
 };
 
+export const getProductStock = async (id: number) => {
+  const inventory = await prisma.inventory.findUnique({
+    where: { productId: id },
+    select: { stock: true },
+  });
+
+  return inventory?.stock ?? 0;
+};
+
 export const getProducts = ({
   page,
   limit,

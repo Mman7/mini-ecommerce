@@ -1,7 +1,6 @@
 import type { OrderItemInput } from "../../types/order.js";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
-import * as inventoryService from "../inventory/inventory.service.ts";
 
 /* 
 Order Flow
@@ -9,58 +8,66 @@ Pending → Paid → Processing → Shipped → Delivered
 */
 
 export const createOrder = async (userId: string, items: OrderItemInput[]) => {
-  const productsWithPrices = await Promise.all(
-    items.map(async (item) => {
-      const [stock, product] = await Promise.all([
-        // Check if the product exists in the inventory and more than quantity is available
-        inventoryService.getCurrentStock(item.productId),
-        prisma.product.findUnique({
-          where: { productId: item.productId },
-          select: { price: true },
-        }),
-      ]);
+  if (
+    items.length === 0 ||
+    items.some(
+      (item) =>
+        !Number.isInteger(item.productId) ||
+        !Number.isInteger(item.quantity) ||
+        item.quantity <= 0,
+    )
+  ) {
+    throw new Error("Each order item must have a valid product and quantity");
+  }
 
-      if (!product) {
-        throw new Error(`Product ${item.productId} not found`);
+  return prisma.$transaction(async (transaction) => {
+    const productsWithPrices = [];
+
+    for (const item of items) {
+      const product = await transaction.product.findUnique({
+        where: { productId: item.productId },
+        select: { price: true, isActive: true },
+      });
+
+      if (!product) throw new Error(`Product ${item.productId} not found`);
+      if (!product.isActive) {
+        throw new Error(`Product ${item.productId} is inactive`);
       }
 
-      // Check if the stock is sufficient for the requested quantity
-      if (stock < item.quantity) {
-        throw new Error(
-          `Insufficient stock for product ${item.productId}. ` +
-            `Requested: ${item.quantity}, available: ${stock}`,
-        );
-      }
-
-      return {
-        ...item,
-        stock,
-        price: product.price,
-      };
-    }),
-  );
-
-  // Calculate total price of the order
-  const total = productsWithPrices.reduce(
-    (sum, item) => sum + Number(item.price) * item.quantity,
-    0,
-  );
-
-  const order = await prisma.order.create({
-    data: {
-      userId,
-      total,
-      orderItems: {
-        create: productsWithPrices.map((item) => ({
+      const stockUpdate = await transaction.inventory.updateMany({
+        where: {
           productId: item.productId,
-          quantity: item.quantity,
-          price: item.price, // unit price
-        })),
-      },
-    },
-  });
+          stock: { gte: item.quantity },
+        },
+        data: { stock: { decrement: item.quantity } },
+      });
 
-  return order;
+      if (stockUpdate.count !== 1) {
+        throw new Error(`Insufficient stock for product ${item.productId}`);
+      }
+
+      productsWithPrices.push({ ...item, price: product.price });
+    }
+
+    const total = productsWithPrices.reduce(
+      (sum, item) => sum + Number(item.price) * item.quantity,
+      0,
+    );
+
+    return transaction.order.create({
+      data: {
+        userId,
+        total,
+        orderItems: {
+          create: productsWithPrices.map((item) => ({
+            productId: item.productId,
+            quantity: item.quantity,
+            price: item.price,
+          })),
+        },
+      },
+    });
+  });
 };
 
 export const getOrderById = async (orderId: string) => {
@@ -78,25 +85,27 @@ export const getAllOrders = async () => {
 };
 
 export const cancelOrder = async (orderId: string, userId: string) => {
-  const order = await prisma.order.findUnique({
-    where: { id: orderId, userId },
+  return prisma.$transaction(async (transaction) => {
+    const order = await transaction.order.findUnique({
+      where: { id: orderId, userId },
+      include: { orderItems: true },
+    });
+
+    if (!order) throw new Error(`Order ${orderId} not found`);
+    if (order.status === OrderStatus.CANCELLED) {
+      throw new Error(`Order ${orderId} is already cancelled`);
+    }
+
+    for (const item of order.orderItems) {
+      await transaction.inventory.update({
+        where: { productId: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+
+    return transaction.order.update({
+      where: { id: orderId },
+      data: { status: OrderStatus.CANCELLED },
+    });
   });
-
-  if (!order) {
-    throw new Error(`Order ${orderId} not found`);
-  }
-  if (order.status === OrderStatus.CANCELLED) {
-    throw new Error(`Order ${orderId} is already cancelled`);
-  }
-  const cancelledOrder = await prisma.order.update({
-    where: { id: orderId },
-    data: { status: OrderStatus.CANCELLED },
-  });
-  // restore stock
-  await inventoryService.restoreStock(orderId);
-
-  // TODO try refund
-  await new Promise((resolve) => setTimeout(resolve, 3000)); // wait for 1 second to simulate refund processing
-
-  return cancelledOrder;
 };

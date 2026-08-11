@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware } from "../../middleware/authMiddleware.ts";
+import { authMiddleware, isAdmin } from "../../middleware/authMiddleware.ts";
 import * as categoryController from "./category.controller.ts";
 
 const categoryRouter = Router();
@@ -9,6 +9,7 @@ const categoryRouter = Router();
 categoryRouter.post(
   "/:categoryId/products/:productId",
   authMiddleware,
+  isAdmin,
   categoryController.addProductToCategory,
 );
 

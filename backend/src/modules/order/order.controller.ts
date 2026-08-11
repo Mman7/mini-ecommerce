@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import * as orderService from "./order.service.ts";
 import type { OrderItemInput } from "../../types/order.js";
+import { OrderStatus } from "../../enums/order_status.ts";
 
 export const createOrder = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
@@ -75,7 +76,10 @@ export const cancelOrder = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "Order ID is required" });
     }
     // remove these validation move to service layer
-    const validOrderStatuses = ["Pending", "Processing"];
+    const validOrderStatuses: string[] = [
+      OrderStatus.PENDING,
+      OrderStatus.PROCESSING,
+    ];
     // check order exists and if the order status is valid for cancellation
     const validOrder = await orderService.getOrderById(orderId);
     if (!validOrder) {
