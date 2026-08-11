@@ -10,7 +10,8 @@
 - Calculate Total
 - Save Product Price
 - Deduct Stock
-- Clear Cart
+- Validate Active Product
+- Atomic Order and Inventory Transaction
 
 ### Get Orders
 
@@ -36,8 +37,8 @@
 ### Admin
 
 - View All Orders
-- View Order Detail
-- Update Order Status
+- View Order Detail (TODO)
+- Update Order Status (TODO)
 
 ---
 
@@ -57,8 +58,11 @@
 10. Create Order
 11. Create Order Items
 12. Deduct Product Stock
-13. Clear Cart
-14. Return Order
+13. Return Order
+
+Order creation uses a database transaction. Product price is saved on each
+order item, and stock is decremented atomically only when enough stock is
+available.
 
 ---
 
@@ -100,21 +104,21 @@
 
 ## User
 
-POST /orders
+POST /api/orders
 
-GET /orders
+GET /api/orders/:orderId
 
-GET /orders/:id
+PATCH /api/orders/:orderId/cancel
 
-PATCH /orders/:id/cancel
+The user order-list endpoint is not implemented yet.
 
 ## Admin
 
-GET /admin/orders
+GET /api/admin/orders
 
-GET /admin/orders/:id
+GET /api/admin/orders/:id (TODO)
 
-PATCH /admin/orders/:id/status
+PATCH /api/admin/orders/:id/status (TODO)
 
 ---
 

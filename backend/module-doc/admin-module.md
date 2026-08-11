@@ -4,10 +4,10 @@
 
 ### Dashboard
 
-- View Total Users
-- View Total Products
 - View Total Orders
-- View Total Revenue (Optional)
+- View Total Revenue
+- Total users, products, categories, and inventory services exist but are not
+  exposed through a dashboard endpoint yet.
 
 ---
 
@@ -16,8 +16,8 @@
 - Create Product
 - Update Product
 - Delete Product
-- Activate Product
-- Deactivate Product
+- Activate Product through update (dedicated endpoint TODO)
+- Deactivate Product through update (dedicated endpoint TODO)
 
 ---
 
@@ -32,16 +32,16 @@
 ### Order Management
 
 - View All Orders
-- View Order Details
-- Update Order Status
-- Cancel Order
+- View Order Details (TODO)
+- Update Order Status (TODO)
+- Cancel Order (TODO)
 
 ---
 
 ### User Management
 
 - View Users
-- View User Details
+- View User Details (TODO)
 - Disable User
 - Enable User
 
@@ -56,18 +56,30 @@
 
 ## APIs
 
-- GET /admin/dashboard
+All admin routes are mounted under `/api/admin` and require authentication
+plus the `ADMIN` role.
 
-- GET /admin/products
-- POST /admin/products
-- PUT /admin/products/:id
-- DELETE /admin/products/:id
+- GET /api/admin/total-orders
+- GET /api/admin/total-revenue
 
-- GET /admin/categories
-- POST /admin/categories
+- POST /api/admin/products
+- PATCH /api/admin/products/:id
+- DELETE /api/admin/products/:id
 
-- GET /admin/orders
-- PUT /admin/orders/:id/status
+- POST /api/admin/categories
+- PATCH /api/admin/categories/:categoryId
+- DELETE /api/admin/categories/:categoryId
+- POST /api/admin/categories/:categoryId/products/:productId
+- DELETE /api/admin/categories/:categoryId/products/:productId
 
-- GET /admin/users
-- PUT /admin/users/:id/status
+- GET /api/admin/orders
+- GET /api/admin/users
+- PATCH /api/admin/users/:id/activate
+- PATCH /api/admin/users/:id/deactivate
+
+- POST /api/admin/inventory
+- PATCH /api/admin/inventory/:productId
+
+The dashboard, admin order detail/status/cancel endpoints, product list
+endpoint, user detail endpoint, and dedicated product status endpoints are
+not implemented yet.

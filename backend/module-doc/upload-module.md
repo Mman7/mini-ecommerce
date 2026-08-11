@@ -44,6 +44,9 @@
 
 ## APIs
 
+The upload module is not implemented yet. There is currently no upload route,
+controller, service, or storage integration in the backend.
+
 - POST /upload/image
 - DELETE /upload/image/:filename
 

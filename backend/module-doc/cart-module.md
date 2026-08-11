@@ -32,11 +32,17 @@
 
 ## APIs
 
-- POST /cart/items
-- GET /cart
-- PATCH /cart/items/:id
-- DELETE /cart/items/:id
-- DELETE /cart
+All routes are mounted under `/api/carts` and require authentication.
+
+- POST /api/carts
+- GET /api/carts
+- PATCH /api/carts/:itemId
+- DELETE /api/carts/:itemId
+- DELETE /api/carts
+
+The cart validates that the product exists, is active, has enough stock, and
+that the requested quantity is a positive integer. A cart is created
+automatically when a user adds the first item.
 
 ---
 
@@ -44,9 +50,10 @@
 
 carts
 
-- id
+- cart_id
 - user_id
 - created_at
+- updated_at
 
 cart_items
 
@@ -55,3 +62,4 @@ cart_items
 - product_id
 - quantity
 - created_at
+- updated_at

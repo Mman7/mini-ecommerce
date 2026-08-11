@@ -110,13 +110,14 @@ Stock = 10
 
 ## User
 
-- GET /products/:id/stock
+- GET /api/inventory/:productId
 
 ## Admin
 
-- GET /admin/inventory
-- PATCH /admin/inventory/:productId
-- GET /admin/inventory/:productId/history
+- POST /api/admin/inventory
+- PATCH /api/admin/inventory/:productId
+
+Inventory history and low-stock alerts are not implemented yet.
 
 ---
 
@@ -130,7 +131,7 @@ Stock = 10
 - stock
 - status
 
-## stock_movements
+## stock_movements (TODO)
 
 - id
 - product_id

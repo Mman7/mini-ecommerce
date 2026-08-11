@@ -109,11 +109,16 @@ GET /categories/:id/products
 
 ## Admin
 
-POST /categories
+POST /api/admin/categories
 
-PATCH /categories/:id
+PATCH /api/admin/categories/:categoryId
 
-DELETE /categories/:id
+DELETE /api/admin/categories/:categoryId
+
+Admin category routes require `authMiddleware` and `isAdmin`.
+
+- POST /api/admin/categories/:categoryId/products/:productId
+- DELETE /api/admin/categories/:categoryId/products/:productId
 
 ---
 

@@ -52,15 +52,18 @@
 
 ## APIs
 
-- POST /products
-- GET /products
-- GET /products/:id
-- PUT /products/:id
-- DELETE /products/:id
+- GET /api/products?page=&limit=
+- GET /api/products/:id
+- GET /api/products/count
 
-- GET /products?search=
-- GET /products?category=
-- GET /products?page=&limit=
+Admin product management requires `authMiddleware` and `isAdmin`:
+
+- POST /api/admin/products
+- PATCH /api/admin/products/:id
+- DELETE /api/admin/products/:id
+
+Name and price-range filtering are currently supported by the service layer,
+but category filtering and search query routes are not wired yet.
 
 ---
 
