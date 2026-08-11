@@ -3,16 +3,16 @@ import * as orderService from "./order.service.ts";
 import type { OrderItemInput } from "../../types/order.js";
 
 export const createOrder = async (req: Request, res: Response) => {
+  const { userId } = req.user as { userId: string };
+
   try {
-    const {
-      userId,
-      orderProduct,
-    }: { userId: string; orderProduct: OrderItemInput[] } = req.body;
+    const { orderProduct }: { userId: string; orderProduct: OrderItemInput[] } =
+      req.body;
 
     if (!userId || !orderProduct?.length) {
       return res
         .status(400)
-        .json({ error: "User ID, Product ID, and quantity are required" });
+        .json({ error: "Product ID, and quantity are required" });
     }
     // create order in the database
     const order = await orderService.createOrder(userId, orderProduct);
@@ -80,6 +80,12 @@ export const cancelOrder = async (req: Request, res: Response) => {
     const validOrder = await orderService.getOrderById(orderId);
     if (!validOrder) {
       return res.status(404).json({ error: "Order not found" });
+    }
+
+    if (validOrder.userId !== userId) {
+      return res
+        .status(403)
+        .json({ error: "You do not have permission to cancel this order" });
     }
     const order = validOrder;
 

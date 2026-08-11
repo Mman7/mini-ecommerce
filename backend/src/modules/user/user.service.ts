@@ -2,6 +2,11 @@ import { prisma } from "../../utils/prisma.ts";
 import type { UserUpdateInput } from "../../generated/prisma/models.ts";
 import type { AuthUserData } from "../../interfaces/user.interface.ts";
 
+export const getTotalUsers = async () => {
+  const totalUsers = await prisma.user.count();
+  return totalUsers;
+};
+
 export const getUserData = async (accessTokenSub: string) => {
   // get data from database using prisma
   const user: AuthUserData | null = await prisma.user.findUnique({
@@ -37,11 +42,6 @@ export const deleteUserData = async (accessTokenSub: string) => {
   return user;
 };
 
-export const getTotalUsers = async () => {
-  const totalUsers = await prisma.user.count();
-  return totalUsers;
-};
-
 export const activeUser = async (userId: string) => {
   // update user status to active in the database using prisma
   const user = await prisma.user.update({
@@ -58,4 +58,18 @@ export const inactiveUser = async (userId: string) => {
     data: { isActive: false },
   });
   return user;
+};
+
+export const getTotalActiveUsers = async () => {
+  const totalActiveUsers = await prisma.user.count({
+    where: { isActive: true },
+  });
+  return totalActiveUsers;
+};
+
+export const getTotalInactiveUsers = async () => {
+  const totalInactiveUsers = await prisma.user.count({
+    where: { isActive: false },
+  });
+  return totalInactiveUsers;
 };

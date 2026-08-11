@@ -1,6 +1,12 @@
 import { prisma } from "../../utils/prisma.ts";
 import type { Product, ProductSearchQuery } from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
+
+export const getTotalProducts = async () => {
+  const totalProducts = await prisma.product.count();
+  return totalProducts;
+};
+
 export const createProduct = ({ name, description, price }: Product) => {
   return prisma.product.create({
     data: {

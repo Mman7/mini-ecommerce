@@ -71,7 +71,7 @@ export const getOrderById = async (orderId: string) => {
   });
   return order;
 };
-
+// TODO later add filtering by userId and status
 export const getAllOrders = async () => {
   const orders = await prisma.order.findMany();
   return orders;

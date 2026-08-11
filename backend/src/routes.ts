@@ -6,6 +6,7 @@ import cartRoutes from "./modules/cart/cart.route.ts";
 import categoryRoutes from "./modules/category/category.route.ts";
 import inventoryRoutes from "./modules/inventory/inventory.route.ts";
 import orderRoutes from "./modules/order/order.route.ts";
+import adminRoute from "./modules/admin/admin.route.ts";
 
 // Main router to aggregate all sub-routers
 const mainRouter = Router();
@@ -19,5 +20,6 @@ mainRouter.use("/carts", cartRoutes);
 mainRouter.use("/categories", categoryRoutes);
 mainRouter.use("/inventory", inventoryRoutes);
 mainRouter.use("/orders", orderRoutes);
+mainRouter.use("/admin", adminRoute);
 
 export default mainRouter;

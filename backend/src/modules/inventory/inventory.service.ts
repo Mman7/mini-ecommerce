@@ -15,6 +15,11 @@ export const createStock = async (productId: number, stock: number) => {
   return inventory;
 };
 
+export const getTotalInventory = async () => {
+  const totalInventory = await prisma.inventory.findMany();
+  return totalInventory;
+};
+
 export const getCurrentStock = async (productId: number) => {
   const inventory = await prisma.inventory.findUnique({
     where: { productId },
