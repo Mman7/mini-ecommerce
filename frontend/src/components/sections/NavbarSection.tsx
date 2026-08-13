@@ -1,15 +1,22 @@
+"use client";
+
 import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 const navLinks = [
   { label: "Shop All", link: "/products" },
-  { label: "New Arrivals" },
-  { label: "Collectibles" },
-  { label: "Curated Sets" },
-  { label: "Journal" },
+  { label: "New Arrivals", link: "/products" },
+  { label: "Collectibles", link: "/products" },
+  { label: "Curated Sets", link: "/products" },
+  { label: "Journal", link: "/products" },
 ];
 
 export function NavbarSection() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/dashboard")) return null;
+
   return (
     <header className="fixed top-0 z-100 w-full">
       <nav className="bg-surface-1 border-surface-3 border-b">
@@ -49,25 +56,28 @@ export function NavbarSection() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <button
+          <div className="flex items-center gap-6">
+            <Link
+              href="/profile/wishlist"
               aria-label="Favorites"
-              className="text-text-muted hover:text-primary hidden h-10 w-10 items-center justify-center rounded-full bg-transparent transition sm:flex"
+              className="text-text-muted hover:text-primary hidden items-center justify-center rounded-full bg-transparent transition sm:flex"
             >
               <Heart size={18} />
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/cart"
               aria-label="Bag"
-              className="text-text-muted hover:text-primary h-10 w-10 items-center justify-center rounded-full bg-transparent transition"
+              className="text-text-muted hover:text-primary items-center justify-center rounded-full bg-transparent transition"
             >
               <ShoppingBag size={18} />
-            </button>
-            <button
+            </Link>
+            <Link
+              href="/profile"
               aria-label="Account"
-              className="text-text-muted hover:text-primary h-10 w-10 items-center justify-center rounded-full bg-transparent transition"
+              className="text-text-muted hover:text-primary items-center justify-center rounded-full bg-transparent transition"
             >
               <User size={18} />
-            </button>
+            </Link>
           </div>
         </div>
       </nav>

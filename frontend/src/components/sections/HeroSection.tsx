@@ -32,13 +32,13 @@ export function HeroSection() {
             </p>
             <div className="reveal flex flex-wrap gap-3 delay-3">
               <Button
-                href="#"
+                href="/products"
                 variant="primary"
                 className="bg-primary-soft text-black!"
               >
                 Shop Now
               </Button>
-              <Button href="#" variant="secondary">
+              <Button href="/products" variant="secondary">
                 Explore Collections
               </Button>
             </div>

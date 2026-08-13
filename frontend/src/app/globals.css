@@ -151,3 +151,8 @@ a {
 @utility padding-inline {
   @apply px-6 sm:px-8 lg:px-20;
 }
+
+@utility form-input {
+  @apply bg-surface-2 text-foreground w-full rounded-md border border-(--glass-border) px-3 py-2.5 text-sm transition outline-none placeholder:text-(--outline);
+  @apply focus:border-primary focus:ring-primary/20 focus:ring-2;
+}

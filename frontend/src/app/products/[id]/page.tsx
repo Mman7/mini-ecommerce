@@ -66,7 +66,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const completePicks = [...picks, ...fallbackPicks].slice(0, 4);
 
   return (
-    <main className="mx-auto w-full max-w-[1440px] px-4 pt-28 pb-16 sm:px-6 lg:px-16">
+    <main className="mx-auto w-full max-w-360 px-4 pt-28 pb-16 sm:px-6 lg:px-16">
       <section className="grid grid-cols-1 gap-10 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-7">
           <div className="grid grid-cols-12 gap-4 lg:sticky lg:top-28">
@@ -76,9 +76,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
                   key={image}
                   type="button"
                   className={`focus-amber h-18 w-18 shrink-0 overflow-hidden rounded-xl border transition-transform hover:scale-[1.03] ${
-                    index === 0
-                      ? "border-primary"
-                      : "border-[color:var(--glass-border)]"
+                    index === 0 ? "border-primary" : "border-(--glass-border)"
                   }`}
                   aria-label={`Preview image ${index + 1}`}
                 >
@@ -92,13 +90,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             </div>
 
             <div className="col-span-12 md:col-span-10">
-              <div className="shelf-surface bg-surface-2 relative aspect-[4/5] overflow-hidden rounded-[1.6rem] border border-[color:var(--glass-border)]">
+              <div className="shelf-surface bg-surface-2 relative aspect-4/5 overflow-hidden rounded-[1.6rem] border border-(--glass-border)">
                 <img
                   src={product.image}
                   alt={product.name}
                   className="h-full w-full object-cover"
                 />
-                <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                <div className="pointer-events-none absolute inset-0 bg-linear-to-t from-black/45 via-transparent to-transparent" />
                 <button
                   type="button"
                   aria-label="Add to wishlist"
@@ -147,7 +145,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
             <p className="meta-font text-foreground mb-3 text-sm font-semibold">
               Quantity
             </p>
-            <div className="bg-surface-2 inline-flex h-11 w-34 items-center overflow-hidden rounded-xl border border-[color:var(--outline-strong)]">
+            <div className="bg-surface-2 inline-flex h-11 w-34 items-center overflow-hidden rounded-xl border border-(--outline-strong)">
               <button
                 type="button"
                 aria-label="Decrease quantity"
@@ -171,14 +169,14 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
           <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="button"
-              className="meta-font focus-amber bg-primary-soft inline-flex h-13 min-w-[220px] items-center justify-center gap-2 rounded-2xl px-8 text-[15px] font-bold text-[color:var(--primary-ink)] shadow-[0_12px_32px_rgba(233,139,44,0.35)] transition hover:brightness-110"
+              className="meta-font focus-amber bg-primary-soft inline-flex h-13 min-w-55 items-center justify-center gap-2 rounded-2xl px-8 text-[15px] font-bold text-(--primary-ink) shadow-[0_12px_32px_rgba(233,139,44,0.35)] transition hover:brightness-110"
             >
               <ShoppingBag className="h-4 w-4" />
               Add to Bag
             </button>
             <button
               type="button"
-              className="meta-font focus-amber text-foreground hover:bg-surface-3 inline-flex h-13 min-w-[140px] items-center justify-center rounded-2xl border border-[color:var(--outline-strong)] px-8 text-[15px] font-bold transition"
+              className="meta-font focus-amber text-foreground hover:bg-surface-3 inline-flex h-13 min-w-35 items-center justify-center rounded-2xl border border-(--outline-strong) px-8 text-[15px] font-bold transition"
             >
               Buy Now
             </button>
@@ -261,7 +259,7 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
               key={item.id}
               className="group bg-surface-2 overflow-hidden rounded-2xl border border-white/8"
             >
-              <div className="relative aspect-[4/3] overflow-hidden">
+              <div className="relative aspect-4/3 overflow-hidden">
                 <img
                   src={item.image}
                   alt={item.name}

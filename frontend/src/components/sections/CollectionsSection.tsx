@@ -83,7 +83,7 @@ export function CollectionsSection({ items }: CollectionsSectionProps) {
         />
         <a
           className="meta-font text-primary-soft hidden text-xs sm:block"
-          href="#"
+          href="/products"
         >
           View All Collections
         </a>

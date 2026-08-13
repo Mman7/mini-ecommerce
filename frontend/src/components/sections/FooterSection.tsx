@@ -1,7 +1,10 @@
+"use client";
+
 import { faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { faAt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Mail, Play, MapPin, CreditCard } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 const footerLinks = {
   shop: ["All Products", "New Arrivals", "Best Sellers", "Exclusives"],
@@ -10,8 +13,12 @@ const footerLinks = {
 };
 
 export function FooterSection() {
+  const pathname = usePathname();
+
+  if (pathname.startsWith("/dashboard")) return null;
+
   return (
-    <footer className="mt-16 w-full">
+    <footer className="w-full">
       <div className="border-surface-3 bg-surface-2 mx-auto border px-6 py-8">
         <div className="grid gap-8 md:grid-cols-[1.4fr_1fr_1fr_1fr]">
           <div className="space-y-4">
