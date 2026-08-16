@@ -9,8 +9,7 @@ type Props = {
 };
 
 export default function Label({ children, variant, className = "" }: Props) {
-  const base =
-    "rounded-full px-3 py-1 text-[11px] font-semibold tracking-widest uppercase";
+  const base = "rounded-full  text-xs font-semibold tracking-widest uppercase";
 
   let variantClass = "bg-primary-soft! text-(--outline-strong)"; // primary
 
@@ -24,6 +23,10 @@ export default function Label({ children, variant, className = "" }: Props) {
     variantClass = "bg-primary-soft text-(--outline-strong)";
 
   return (
-    <span className={`${base} ${variantClass} ${className}`}>{children}</span>
+    <span
+      className={`${base} ${variantClass} ${children ? "px-3 py-1" : ""} ${className}`}
+    >
+      {children}
+    </span>
   );
 }
