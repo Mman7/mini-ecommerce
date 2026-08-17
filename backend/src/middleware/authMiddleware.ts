@@ -18,7 +18,7 @@ export function authMiddleware(
   const { accessToken } = req.cookies ?? {};
 
   if (!accessToken) {
-    return res.status(401).json({ message: "No token provided" });
+    return res.status(401).json({ message: "User is not login" });
   }
 
   try {
