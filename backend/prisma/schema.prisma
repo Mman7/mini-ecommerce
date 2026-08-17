@@ -30,6 +30,8 @@ model RefreshToken {
   createdAt DateTime @default(now())
   expiresAt DateTime
   user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([expiresAt])
 }
 
 model Product {

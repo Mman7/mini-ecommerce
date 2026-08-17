@@ -148,6 +148,9 @@ export async function refreshAccessToken(
       name: name,
     });
 
+    // remove the old refresh token from the database
+    await deleteRefreshToken(refreshToken);
+
     const newRefreshToken = signRefreshToken(userId);
     await saveRefreshToken(newRefreshToken, userId);
 

@@ -1,16 +1,31 @@
 services:
   postgres:
-    image: postgres:16
+    build:
+      context: ./postgres
+      dockerfile: Dockerfile
+
     container_name: postgres_db
     restart: unless-stopped
+
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: mypassword@123
-      POSTGRES_DB: appdb
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_cron
+      - -c
+      - cron.database_name=appdb
+      - -c
+      - cron.timezone=Asia/Kuala_Lumpur
 
   backend:
     build:
@@ -24,16 +39,12 @@ services:
       - ./backend/.env
     ports:
       - "5000:5000"
-
-    # Keep this if you want node_modules inside the container
     volumes:
       - /app/node_modules
-
     command: npm run dev
 
     develop:
       watch:
-        # Sync source code only
         - action: sync
           path: ./backend
           target: /app
@@ -42,14 +53,12 @@ services:
             - dist/
             - .git/
 
-        # Rebuild only when dependencies change
         - action: rebuild
           path: ./backend/package.json
 
         - action: rebuild
           path: ./backend/package-lock.json
 
-        # Optional: rebuild if Dockerfile changes
         - action: rebuild
           path: ./backend/Dockerfile
 
@@ -75,7 +84,6 @@ services:
 
     develop:
       watch:
-        # Sync Next.js source
         - action: sync
           path: ./frontend
           target: /app
@@ -84,14 +92,12 @@ services:
             - .next/
             - .git/
 
-        # Rebuild only if dependencies change
         - action: rebuild
           path: ./frontend/package.json
 
         - action: rebuild
           path: ./frontend/package-lock.json
 
-        # Optional
         - action: rebuild
           path: ./frontend/Dockerfile
 
