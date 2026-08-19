@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authMiddleware, isAdmin } from "../../middleware/authMiddleware.ts";
+import { authMiddleware, isAdmin } from "../../middleware/auth.middleware.ts";
 import * as categoryController from "./category.controller.ts";
 
 const categoryRouter = Router();

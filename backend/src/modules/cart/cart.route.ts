@@ -3,7 +3,7 @@ import { Router } from "express";
 const CartRouter = Router();
 
 import * as CartController from "./cart.controller.ts";
-import { authMiddleware } from "../../middleware/authMiddleware.ts";
+import { authMiddleware } from "../../middleware/auth.middleware.ts";
 
 CartRouter.get("/", authMiddleware, CartController.getCart);
 CartRouter.post("/", authMiddleware, CartController.addToCart);
