@@ -144,4 +144,5 @@ vite.config.ts.timestamp-*
 
 # Prisma generated client
 backend/src/generated/prisma/
+./uploads
 

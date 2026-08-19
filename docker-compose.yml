@@ -41,6 +41,7 @@ services:
       - "5000:5000"
     volumes:
       - /app/node_modules
+      - ./uploads:/app/uploads
     command: npm run dev
 
     develop:
