@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { authMiddleware, isAdmin } from "../../middleware/auth.middleware.ts";
 import * as adminController from "./admin.controller.ts";
+import { upload } from "../../middleware/upload.middleware.ts";
 
 const adminRoute = Router();
 
@@ -9,7 +10,14 @@ adminRoute.use(authMiddleware, isAdmin);
 adminRoute.get("/total-orders", adminController.getTotalOrders);
 adminRoute.get("/total-revenue", adminController.getTotalRevenue);
 
-adminRoute.post("/products", adminController.createProduct);
+adminRoute.post(
+  "/products",
+  upload.fields([
+    { name: "thumbnail", maxCount: 1 },
+    { name: "images", maxCount: 5 },
+  ]),
+  adminController.createProduct,
+);
 adminRoute.patch("/products/:id", adminController.updateProduct);
 adminRoute.delete("/products/:id", adminController.deleteProduct);
 

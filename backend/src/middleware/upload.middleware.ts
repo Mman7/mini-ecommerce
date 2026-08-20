@@ -1,13 +1,19 @@
 import multer from "multer";
 import type { FileFilterCallback } from "multer";
+import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import type { Request } from "express";
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 
+// create the uploads directory if it doesn't exist
+const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+
+fs.mkdirSync(uploadDir, { recursive: true });
+
 const storage = multer.diskStorage({
-  destination: "/app/uploads",
+  destination: uploadDir,
 
   filename: (_req: Request, file: Express.Multer.File, cb) => {
     const ext = path.extname(file.originalname);

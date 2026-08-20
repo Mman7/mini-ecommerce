@@ -7,12 +7,30 @@ export const getTotalProducts = async () => {
   return totalProducts;
 };
 
-export const createProduct = ({ name, description, price }: Product) => {
+export const createProduct = ({
+  name,
+  description,
+  price,
+  productImages,
+}: Product) => {
   return prisma.product.create({
     data: {
       name,
       description,
       price,
+      productImages: {
+        create: productImages.map(
+          ({ url, altText, sortOrder, isThumbnail }) => ({
+            url,
+            altText,
+            sortOrder,
+            isThumbnail,
+          }),
+        ),
+      },
+    },
+    include: {
+      productImages: true,
     },
   });
 };

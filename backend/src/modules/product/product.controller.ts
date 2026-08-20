@@ -1,10 +1,35 @@
 import type { Request, Response } from "express";
 import * as productService from "./product.service.ts";
-import type { Product, ProductSearchQuery } from "../../types/product.js";
+import type {
+  Product,
+  ProductImage,
+  ProductSearchQuery,
+} from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
+interface createProductRequestBody {
+  name: string;
+  description: string;
+  price: number;
+  sortOrders: number[];
+}
+
 export const createProduct = async (req: Request, res: Response) => {
-  const { name, description, price } = req.body;
+  const { name, description, price, sortOrders }: createProductRequestBody =
+    req.body as createProductRequestBody;
+
+  const files = (req.files ?? {}) as {
+    [fieldname: string]: Express.Multer.File[];
+  };
+
+  const thumbnail = files.thumbnail?.[0];
+  const productImages = files.images ?? [];
+
+  if (!thumbnail) {
+    return res.status(400).json({
+      error: "Thumbnail image is required",
+    });
+  }
 
   if (!name || !description || !price) {
     return res
@@ -13,6 +38,9 @@ export const createProduct = async (req: Request, res: Response) => {
   }
 
   try {
+    // parse sortOrders to numbers and validate
+    const parsedSortOrders = sortOrders.map((order) => Number(order));
+
     // try parse price to number
     const parsedPrice = Number(price);
     if (isNaN(parsedPrice) || parsedPrice < 0) {
@@ -21,14 +49,39 @@ export const createProduct = async (req: Request, res: Response) => {
         .json({ error: "Price must be a non-negative number" });
     }
 
+    const thumbnailImage: ProductImage = {
+      url: thumbnail.path,
+      altText: thumbnail.originalname,
+      sortOrder: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isThumbnail: true,
+    };
+
+    const imageList: ProductImage[] = productImages.map((file, index) => ({
+      url: file.path,
+      altText: file.originalname,
+      sortOrder: parsedSortOrders[index] ?? 0,
+      isThumbnail: false,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }));
+
     const productData: Product = {
       name,
       description,
       price: parsedPrice,
+      isActive: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      productImages: [thumbnailImage, ...imageList],
     };
+
     const product = await productService.createProduct(productData);
+
     return res.status(201).json(product);
   } catch (error) {
+    console.log(error);
     return res.status(500).json({ error: "Failed to create product" });
   }
 };
