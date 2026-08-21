@@ -1,4 +1,5 @@
 import { prisma } from "../../utils/prisma.ts";
+import { deleteFileByPath } from "../file/file.service.ts";
 import type { Product, ProductSearchQuery } from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
@@ -79,9 +80,22 @@ export const updateProductById = (id: number, data: ProductUpdateInput) => {
   });
 };
 
-export const deleteProductById = (id: number) => {
-  return prisma.product.delete({
+export const deleteProductById = async (id: number) => {
+  const images = await prisma.productImage.findMany({
     where: { productId: id },
+    select: { url: true },
+  });
+
+  await Promise.all(images.map(({ url }) => deleteFileByPath(url)));
+
+  return prisma.$transaction(async (transaction) => {
+    await transaction.productImage.deleteMany({
+      where: { productId: id },
+    });
+
+    return transaction.product.delete({
+      where: { productId: id },
+    });
   });
 };
 
