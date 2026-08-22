@@ -80,13 +80,48 @@ export const updateProductById = (id: number, data: ProductUpdateInput) => {
   });
 };
 
+export const updateProductImageById = async (
+  productId: number,
+  imageId: number,
+  data: {
+    url?: string;
+    altText?: string;
+    sortOrder?: number;
+    isThumbnail?: boolean;
+  },
+) => {
+  // Validate ownership before updating and remove the old file when it is replaced.
+  const image = await prisma.productImage.findUnique({
+    where: { id: imageId },
+  });
+
+  if (!image || image.productId !== productId) {
+    throw new Error(
+      `Product image with ID ${imageId} not found for product ${productId}`,
+    );
+  }
+
+  const updatedImage = await prisma.productImage.update({
+    where: { id: imageId },
+    data,
+  });
+
+  if (data.url && data.url !== image.url) {
+    await deleteFileByPath(image.url);
+  }
+
+  return updatedImage;
+};
+
 export const deleteProductById = async (id: number) => {
   const images = await prisma.productImage.findMany({
     where: { productId: id },
     select: { url: true },
   });
-
-  await Promise.all(images.map(({ url }) => deleteFileByPath(url)));
+  // guard if there are no images to delete
+  if (images.length > 0) {
+    await Promise.all(images.map(({ url }) => deleteFileByPath(url)));
+  }
 
   return prisma.$transaction(async (transaction) => {
     await transaction.productImage.deleteMany({

@@ -28,6 +28,7 @@ export const getTotalRevenue = async (req: Request, res: Response) => {
 
 export const createProduct = productController.createProduct;
 export const updateProduct = productController.updateProduct;
+export const updateProductImage = productController.updateProductImage;
 export const deleteProduct = productController.deleteProduct;
 export const createCategory = categoryController.createCategory;
 export const updateCategory = categoryController.updateCategory;

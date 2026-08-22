@@ -19,6 +19,11 @@ adminRoute.post(
   adminController.createProduct,
 );
 adminRoute.patch("/products/:id", adminController.updateProduct);
+adminRoute.patch(
+  "/products/:productId/images/:imageId",
+  upload.single("image"),
+  adminController.updateProductImage,
+);
 adminRoute.delete("/products/:id", adminController.deleteProduct);
 
 adminRoute.post("/categories", adminController.createCategory);

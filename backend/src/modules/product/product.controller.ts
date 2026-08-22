@@ -174,6 +174,69 @@ export const updateProduct = async (req: Request, res: Response) => {
   }
 };
 
+export const updateProductImage = async (req: Request, res: Response) => {
+  // Combine the optional uploaded file and metadata into one validated update.
+  const productId = Number(req.params.productId);
+  const imageId = Number(req.params.imageId);
+  // Validate productId to ensure it's a positive integer
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return res.status(400).json({ error: "Valid product ID is required" });
+  }
+  // Validate imageId to ensure it's a positive integer
+  if (!Number.isInteger(imageId) || imageId <= 0) {
+    return res.status(400).json({ error: "Valid image ID is required" });
+  }
+
+  const { altText, sortOrder, isThumbnail } = req.body as {
+    altText?: string;
+    sortOrder?: string | number;
+    isThumbnail?: string | boolean;
+  };
+
+  // Validate and prepare the update data
+  const updateData: Parameters<
+    typeof productService.updateProductImageById
+  >[2] = {};
+  // If a new image file is uploaded, include its path and original name in the update data. Otherwise, only include the metadata fields that are provided.
+  if (req.file) {
+    updateData.url = req.file.path;
+    updateData.altText = req.file.originalname;
+  }
+  // Validate and include the optional metadata fields in the update data if they are provided.
+  if (altText !== undefined) updateData.altText = altText;
+  if (sortOrder !== undefined) {
+    const parsedSortOrder = Number(sortOrder);
+    if (!Number.isInteger(parsedSortOrder)) {
+      return res.status(400).json({ error: "Sort order must be an integer" });
+    }
+    updateData.sortOrder = parsedSortOrder;
+  }
+  if (isThumbnail !== undefined) {
+    updateData.isThumbnail = isThumbnail === true || isThumbnail === "true";
+  }
+
+  if (Object.keys(updateData).length === 0) {
+    return res
+      .status(400)
+      .json({ error: "At least one field must be provided for update" });
+  }
+
+  try {
+    const updatedImage = await productService.updateProductImageById(
+      productId,
+      imageId,
+      updateData,
+    );
+    return res.status(200).json({
+      message: "Product image updated successfully",
+      item: updatedImage,
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ error: "Failed to update product image" });
+  }
+};
+
 export const deleteProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (id === undefined) {
