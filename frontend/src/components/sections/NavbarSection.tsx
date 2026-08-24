@@ -8,8 +8,6 @@ const navLinks = [
   { label: "Shop All", link: "/products" },
   { label: "New Arrivals", link: "/products" },
   { label: "Collectibles", link: "/products" },
-  { label: "Curated Sets", link: "/products" },
-  { label: "Journal", link: "/products" },
 ];
 
 export function NavbarSection() {

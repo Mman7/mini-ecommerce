@@ -1,26 +1,9 @@
-"use client";
-
 import Image from "next/image";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  LockKeyhole,
-  Mail,
-  Sparkles,
-  UserRound,
-} from "lucide-react";
-import { FormEvent, useState } from "react";
+import { ArrowLeft, Sparkles } from "lucide-react";
+import RegisterForm from "@/src/components/auth/register-form";
 
 export default function RegisterPage() {
-  const [showPassword, setShowPassword] = useState(false);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-  }
-
   return (
     <main className="bg-background text-foreground min-h-dvh lg:grid lg:grid-cols-2">
       <section className="relative flex min-h-dvh flex-col justify-center px-5 py-10 sm:px-8 lg:px-12 xl:px-16">
@@ -46,120 +29,7 @@ export default function RegisterPage() {
             </p>
           </header>
 
-          <form
-            className="glass-panel rounded-lg p-5 shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:p-6"
-            onSubmit={handleSubmit}
-          >
-            <div className="space-y-5">
-              <div>
-                <label
-                  className="meta-font text-text-muted mb-2 block text-xs font-semibold"
-                  htmlFor="name"
-                >
-                  Full Name
-                </label>
-                <div className="bg-surface-3 focus-within:border-primary flex items-center rounded-md border border-(--glass-border) px-3 transition focus-within:shadow-[0_0_0_3px_rgba(233,139,44,0.14)]">
-                  <UserRound
-                    aria-hidden="true"
-                    className="text-text-muted mr-3"
-                    size={17}
-                  />
-                  <input
-                    className="text-foreground placeholder:text-text-muted/45 min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
-                    id="name"
-                    name="name"
-                    placeholder="E.g., Satoru Gojo"
-                    required
-                    type="text"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  className="meta-font text-text-muted mb-2 block text-xs font-semibold"
-                  htmlFor="email"
-                >
-                  Email Address
-                </label>
-                <div className="bg-surface-3 focus-within:border-primary flex items-center rounded-md border border-(--glass-border) px-3 transition focus-within:shadow-[0_0_0_3px_rgba(233,139,44,0.14)]">
-                  <Mail
-                    aria-hidden="true"
-                    className="text-text-muted mr-3"
-                    size={17}
-                  />
-                  <input
-                    className="text-foreground placeholder:text-text-muted/45 min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
-                    id="email"
-                    name="email"
-                    placeholder="you@example.com"
-                    required
-                    type="email"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
-                  className="meta-font text-text-muted mb-2 block text-xs font-semibold"
-                  htmlFor="password"
-                >
-                  Password
-                </label>
-                <div className="bg-surface-3 focus-within:border-primary flex items-center rounded-md border border-(--glass-border) px-3 transition focus-within:shadow-[0_0_0_3px_rgba(233,139,44,0.14)]">
-                  <LockKeyhole
-                    aria-hidden="true"
-                    className="text-text-muted mr-3"
-                    size={17}
-                  />
-                  <input
-                    className="text-foreground placeholder:text-text-muted/45 min-w-0 flex-1 bg-transparent py-3 text-sm outline-none"
-                    id="password"
-                    name="password"
-                    placeholder="Create a password"
-                    required
-                    type={showPassword ? "text" : "password"}
-                  />
-                  <button
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                    className="text-text-muted hover:text-primary-soft ml-2 transition"
-                    onClick={() => setShowPassword((visible) => !visible)}
-                    type="button"
-                  >
-                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            <button
-              className="meta-font bg-primary text-primary-ink hover:bg-primary-soft focus-visible:outline-primary-soft mt-7 flex w-full items-center justify-center gap-2 rounded-lg py-3 text-xs font-bold tracking-[0.12em] uppercase transition focus-visible:outline-2 focus-visible:outline-offset-3"
-              type="submit"
-            >
-              Create Account
-              <ArrowRight size={17} />
-            </button>
-
-            <div className="my-6 flex items-center gap-3">
-              <div className="bg-outline-strong/40 h-px flex-1" />
-              <span className="meta-font text-text-muted text-[10px] tracking-[0.25em] uppercase">
-                or
-              </span>
-              <div className="bg-outline-strong/40 h-px flex-1" />
-            </div>
-
-            <p className="text-text-muted text-center text-sm">
-              Already a collector?{" "}
-              <Link
-                className="text-primary hover:text-primary-soft font-semibold"
-                href="/login"
-              >
-                Sign In
-              </Link>
-            </p>
-          </form>
+          <RegisterForm />
         </div>
       </section>
 
