@@ -2,6 +2,7 @@ import { Router } from "express";
 import { authMiddleware, isAdmin } from "../../middleware/auth.middleware.ts";
 import * as adminController from "./admin.controller.ts";
 import { upload } from "../../middleware/upload.middleware.ts";
+import { handleSingleImageUploadError } from "../../middleware/upload-error.middleware.ts";
 
 const adminRoute = Router();
 
@@ -22,6 +23,7 @@ adminRoute.patch("/products/:id", adminController.updateProduct);
 adminRoute.patch(
   "/products/:productId/images/:imageId",
   upload.single("image"),
+  handleSingleImageUploadError,
   adminController.updateProductImage,
 );
 adminRoute.delete("/products/:id", adminController.deleteProduct);
