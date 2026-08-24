@@ -5,7 +5,7 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { login } from "@/src/api/api";
+import { login } from "@/src/api/auth.api";
 
 type LoginFormValues = {
   email: string;

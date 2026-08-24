@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { register } from "@/src/api/api";
+import { register } from "@/src/api/auth.api";
 
 type RegisterFormValues = {
   name: string;

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, Sparkles } from "lucide-react";
-import RegisterForm from "@/src/components/auth/register-form";
+import RegisterForm from "@/src/components/auth/RegisterForm";
 
 export default function RegisterPage() {
   return (
