@@ -7,7 +7,15 @@ Order Flow
 Pending → Paid → Processing → Shipped → Delivered
 */
 
-export const createOrder = async (userId: string, items: OrderItemInput[]) => {
+export const createOrder = async (
+  userId: string,
+  items: OrderItemInput[],
+  addressId: number,
+) => {
+  if (!Number.isInteger(addressId) || addressId < 1) {
+    throw new Error("A valid delivery address is required");
+  }
+
   if (
     items.length === 0 ||
     items.some(
@@ -21,6 +29,12 @@ export const createOrder = async (userId: string, items: OrderItemInput[]) => {
   }
 
   return prisma.$transaction(async (transaction) => {
+    const address = await transaction.userAddress.findFirst({
+      where: { id: addressId, userId },
+      select: { address: true },
+    });
+    if (!address) throw new Error("Delivery address not found");
+
     const productsWithPrices = [];
 
     for (const item of items) {
@@ -58,6 +72,7 @@ export const createOrder = async (userId: string, items: OrderItemInput[]) => {
       data: {
         userId,
         total,
+        deliveryAddressLine1: address.address,
         orderItems: {
           create: productsWithPrices.map((item) => ({
             productId: item.productId,
@@ -75,8 +90,33 @@ export const getOrderById = async (orderId: string) => {
     where: {
       id: orderId,
     },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            include: { productImages: true },
+          },
+        },
+      },
+    },
   });
   return order;
+};
+
+export const getOrdersByUser = async (userId: string) => {
+  return prisma.order.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    include: {
+      orderItems: {
+        include: {
+          product: {
+            include: { productImages: true },
+          },
+        },
+      },
+    },
+  });
 };
 // TODO later add filtering by userId and status
 export const getAllOrders = async () => {

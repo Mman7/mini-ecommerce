@@ -5,6 +5,7 @@ import { authMiddleware } from "../../middleware/auth.middleware.ts";
 const orderRouter = Router();
 
 orderRouter.post("/", authMiddleware, orderController.createOrder);
+orderRouter.get("/mine", authMiddleware, orderController.getMyOrders);
 orderRouter.get("/:orderId", authMiddleware, orderController.getOrderById);
 orderRouter.post(
   "/:orderId/cancel",

@@ -45,14 +45,16 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
   }
 
   try {
-    const updatedData = await userService.updateUserData(
-      req.user.userId,
-      updateData,
-    );
+    // why do we need to call getUserData after updateUserData?
+    // Because updateUserData does not return the updated user data, it only performs the update operation.
+    // To get the latest user data after the update, we need to call getUserData again.
+    // This ensures that we return the most current user information in the response.
+    await userService.updateUserData(req.user.userId, updateData);
+    const user = await userService.getUserData(req.user.userId);
 
     return res
       .status(200)
-      .json({ message: "User updated successfully!", updatedData });
+      .json({ message: "User updated successfully!", user });
   } catch (error) {
     return res.status(500).json({ message: "Internal server error", error });
   }
@@ -69,6 +71,56 @@ export const handleDeleteUser = async (req: Request, res: Response) => {
   await userService.deleteUserData(req.user.userId);
 
   return res.status(200).json({ message: "User deleted successfully!" });
+};
+
+export const handleGetAddresses = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const addresses = await userService.getAddresses(req.user.userId);
+  return res.status(200).json({ addresses });
+};
+
+export const handleCreateAddress = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const { address } = req.body as { address?: string };
+  if (!address?.trim()) {
+    return res.status(400).json({ message: "Address is required" });
+  }
+
+  const addresses = await userService.createAddress(req.user.userId, {
+    address: address.trim(),
+  });
+  return res.status(201).json({ addresses });
+};
+
+export const handleUpdateAddress = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const addressId = Number(req.params.addressId);
+  const { address } = req.body as { address?: string };
+  if (!Number.isInteger(addressId) || addressId < 1) {
+    return res.status(400).json({ message: "Invalid address ID" });
+  }
+  if (!address?.trim()) {
+    return res.status(400).json({ message: "Address is required" });
+  }
+
+  const addresses = await userService.updateAddress(
+    req.user.userId,
+    addressId,
+    { address: address.trim() },
+  );
+  if (!addresses) return res.status(404).json({ message: "Address not found" });
+  return res.status(200).json({ addresses });
+};
+
+export const handleDeleteAddress = async (req: Request, res: Response) => {
+  if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+  const addressId = Number(req.params.addressId);
+  if (!Number.isInteger(addressId) || addressId < 1) {
+    return res.status(400).json({ message: "Invalid address ID" });
+  }
+  const addresses = await userService.deleteAddress(req.user.userId, addressId);
+  if (!addresses) return res.status(404).json({ message: "Address not found" });
+  return res.status(200).json({ addresses });
 };
 
 // --------------------------------------------------------------------------------------

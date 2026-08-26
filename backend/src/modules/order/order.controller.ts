@@ -7,19 +7,36 @@ export const createOrder = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
 
   try {
-    const { orderProduct }: { userId: string; orderProduct: OrderItemInput[] } =
-      req.body;
+    const { orderProduct, addressId } = req.body as {
+      orderProduct: OrderItemInput[];
+      addressId: number;
+    };
 
-    if (!userId || !orderProduct?.length) {
+    if (
+      !userId ||
+      !orderProduct?.length ||
+      !Number.isInteger(addressId) ||
+      addressId < 1
+    ) {
       return res
         .status(400)
-        .json({ error: "Product ID, and quantity are required" });
+        .json({ error: "Product ID, quantity, and address ID are required" });
     }
     // create order in the database
-    const order = await orderService.createOrder(userId, orderProduct);
+    const order = await orderService.createOrder(
+      userId,
+      orderProduct,
+      addressId,
+    );
 
     res.status(201).json({ msg: "Order created successfully", order });
   } catch (error) {
+    if (
+      error instanceof Error &&
+      error.message === "Delivery address not found"
+    ) {
+      return res.status(404).json({ error: error.message });
+    }
     console.error(error);
     res.status(500).json({ error: "Failed to create order" });
   }
@@ -54,6 +71,20 @@ export const getOrderById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ error: "Failed to retrieve order" });
+  }
+};
+
+export const getMyOrders = async (req: Request, res: Response) => {
+  const { userId } = req.user as { userId: string };
+
+  try {
+    const orders = await orderService.getOrdersByUser(userId);
+    return res
+      .status(200)
+      .json({ msg: "Orders retrieved successfully", orders });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ error: "Failed to retrieve orders" });
   }
 };
 

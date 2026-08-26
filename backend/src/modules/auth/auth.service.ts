@@ -105,6 +105,8 @@ export async function loginAccount(
       role: user.role,
       email: user.email,
       name: user.name,
+      deliveryAddress: [], // Add an empty array for deliveryAddress
+      phoneNumber: user.phoneNumber ?? null,
     };
 
     return {

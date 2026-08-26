@@ -12,7 +12,7 @@ model User {
   name            String
   passwordHash    String
   email           String         @unique
-  deliveryAddress String?
+  deliveryAddress UserAddress[]
   phoneNumber     String?
   isActive        Boolean        @default(true)
   role            Role           @default(USER)
@@ -21,6 +21,15 @@ model User {
   refreshTokens   RefreshToken[]
   carts           Cart[]
   orders          Order[]
+}
+
+model UserAddress {
+  id        Int      @id @default(autoincrement())
+  userId    String
+  address   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model RefreshToken {
@@ -94,9 +103,19 @@ model Order {
   userId     String
   total      Decimal     @db.Decimal(10, 2)
   status     String      @default("PENDING")
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-  user       User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  deliveryName         String?
+  deliveryAddressLine1 String?
+  deliveryAddressLine2 String?
+  deliveryCity         String?
+  deliveryState        String?
+  deliveryPostcode     String?
+  deliveryCountry      String?
+
+  user User @relation(fields: [userId], references: [userId], onDelete: Cascade)
 }
 
 model Category {
