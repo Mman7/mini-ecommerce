@@ -17,3 +17,7 @@ export function register(name: string, email: string, password: string) {
 export function refreshSession() {
   return request("/auth/refresh", { method: "POST" });
 }
+
+export function logout() {
+  return request<{ message: string }>("/auth/logout", { method: "POST" });
+}

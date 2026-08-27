@@ -3,6 +3,7 @@
 import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useGlobalStore } from "@/src/store/global.store";
 
 const navLinks = [
   { label: "Shop All", link: "/products" },
@@ -12,6 +13,8 @@ const navLinks = [
 
 export function NavbarSection() {
   const pathname = usePathname();
+  const isLoggedIn = useGlobalStore((state) => state.isLoggedIn);
+  const user = useGlobalStore((state) => state.user);
 
   if (pathname.startsWith("/dashboard")) return null;
 
@@ -70,11 +73,17 @@ export function NavbarSection() {
               <ShoppingBag size={18} />
             </Link>
             <Link
-              href="/profile"
-              aria-label="Account"
-              className="text-text-muted hover:text-primary items-center justify-center rounded-full bg-transparent transition"
+              href={isLoggedIn ? "/profile" : "/login"}
+              aria-label={isLoggedIn ? "Profile" : "Sign in"}
+              className="text-text-muted hover:text-primary flex items-center justify-center rounded-full bg-transparent transition"
             >
-              <User size={18} />
+              {isLoggedIn ? (
+                <span className="bg-primary text-primary-ink flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold">
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
+                </span>
+              ) : (
+                <User size={18} />
+              )}
             </Link>
           </div>
         </div>

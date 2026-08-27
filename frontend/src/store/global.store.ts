@@ -11,6 +11,7 @@ interface GlobalStore {
 export const useGlobalStore = create<GlobalStore>((set) => ({
   isLoggedIn: false,
   user: null,
+  // setUser updates the user state and also sets isLoggedIn based on whether the user is null or not
   setUser: (user) => set({ user, isLoggedIn: user !== null }),
   logout: () => set({ user: null, isLoggedIn: false }),
 }));

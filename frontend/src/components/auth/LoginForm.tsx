@@ -6,6 +6,7 @@ import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { login } from "@/src/api/auth.api";
+import { useGlobalStore } from "@/src/store/global.store";
 
 type LoginFormValues = {
   email: string;
@@ -18,6 +19,7 @@ export default function LoginForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const setUser = useGlobalStore((state) => state.setUser);
   const {
     register: registerField,
     handleSubmit,
@@ -29,7 +31,10 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      await login(values.email, values.password);
+      const res = await login(values.email, values.password);
+      // Update the global store with the logged-in user and redirect to the home page
+      const user = res.user;
+      setUser(user);
       router.push("/");
     } catch (requestError) {
       setError(

@@ -1,32 +1,77 @@
 "use client";
 
-import { MapPin, Plus, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState, type FormEvent } from "react";
+import {
+  createAddress,
+  deleteAddress,
+  getAddresses,
+  updateAddress,
+  type SavedAddress,
+} from "@/src/api/user.api";
 
-const initialAddresses = [
-  {
-    id: 1,
-    label: "Home",
-    name: "Eric Man",
-    address: "12 Sakura Lane, Taman Komorebi",
-    city: "Kuala Lumpur, 50450",
-    phone: "+60 12 345 6789",
-    default: true,
-  },
-  {
-    id: 2,
-    label: "Studio",
-    name: "Eric Man",
-    address: "8A Atelier Walk, Bukit Bintang",
-    city: "Kuala Lumpur, 55100",
-    phone: "+60 12 345 6789",
-    default: false,
-  },
-];
+type AddressForm = Pick<SavedAddress, "address">;
+const emptyForm: AddressForm = {
+  address: "",
+};
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState(initialAddresses);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [form, setForm] = useState<AddressForm>(emptyForm);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [error, setError] = useState("");
+
+  const startEditing = (savedAddress: SavedAddress) => {
+    setEditingId(String(savedAddress.id));
+    setForm({ address: savedAddress.address });
+    setShowForm(true);
+    setError("");
+  };
+
+  useEffect(() => {
+    getAddresses()
+      .then((response) => setAddresses(response.addresses))
+      .catch((requestError) =>
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to load addresses.",
+        ),
+      );
+  }, []);
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    try {
+      const response = editingId
+        ? await updateAddress(Number(editingId), form)
+        : await createAddress(form);
+      setAddresses(response.addresses);
+      setForm(emptyForm);
+      setEditingId(null);
+      setShowForm(false);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to save address.",
+      );
+    }
+  };
+
+  const remove = async (id: number) => {
+    try {
+      setAddresses((await deleteAddress(id)).addresses);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to delete address.",
+      );
+    }
+  };
 
   return (
     <div className="space-y-8">
@@ -44,81 +89,96 @@ export default function AddressesPage() {
         </div>
         <button
           type="button"
-          onClick={() => setShowForm((current) => !current)}
-          className="meta-font bg-primary text-primary-ink hover:bg-primary-soft flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-xs font-semibold transition"
+          onClick={() => {
+            setEditingId(null);
+            setForm(emptyForm);
+            setShowForm((current) => !current);
+          }}
+          className="meta-font bg-primary text-primary-ink hover:bg-primary-soft flex items-center justify-center gap-2 rounded-md px-4 py-2.5 text-xs font-semibold"
         >
           <Plus size={15} /> Add Address
         </button>
       </header>
-      {showForm ? (
-        <form className="glass-panel grid gap-3 rounded-lg p-5 sm:grid-cols-2">
-          <input
-            required
-            placeholder="Label, e.g. Home"
-            className="form-input"
-          />
-          <input required placeholder="Full name" className="form-input" />
-          <input
-            required
-            placeholder="Street address"
-            className="form-input sm:col-span-2"
-          />
-          <input
-            required
-            placeholder="City and postcode"
-            className="form-input"
-          />
-          <input required placeholder="Phone number" className="form-input" />
-          <button
-            type="submit"
-            onClick={() => setShowForm(false)}
-            className="meta-font bg-primary text-primary-ink rounded-md px-4 py-2 text-xs font-semibold sm:col-span-2 sm:justify-self-end"
-          >
-            Save Address
-          </button>
+
+      {error && (
+        <p className="text-destructive rounded-md border border-red-200 bg-red-50 p-3 text-sm">
+          {error}
+        </p>
+      )}
+
+      {showForm && (
+        <form onSubmit={submit} className="glass-panel rounded-lg p-5">
+          <label className="meta-font text-foreground block text-xs font-semibold uppercase">
+            Address
+            <textarea
+              value={form.address}
+              onChange={(event) => setForm({ address: event.target.value })}
+              required
+              rows={3}
+              className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
+              placeholder="Enter a delivery address"
+            />
+          </label>
+          <div className="mt-4 flex justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowForm(false)}
+              className="meta-font text-text-muted rounded-md px-4 py-2.5 text-xs font-semibold"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="meta-font bg-primary text-primary-ink rounded-md px-4 py-2.5 text-xs font-semibold"
+            >
+              {editingId ? "Update Address" : "Save Address"}
+            </button>
+          </div>
         </form>
-      ) : null}
-      <div className="grid gap-4 sm:grid-cols-2">
-        {addresses.map((address) => (
-          <article key={address.id} className="glass-panel rounded-lg p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex items-center gap-2">
-                <span className="bg-secondary/15 text-secondary flex h-9 w-9 items-center justify-center rounded-full">
-                  <MapPin size={16} />
-                </span>
-                <div>
-                  <h2 className="heading-font text-foreground text-lg">
-                    {address.label}
-                  </h2>
-                  {address.default ? (
-                    <span className="meta-font text-tertiary text-[10px] uppercase">
-                      Default address
-                    </span>
-                  ) : null}
-                </div>
+      )}
+
+      {addresses.length === 0 ? (
+        <div className="glass-panel rounded-lg p-8 text-center">
+          <MapPin className="text-primary mx-auto" size={24} />
+          <p className="text-text-muted mt-3 text-sm">
+            No saved addresses yet.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4">
+          {addresses.map((savedAddress) => (
+            <article
+              key={savedAddress.id}
+              className="glass-panel flex items-start justify-between gap-4 rounded-lg p-5"
+            >
+              <div className="flex gap-3">
+                <MapPin className="text-primary mt-0.5 shrink-0" size={18} />
+                <p className="text-foreground text-sm leading-6">
+                  {savedAddress.address}
+                </p>
               </div>
-              <button
-                type="button"
-                aria-label={`Delete ${address.label} address`}
-                onClick={() =>
-                  setAddresses((current) =>
-                    current.filter((item) => item.id !== address.id),
-                  )
-                }
-                className="text-text-muted hover:text-error"
-              >
-                <Trash2 size={15} />
-              </button>
-            </div>
-            <div className="text-text-muted mt-5 space-y-1 text-sm">
-              <p>{address.name}</p>
-              <p>{address.address}</p>
-              <p>{address.city}</p>
-              <p>{address.phone}</p>
-            </div>
-          </article>
-        ))}
-      </div>
+              <div className="flex shrink-0 gap-1">
+                <button
+                  type="button"
+                  onClick={() => startEditing(savedAddress)}
+                  aria-label="Edit address"
+                  className="text-text-muted hover:text-foreground rounded-md p-2"
+                >
+                  <Pencil size={16} />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => remove(savedAddress.id)}
+                  aria-label="Delete address"
+                  className="text-text-muted hover:text-destructive rounded-md p-2"
+                >
+                  <Trash2 size={16} />
+                </button>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

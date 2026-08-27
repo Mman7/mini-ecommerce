@@ -1,75 +1,76 @@
 "use client";
 
-import Image from "next/image";
-import { Camera, Pencil, Plus, Trash2 } from "lucide-react";
-import { FormEvent } from "react";
-
-const addresses = [
-  {
-    label: "Home",
-    address: [
-      "Aria Vance",
-      "1-1 Chiyoda",
-      "Chiyoda City, Tokyo 100-8111",
-      "Japan",
-    ],
-    primary: true,
-  },
-  {
-    label: "Office",
-    address: [
-      "Aria Vance",
-      "Roppongi Hills Mori Tower",
-      "6-10-1 Roppongi, Minato City",
-      "Tokyo 106-6108, Japan",
-    ],
-    primary: false,
-  },
-];
+import { useEffect, useState, type FormEvent } from "react";
+import Link from "next/link";
+import {
+  getAddresses,
+  getCurrentUser,
+  updateCurrentUser,
+  type SavedAddress,
+  type User,
+} from "@/src/api/user.api";
+import { useGlobalStore } from "@/src/store/global.store";
+import { AddressPreviewCard } from "@/src/components/profile/AddressPreviewCard";
+import { ProfileHeader } from "@/src/components/profile/ProfileHeader";
 
 export default function ProfilePage() {
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  const [user, setUser] = useState<User | null>(null);
+  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
+  const [form, setForm] = useState({ name: "", email: "", phoneNumber: "" });
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+  const setGlobalUser = useGlobalStore((state) => state.setUser);
+
+  useEffect(() => {
+    Promise.all([getCurrentUser(), getAddresses()])
+      .then(([userResponse, addressResponse]) => {
+        setUser(userResponse.user);
+        setGlobalUser(userResponse.user);
+        setForm({
+          name: userResponse.user.name,
+          email: userResponse.user.email,
+          phoneNumber: userResponse.user.phoneNumber ?? "",
+        });
+        setAddresses(addressResponse.addresses);
+      })
+      .catch((requestError) =>
+        setError(
+          requestError instanceof Error
+            ? requestError.message
+            : "Unable to load your profile.",
+        ),
+      );
+  }, []);
+
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-  }
+    setMessage("");
+    setError("");
+    try {
+      const response = await updateCurrentUser(form);
+      setUser(response.user);
+      setGlobalUser(response.user);
+      setMessage("Profile updated successfully.");
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to update your profile.",
+      );
+    }
+  };
 
   return (
-    <>
-      <div className="glass-panel relative flex flex-col items-center gap-5 overflow-hidden rounded-lg p-6 sm:flex-row sm:items-start sm:p-8">
-        <div className="from-primary/8 pointer-events-none absolute inset-0 bg-linear-to-br to-transparent" />
-        <div className="relative shrink-0">
-          <Image
-            src="/homepage/woman-holding-gift.jpg"
-            alt="Aria Vance profile"
-            width={112}
-            height={112}
-            className="border-primary/30 h-28 w-28 rounded-full border-2 object-cover shadow-[0_0_20px_rgba(255,183,122,0.15)]"
-          />
-          <button
-            type="button"
-            aria-label="Change profile photo"
-            className="bg-surface-3 text-primary hover:bg-surface-4 absolute right-0 bottom-0 flex h-8 w-8 items-center justify-center rounded-full border border-(--glass-border) transition"
-          >
-            <Camera size={14} />
-          </button>
-        </div>
-        <div className="relative z-10 text-center sm:text-left">
-          <h1 className="heading-font text-2xl font-semibold sm:text-3xl">
-            Aria Vance
-          </h1>
-          <p className="text-primary-soft mt-1 text-sm">
-            Member since October 2021
-          </p>
-          <div className="mt-4 flex flex-wrap justify-center gap-2 sm:justify-start">
-            <span className="border-secondary/30 bg-secondary/15 text-secondary rounded-full border px-3 py-1 text-xs">
-              Premium Collector
-            </span>
-            <span className="border-tertiary/30 bg-tertiary/15 text-tertiary rounded-full border px-3 py-1 text-xs">
-              Early Access
-            </span>
-          </div>
-        </div>
-      </div>
-
+    <div className="space-y-8">
+      <header>
+        <h1 className="heading-font text-primary text-3xl font-semibold sm:text-4xl">
+          My Profile
+        </h1>
+        <p className="text-text-muted mt-2 text-base">
+          Manage your account details and saved delivery information.
+        </p>
+      </header>
+      <ProfileHeader user={user} />
       <section>
         <h2 className="heading-font mb-4 text-xl font-medium">
           Personal Information
@@ -78,96 +79,75 @@ export default function ProfilePage() {
           onSubmit={handleSubmit}
           className="glass-panel grid gap-5 rounded-lg p-6 sm:grid-cols-2 sm:p-8"
         >
-          <ProfileField label="First Name" defaultValue="Aria" />
-          <ProfileField label="Last Name" defaultValue="Vance" />
           <ProfileField
-            label="Email Address"
-            defaultValue="aria.vance@example.com"
-            type="email"
-            wide
+            label="Full Name"
+            value={form.name}
+            onChange={(value) => setForm({ ...form, name: value })}
           />
           <ProfileField
             label="Phone Number"
-            defaultValue="+81 90-1234-5678"
             type="tel"
+            value={form.phoneNumber}
+            onChange={(value) => setForm({ ...form, phoneNumber: value })}
           />
+          <ProfileField
+            label="Email Address"
+            type="email"
+            value={form.email}
+            wide
+            onChange={(value) => setForm({ ...form, email: value })}
+          />
+          {(message || error) && (
+            <p
+              className={`${error ? "text-error" : "text-tertiary"} text-sm sm:col-span-2`}
+            >
+              {error || message}
+            </p>
+          )}
           <div className="flex justify-end sm:col-span-2">
             <button
               type="submit"
-              className="meta-font bg-primary text-primary-ink hover:bg-primary-soft rounded-md px-6 py-3 text-xs font-semibold shadow-[0_0_15px_rgba(255,183,122,0.2)] transition"
+              className="meta-font bg-primary text-primary-ink hover:bg-primary-soft rounded-md px-6 py-3 text-xs font-semibold transition"
             >
               Save Changes
             </button>
           </div>
         </form>
       </section>
-
       <section>
         <div className="mb-4 flex items-center justify-between gap-4">
           <h2 className="heading-font text-xl font-medium">Saved Addresses</h2>
-          <button
-            type="button"
-            className="meta-font text-primary hover:text-primary-soft flex items-center gap-1 text-xs transition"
+          <Link
+            href="/profile/addresses"
+            className="meta-font text-primary hover:text-primary-soft text-xs"
           >
-            <Plus size={15} />
-            Add New
-          </button>
+            Manage addresses
+          </Link>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          {addresses.map((address) => (
-            <article
-              key={address.label}
-              className={`glass-panel relative rounded-lg p-5 ${address.primary ? "border-l-primary border-l-2" : ""}`}
-            >
-              <div className="absolute top-4 right-4 flex gap-2">
-                <button
-                  type="button"
-                  aria-label={`Edit ${address.label} address`}
-                  className="text-text-muted hover:text-primary transition"
-                >
-                  <Pencil size={15} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${address.label} address`}
-                  className="text-text-muted hover:text-error transition"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </div>
-              <div className="mb-3 flex items-center gap-2 pr-14">
-                {address.primary && (
-                  <span className="bg-primary/20 text-primary rounded px-2 py-0.5 text-[10px]">
-                    Default
-                  </span>
-                )}
-                <h3 className="meta-font text-sm font-semibold">
-                  {address.label}
-                </h3>
-              </div>
-              <p className="text-text-muted text-sm leading-6">
-                {address.address.map((line) => (
-                  <span key={line} className="block">
-                    {line}
-                  </span>
-                ))}
-              </p>
-            </article>
-          ))}
-        </div>
+        {addresses.length === 0 ? (
+          <p className="text-text-muted text-sm">No saved addresses yet.</p>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2">
+            {addresses.slice(0, 2).map((address) => (
+              <AddressPreviewCard key={address.id} address={address} />
+            ))}
+          </div>
+        )}
       </section>
-    </>
+    </div>
   );
 }
 
 function ProfileField({
   label,
-  defaultValue,
+  value,
+  onChange,
   type = "text",
   wide = false,
 }: {
   label: string;
-  defaultValue: string;
+  value: string;
+  onChange: (value: string) => void;
   type?: string;
   wide?: boolean;
 }) {
@@ -177,9 +157,11 @@ function ProfileField({
         {label}
       </span>
       <input
-        className="bg-surface-3 text-foreground focus:border-primary rounded-md border border-(--glass-border) px-4 py-3 text-sm transition outline-none focus:shadow-[0_0_0_3px_rgba(255,183,122,0.14)]"
+        className="bg-surface-3 text-foreground focus:border-primary rounded-md border border-(--glass-border) px-4 py-3 text-sm outline-none"
         type={type}
-        defaultValue={defaultValue}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        required
       />
     </label>
   );

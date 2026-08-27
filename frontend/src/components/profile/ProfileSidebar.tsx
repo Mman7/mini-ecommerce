@@ -9,7 +9,9 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { logout as logoutRequest } from "@/src/api/auth.api";
+import { useGlobalStore } from "@/src/store/global.store";
 
 export type ProfileSection =
   "profile" | "orders" | "wishlist" | "addresses" | "settings";
@@ -55,6 +57,17 @@ export function ProfileSidebar({
   activeSection = "profile",
 }: ProfileSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+  const logout = useGlobalStore((state) => state.logout);
+
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      logout();
+      router.push("/login");
+    }
+  };
 
   return (
     <aside className="flex flex-col gap-5 md:sticky md:top-24 md:h-[calc(100dvh-7rem)]">
@@ -92,6 +105,7 @@ export function ProfileSidebar({
 
       <button
         type="button"
+        onClick={handleLogout}
         className="meta-font glass-panel text-text-muted hover:border-error/40 hover:text-error border-error/20 flex items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs transition md:mt-auto"
       >
         <LogOut size={16} />
