@@ -88,7 +88,7 @@ export function CollectionsSection({ items }: CollectionsSectionProps) {
           View All Collections
         </a>
       </div>
-      <div className="grid grid-cols-6 grid-rows-2 gap-8">
+      <div className="flex-col lg:grid grid-cols-6 grid-rows-2 gap-8">
         {items.map((item, index) => {
           const rowSPanClass = gridConfig[index]?.wrapperClass;
           const wrapperClasses = `${rowSPanClass} rounded-sm`;
