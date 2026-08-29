@@ -29,7 +29,6 @@ export function authMiddleware(
       role: decoded.role,
       name: decoded.name,
       email: decoded.email,
-      deliveryAddress: [], // Initialize with an empty array; you may want to fetch this from the database if needed
       phoneNumber: null, // Initialize with null; you may want to fetch this from the database if needed
     };
     req.user = userData; // Attach the decoded payload to the request object

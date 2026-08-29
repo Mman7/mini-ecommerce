@@ -91,20 +91,19 @@ export const handleCreateAddress = async (req: Request, res: Response) => {
   if (
     !addressLine?.trim() ||
     !city?.trim() ||
+    !state?.trim() ||
     !postalCode?.trim() ||
     !country?.trim()
   ) {
-    return res
-      .status(400)
-      .json({
-        message: "Address line, city, postal code, and country are required",
-      });
+    return res.status(400).json({
+      message: "Address line, city, postal code, and country are required",
+    });
   }
 
   const addresses = await userService.createAddress(req.user.userId, {
     addressLine,
     city,
-    state: state ?? null,
+    state: state,
     postalCode,
     country,
   });
@@ -127,20 +126,19 @@ export const handleUpdateAddress = async (req: Request, res: Response) => {
   if (
     !addressLine?.trim() ||
     !city?.trim() ||
+    !state?.trim() ||
     !postalCode?.trim() ||
     !country?.trim()
   ) {
-    return res
-      .status(400)
-      .json({
-        message: "Address line, city, postal code, and country are required",
-      });
+    return res.status(400).json({
+      message: "Address line, city, postal code, and country are required",
+    });
   }
 
   const addresses = await userService.updateAddress(
     req.user.userId,
     addressId,
-    { addressLine, city, state: state ?? null, postalCode, country },
+    { addressLine, city, state, postalCode, country },
   );
   if (!addresses) return res.status(404).json({ message: "Address not found" });
   return res.status(200).json({ addresses });

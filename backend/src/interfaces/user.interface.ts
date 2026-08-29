@@ -3,7 +3,7 @@ export type SavedAddress = {
   userId: string;
   addressLine: string;
   city: string;
-  state: string | null;
+  state: string;
   postalCode: string;
   country: string;
   createdAt: Date;
@@ -11,12 +11,14 @@ export type SavedAddress = {
 };
 
 //  user data interface for the handleMe function
+// this shoudnt return location, location should treat as separate entity,
+// and user can have multiple locations, so location should be a separate
+// table with a foreign key to the user table
 export interface AuthUserData {
   userId: string;
   name: string;
   email: string;
   role: string;
-  deliveryAddress: SavedAddress[];
   phoneNumber: string | null;
   isActive?: boolean;
   createdAt?: Date;
@@ -29,5 +31,5 @@ export interface UserData {
   email: string;
   role: string;
   createdAt: Date;
-  udpatedAt: Date;
+  updatedAt: Date;
 }

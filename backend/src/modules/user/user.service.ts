@@ -10,6 +10,7 @@ export const getTotalUsers = async () => {
   return totalUsers;
 };
 
+// get user data by options
 export const getUserData = async (accessTokenSub: string) => {
   // get data from database using prisma
   const user = await prisma.user.findUnique({
@@ -18,7 +19,6 @@ export const getUserData = async (accessTokenSub: string) => {
       userId: true,
       name: true,
       email: true,
-      deliveryAddress: true,
       phoneNumber: true,
       isActive: true,
       createdAt: true,
@@ -61,7 +61,7 @@ export const createAddress = async (
       userId,
       addressLine: address.addressLine.trim(),
       city: address.city.trim(),
-      state: address.state?.trim() || null,
+      state: address.state?.trim(),
       postalCode: address.postalCode.trim(),
       country: address.country.trim(),
     },
@@ -86,7 +86,7 @@ export const updateAddress = async (
     data: {
       addressLine: updates.addressLine.trim(),
       city: updates.city.trim(),
-      state: updates.state?.trim() || null,
+      state: updates.state?.trim(),
       postalCode: updates.postalCode.trim(),
       country: updates.country.trim(),
     },
