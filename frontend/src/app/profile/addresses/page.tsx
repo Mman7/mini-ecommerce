@@ -10,9 +10,13 @@ import {
   type SavedAddress,
 } from "@/src/api/user.api";
 
-type AddressForm = Pick<SavedAddress, "address">;
+type AddressForm = Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">;
 const emptyForm: AddressForm = {
-  address: "",
+  addressLine: "",
+  city: "",
+  state: null,
+  postalCode: "",
+  country: "",
 };
 
 export default function AddressesPage() {
@@ -24,7 +28,13 @@ export default function AddressesPage() {
 
   const startEditing = (savedAddress: SavedAddress) => {
     setEditingId(String(savedAddress.id));
-    setForm({ address: savedAddress.address });
+    setForm({
+      addressLine: savedAddress.addressLine,
+      city: savedAddress.city,
+      state: savedAddress.state,
+      postalCode: savedAddress.postalCode,
+      country: savedAddress.country,
+    });
     setShowForm(true);
     setError("");
   };
@@ -109,16 +119,29 @@ export default function AddressesPage() {
       {showForm && (
         <form onSubmit={submit} className="glass-panel rounded-lg p-5">
           <label className="meta-font text-foreground block text-xs font-semibold uppercase">
-            Address
+            Address line
             <textarea
-              value={form.address}
-              onChange={(event) => setForm({ address: event.target.value })}
+              value={form.addressLine}
+              onChange={(event) => setForm({ ...form, addressLine: event.target.value })}
               required
               rows={3}
               className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
               placeholder="Enter a delivery address"
             />
           </label>
+          <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            {(["city", "state", "postalCode", "country"] as const).map((field) => (
+              <label key={field} className="meta-font text-foreground text-xs font-semibold uppercase">
+                {field === "postalCode" ? "Postal code" : field}
+                <input
+                  value={form[field] ?? ""}
+                  onChange={(event) => setForm({ ...form, [field]: event.target.value })}
+                  required={field !== "state"}
+                  className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
+                />
+              </label>
+            ))}
+          </div>
           <div className="mt-4 flex justify-end gap-3">
             <button
               type="button"
@@ -154,7 +177,7 @@ export default function AddressesPage() {
               <div className="flex gap-3">
                 <MapPin className="text-primary mt-0.5 shrink-0" size={18} />
                 <p className="text-foreground text-sm leading-6">
-                  {savedAddress.address}
+                  {savedAddress.addressLine}, {savedAddress.city}, {savedAddress.postalCode}, {savedAddress.country}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">

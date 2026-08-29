@@ -1,7 +1,11 @@
 export type SavedAddress = {
   id: number;
   userId: string;
-  address: string;
+  addressLine: string;
+  city: string;
+  state: string | null;
+  postalCode: string;
+  country: string;
   createdAt: Date;
   updatedAt: Date;
 };

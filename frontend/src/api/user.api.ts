@@ -29,7 +29,11 @@ export async function getCurrentUser() {
 export type SavedAddress = {
   id: number;
   userId: string;
-  address: string;
+  addressLine: string;
+  city: string;
+  state: string | null;
+  postalCode: string;
+  country: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -49,7 +53,7 @@ export function getAddresses() {
   return request<{ addresses: SavedAddress[] }>("/users/me/addresses");
 }
 
-export function createAddress(address: Pick<SavedAddress, "address">) {
+export function createAddress(address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">) {
   return request<{ addresses: SavedAddress[] }>("/users/me/addresses", {
     method: "POST",
     body: JSON.stringify(address),
@@ -58,7 +62,7 @@ export function createAddress(address: Pick<SavedAddress, "address">) {
 
 export function updateAddress(
   addressId: number,
-  address: Pick<SavedAddress, "address">,
+  address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
 ) {
   return request<{ addresses: SavedAddress[] }>(
     `/users/me/addresses/${addressId}`,

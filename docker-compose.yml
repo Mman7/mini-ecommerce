@@ -23,7 +23,7 @@ services:
       - -c
       - shared_preload_libraries=pg_cron
       - -c
-      - cron.database_name=appdb
+      - cron.database_name=${POSTGRES_DB}
       - -c
       - cron.timezone=Asia/Kuala_Lumpur
 

@@ -31,7 +31,13 @@ export const createOrder = async (
   return prisma.$transaction(async (transaction) => {
     const address = await transaction.userAddress.findFirst({
       where: { id: addressId, userId },
-      select: { address: true },
+      select: {
+        addressLine: true,
+        city: true,
+        state: true,
+        postalCode: true,
+        country: true,
+      },
     });
     if (!address) throw new Error("Delivery address not found");
 
@@ -72,7 +78,11 @@ export const createOrder = async (
       data: {
         userId,
         total,
-        deliveryAddressLine1: address.address,
+        deliveryAddressLine1: address.addressLine,
+        deliveryCity: address.city,
+        deliveryState: address.state,
+        deliveryPostcode: address.postalCode,
+        deliveryCountry: address.country,
         orderItems: {
           create: productsWithPrices.map((item) => ({
             productId: item.productId,

@@ -53,11 +53,18 @@ export const getAddresses = async (userId: string) => {
 
 export const createAddress = async (
   userId: string,
-  address: Pick<SavedAddress, "address">,
+  address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
 ) => {
-  if (!address.address.trim()) throw new Error("Address is required");
+  if (!address.addressLine.trim()) throw new Error("Address line is required");
   await prisma.userAddress.create({
-    data: { userId, address: address.address.trim() },
+    data: {
+      userId,
+      addressLine: address.addressLine.trim(),
+      city: address.city.trim(),
+      state: address.state?.trim() || null,
+      postalCode: address.postalCode.trim(),
+      country: address.country.trim(),
+    },
   });
   return getAddresses(userId);
 };
@@ -65,9 +72,9 @@ export const createAddress = async (
 export const updateAddress = async (
   userId: string,
   addressId: number,
-  updates: Pick<SavedAddress, "address">,
+  updates: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
 ) => {
-  if (!updates.address?.trim()) throw new Error("Address is required");
+  if (!updates.addressLine?.trim()) throw new Error("Address line is required");
   const existingAddress = await prisma.userAddress.findFirst({
     where: { id: addressId, userId },
   });
@@ -76,7 +83,13 @@ export const updateAddress = async (
 
   await prisma.userAddress.update({
     where: { id: existingAddress.id },
-    data: { address: updates.address.trim() },
+    data: {
+      addressLine: updates.addressLine.trim(),
+      city: updates.city.trim(),
+      state: updates.state?.trim() || null,
+      postalCode: updates.postalCode.trim(),
+      country: updates.country.trim(),
+    },
   });
 
   return getAddresses(userId);

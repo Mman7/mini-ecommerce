@@ -5,7 +5,7 @@ export function AddressPreviewCard({ address }: { address: SavedAddress }) {
     <article className="glass-panel rounded-lg p-5">
       <h3 className="meta-font text-sm font-semibold">Address</h3>
       <p className="text-text-muted mt-3 text-sm leading-6">
-        {address.address}
+        {address.addressLine}, {address.city}, {address.postalCode}, {address.country}
       </p>
     </article>
   );

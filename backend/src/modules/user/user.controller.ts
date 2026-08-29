@@ -81,13 +81,32 @@ export const handleGetAddresses = async (req: Request, res: Response) => {
 
 export const handleCreateAddress = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-  const { address } = req.body as { address?: string };
-  if (!address?.trim()) {
-    return res.status(400).json({ message: "Address is required" });
+  const { addressLine, city, state, postalCode, country } = req.body as {
+    addressLine?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
+  if (
+    !addressLine?.trim() ||
+    !city?.trim() ||
+    !postalCode?.trim() ||
+    !country?.trim()
+  ) {
+    return res
+      .status(400)
+      .json({
+        message: "Address line, city, postal code, and country are required",
+      });
   }
 
   const addresses = await userService.createAddress(req.user.userId, {
-    address: address.trim(),
+    addressLine,
+    city,
+    state: state ?? null,
+    postalCode,
+    country,
   });
   return res.status(201).json({ addresses });
 };
@@ -95,18 +114,33 @@ export const handleCreateAddress = async (req: Request, res: Response) => {
 export const handleUpdateAddress = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
   const addressId = Number(req.params.addressId);
-  const { address } = req.body as { address?: string };
+  const { addressLine, city, state, postalCode, country } = req.body as {
+    addressLine?: string;
+    city?: string;
+    state?: string;
+    postalCode?: string;
+    country?: string;
+  };
   if (!Number.isInteger(addressId) || addressId < 1) {
     return res.status(400).json({ message: "Invalid address ID" });
   }
-  if (!address?.trim()) {
-    return res.status(400).json({ message: "Address is required" });
+  if (
+    !addressLine?.trim() ||
+    !city?.trim() ||
+    !postalCode?.trim() ||
+    !country?.trim()
+  ) {
+    return res
+      .status(400)
+      .json({
+        message: "Address line, city, postal code, and country are required",
+      });
   }
 
   const addresses = await userService.updateAddress(
     req.user.userId,
     addressId,
-    { address: address.trim() },
+    { addressLine, city, state: state ?? null, postalCode, country },
   );
   if (!addresses) return res.status(404).json({ message: "Address not found" });
   return res.status(200).json({ addresses });
