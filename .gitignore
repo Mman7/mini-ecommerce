@@ -146,3 +146,5 @@ vite.config.ts.timestamp-*
 backend/src/generated/prisma/
 ./uploads
 
+# uploads directory
+uploads/
