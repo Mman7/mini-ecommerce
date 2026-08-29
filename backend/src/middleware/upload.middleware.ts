@@ -8,8 +8,10 @@ import type { Request } from "express";
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
 
 // create the uploads directory if it doesn't exist
-const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+const uploadDir =
+  process.env.UPLOAD_DIR || path.resolve(process.cwd(), "..", "uploads");
 
+console.log("Upload directory:", uploadDir);
 fs.mkdirSync(uploadDir, { recursive: true });
 
 const storage = multer.diskStorage({

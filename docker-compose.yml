@@ -37,6 +37,8 @@ services:
       - postgres
     env_file:
       - ./backend/.env
+    environment:
+      UPLOAD_DIR: /app/uploads
     ports:
       - "5000:5000"
     volumes:
@@ -77,6 +79,7 @@ services:
     environment:
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
+      BACKEND_URL: http://backend:5000
 
     volumes:
       - /app/node_modules

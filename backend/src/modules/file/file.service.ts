@@ -27,6 +27,8 @@ export const deleteFileById = async (fileId: number): Promise<void> => {
 
   const filename = path.basename(image.url);
 
-  const filePath = path.join("/app/uploads", filename);
+  const uploadDir =
+    process.env.UPLOAD_DIR || path.resolve(process.cwd(), "..", "uploads");
+  const filePath = path.join(uploadDir, filename);
   await deleteFileByPath(filePath);
 };

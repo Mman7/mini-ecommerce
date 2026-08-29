@@ -6,7 +6,10 @@ import path from "node:path";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
-const uploadDir = process.env.UPLOAD_DIR || path.join(process.cwd(), "uploads");
+// Set the upload directory, defaulting to a relative path if not specified in the environment
+// if cant find the UPLOAD_DIR in the environment variables, it will default to a directory named "uploads" located one level above the current working directory.
+const uploadDir =
+  process.env.UPLOAD_DIR || path.resolve(process.cwd(), "..", "uploads");
 
 // Built-in JSON parsing middleware
 app.use(express.json());
