@@ -4,10 +4,7 @@ import {
 } from "@/src/components/sections/CollectionsSection";
 import { FooterSection } from "@/src/components/sections/FooterSection";
 import { HeroSection } from "@/src/components/sections/HeroSection";
-import {
-  type SeasonalItem,
-  SeasonalEditSection,
-} from "@/src/components/sections/SeasonalEditSection";
+import { SeasonalEditSection } from "@/src/components/sections/SeasonalEditSection";
 import { NewsletterSection } from "@/src/components/sections/NewsletterSection";
 import {
   type Testimonial,
@@ -43,37 +40,6 @@ const collections: CollectionItem[] = [
   },
 ];
 
-const seasonalItems: SeasonalItem[] = [
-  {
-    id: "s1",
-    name: "Sakura Bunny Plush",
-    label: "New",
-    price: "$52.00",
-    image: "",
-  },
-  {
-    id: "s2",
-    name: "Golden Koi Music Box",
-    label: "Limited",
-    price: "$64.00",
-    image: "",
-  },
-  {
-    id: "s3",
-    name: "Moonlit Journal Set",
-    label: "Bestseller",
-    price: "$38.00",
-    image: "",
-  },
-  {
-    id: "s4",
-    name: "Amber Glow Lamp",
-    label: "Cozy",
-    price: "$89.00",
-    image: "",
-  },
-];
-
 const testimonials: Testimonial[] = [
   {
     id: "t1",
@@ -103,7 +69,7 @@ export default function Home() {
     <main>
       <HeroSection />
       <CollectionsSection items={collections} />
-      <SeasonalEditSection products={seasonalItems} />
+      <SeasonalEditSection />
       <NewsletterSection />
       <TestimonialsSection entries={testimonials} />
     </main>

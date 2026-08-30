@@ -126,7 +126,7 @@ export default function DashboardCustomersPage() {
           }
         />
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[760px] text-left">
+          <table className="w-full min-w-190 text-left">
             <thead className="meta-font bg-surface-2/60 text-xs tracking-[0.08em] text-(--outline) uppercase">
               <tr>
                 <th className="px-4 py-3 font-medium">Customer</th>
@@ -147,7 +147,7 @@ export default function DashboardCustomersPage() {
                   <td className="px-4 py-2.5">
                     <div className="flex items-center gap-3">
                       <span
-                        className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold text-(--primary-ink) ${avatarColors[index]}`}
+                        className={`text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold ${avatarColors[index]}`}
                       >
                         {customer[0]
                           .split(" ")

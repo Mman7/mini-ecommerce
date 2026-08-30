@@ -39,6 +39,7 @@ export const createProduct = ({
 export const getProductById = (id: number) => {
   return prisma.product.findUnique({
     where: { productId: id },
+    include: { productImages: true },
   });
 };
 
@@ -183,4 +184,66 @@ export const searchBetweenPrice = ({
 
 export const getProductsCount = () => {
   return prisma.product.count();
+};
+
+// get recommended item based on the most purchased items
+export const getRecommendedProducts = async (limit: number) => {
+  console.log("hello");
+  const recommendedProducts = await prisma.orderItem.groupBy({
+    by: ["productId"],
+    _sum: {
+      quantity: true,
+    },
+    orderBy: {
+      _sum: {
+        quantity: "desc",
+      },
+    },
+    take: limit,
+  });
+
+  const products = await prisma.product.findMany({
+    where: {
+      productId: { in: recommendedProducts.map(({ productId }) => productId) },
+      isActive: true,
+    },
+    include: { productImages: true },
+  });
+  const productsById = new Map(
+    products.map((product) => [product.productId, product]),
+  );
+
+  const finalRecommendedProducts = recommendedProducts
+    .map(({ productId }) => productsById.get(productId))
+    .filter((product) => product !== undefined);
+
+  // Fill the remaining slots when there are not enough purchased products.
+  if (finalRecommendedProducts.length < limit) {
+    const randomProducts = await prisma.product.findMany({
+      where: {
+        productId: {
+          notIn: finalRecommendedProducts.map(({ productId }) => productId),
+        },
+        isActive: true,
+      },
+      include: {
+        productImages: {
+          where: { isThumbnail: true },
+        },
+      },
+      orderBy: {
+        productId: "asc",
+      },
+      take: limit - finalRecommendedProducts.length,
+    });
+
+    finalRecommendedProducts.push(...randomProducts);
+  }
+  if (finalRecommendedProducts.length > 0) {
+    console.log(
+      "Recommended products:",
+      finalRecommendedProducts[0]?.productImages,
+    );
+  }
+  return finalRecommendedProducts;
 };

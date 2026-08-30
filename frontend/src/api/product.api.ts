@@ -45,3 +45,9 @@ export function getProduct(productId: number) {
 export function getProductsCount() {
   return request<{ count: number }>("/products/count");
 }
+
+export async function getRecommendedProducts(
+  limit: number = 4,
+): Promise<Product[]> {
+  return request<Product[]>(`/products/recommended?limit=${limit}`);
+}

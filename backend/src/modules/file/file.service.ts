@@ -3,11 +3,17 @@ import path from "path";
 import { prisma } from "../../utils/prisma.ts";
 
 export const deleteFileByPath = async (filePath: string): Promise<void> => {
+  const uploadDir =
+    process.env.UPLOAD_DIR || path.resolve(process.cwd(), "..", "uploads");
+  const resolvedFilePath = path.isAbsolute(filePath)
+    ? filePath
+    : path.join(uploadDir, path.basename(filePath));
+
   try {
-    await fs.promises.unlink(filePath);
+    await fs.promises.unlink(resolvedFilePath);
   } catch (error) {
-    console.error(`Error deleting file at ${filePath}:`, error);
-    throw new Error(`Failed to delete file at ${filePath}`);
+    console.error(`Error deleting file at ${resolvedFilePath}:`, error);
+    throw new Error(`Failed to delete file at ${resolvedFilePath}`);
   }
 };
 

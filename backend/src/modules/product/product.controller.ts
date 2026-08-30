@@ -50,7 +50,7 @@ export const createProduct = async (req: Request, res: Response) => {
     }
 
     const thumbnailImage: ProductImage = {
-      url: thumbnail.path,
+      url: `/uploads/${thumbnail.filename}`,
       altText: thumbnail.originalname,
       sortOrder: 0,
       createdAt: new Date(),
@@ -59,7 +59,7 @@ export const createProduct = async (req: Request, res: Response) => {
     };
 
     const imageList: ProductImage[] = productImages.map((file, index) => ({
-      url: file.path,
+      url: `/uploads/${file.filename}`,
       altText: file.originalname,
       sortOrder: parsedSortOrders[index] ?? 0,
       isThumbnail: false,
@@ -199,7 +199,7 @@ export const updateProductImage = async (req: Request, res: Response) => {
   >[2] = {};
   // If a new image file is uploaded, include its path and original name in the update data. Otherwise, only include the metadata fields that are provided.
   if (req.file) {
-    updateData.url = req.file.path;
+    updateData.url = `/uploads/${req.file.filename}`;
     updateData.altText = req.file.originalname;
   }
   // Validate and include the optional metadata fields in the update data if they are provided.
@@ -258,5 +258,21 @@ export const getProductsCount = async (req: Request, res: Response) => {
     return res.status(200).json({ count });
   } catch (error) {
     return res.status(500).json({ error: "Failed to get products count" });
+  }
+};
+
+export const getRecommendedProducts = async (req: Request, res: Response) => {
+  const limit = req.query.limit ? Number(req.query.limit) : 4;
+  if (!Number.isInteger(limit) || limit <= 0) {
+    return res.status(400).json({ error: "Limit must be a positive integer" });
+  }
+  try {
+    const recommendedProducts =
+      await productService.getRecommendedProducts(limit);
+    return res.status(200).json(recommendedProducts);
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ error: "Failed to get recommended products" });
   }
 };

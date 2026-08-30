@@ -1,4 +1,7 @@
-const apiBaseUrl = "/api";
+const apiBaseUrl =
+  typeof window === "undefined"
+    ? `${process.env.BACKEND_URL || "http://localhost:5000"}/api`
+    : "/api";
 
 export type ApiError = Error & { status?: number };
 

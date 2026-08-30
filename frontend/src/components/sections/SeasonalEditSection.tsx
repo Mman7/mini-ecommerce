@@ -1,17 +1,13 @@
+import { getRecommendedProducts, type Product } from "@/src/api/product.api";
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
-import { Heart } from "lucide-react";
-// TODO fetch data from database
+import { FavoriteButton } from "@/src/components/ui/FavoriteButton";
 
 export type SeasonalItem = {
   id: string;
   name: string;
   price: string;
   label: string;
-  image: string;
-};
-
-type SeasonalEditSectionProps = {
-  products: SeasonalItem[];
+  imageSrc: string;
 };
 
 type SeasonalCardProps = {
@@ -24,22 +20,17 @@ function SeasonalCard({ product }: SeasonalCardProps) {
       <section className="relative overflow-hidden rounded-sm">
         <div
           className="size-80 rounded-sm bg-cover bg-center transition-transform duration-500 group-hover:scale-[1.05]"
-          style={{ backgroundImage: `url(${product.image})` }}
+          style={{ backgroundImage: `url(${product.imageSrc})` }}
         />
         <button
           aria-label={`View ${product.name}`}
-          className="bg-primary absolute bottom-4 left-1/2 z-20 -translate-x-1/2 translate-y-4 rounded-sm px-4 py-2 text-sm font-medium text-[var(--outline-strong)] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
+          className="bg-primary absolute bottom-4 left-1/2 z-20 -translate-x-1/2 translate-y-4 rounded-sm px-4 py-2 text-sm font-medium text-(--outline-strong) opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
         >
           Quick Add
         </button>
       </section>
 
-      <button
-        aria-label="Add to favorites"
-        className="bg-surface-2/80 text-on-surface hover:text-primary absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors"
-      >
-        <Heart />
-      </button>
+      <FavoriteButton productId={product.id} productName={product.name} />
       <div className="space-y-2 p-4 text-center">
         <div className="flex items-baseline justify-center gap-4">
           <h3 className="heading-font text-base leading-tight">
@@ -49,7 +40,7 @@ function SeasonalCard({ product }: SeasonalCardProps) {
             {product.price}
           </p>
         </div>
-        <p className="meta-font text-secondary mx-auto inline-flex items-center rounded-full border border-[var(--outline-strong)] bg-[rgba(255,174,218,0.15)] px-2 py-0.5 text-[11px]">
+        <p className="meta-font text-secondary mx-auto inline-flex items-center rounded-full border border-(--outline-strong) bg-[rgba(255,174,218,0.15)] px-2 py-0.5 text-[11px]">
           {product.label}
         </p>
       </div>
@@ -57,15 +48,61 @@ function SeasonalCard({ product }: SeasonalCardProps) {
   );
 }
 
-export function SeasonalEditSection({ products }: SeasonalEditSectionProps) {
+export async function SeasonalEditSection() {
+  console.log("SeasonalEditSection started");
+
+  let products: SeasonalItem[] = [];
+  let error = false;
+
+  try {
+    console.log("Before getRecommendedProducts");
+
+    const res = await getRecommendedProducts();
+
+    if (!res || res.length === 0) {
+      throw new Error("Failed to load recommendations");
+    }
+
+    const recommendedProducts = res as Product[];
+    products = recommendedProducts.map(toSeasonalItem);
+
+    console.log("Recommended products:", products);
+  } catch (err) {
+    console.error("SeasonalEditSection error:", err);
+    error = true;
+  }
+
   return (
     <section className="padding-inline mt-16 space-y-6">
       <SectionHeading title="The Seasonal Edit" />
-      <div className="flex gap-6">
-        {products.map((product) => (
-          <SeasonalCard key={product.id} product={product} />
-        ))}
-      </div>
+
+      {error ? (
+        <p className="text-destructive text-sm">
+          Unable to load recommended products.
+        </p>
+      ) : products.length === 0 ? (
+        <p className="text-text-muted text-sm">No recommended products yet.</p>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          {products.map((product) => (
+            <SeasonalCard key={product.id} product={product} />
+          ))}
+        </div>
+      )}
     </section>
   );
+}
+
+function toSeasonalItem(product: Product): SeasonalItem {
+  const image =
+    product.productImages.find((productImage) => productImage.isThumbnail) ??
+    product.productImages[0];
+
+  return {
+    id: String(product.productId),
+    name: product.name,
+    price: `$${product.price}`,
+    label: "Recommended",
+    imageSrc: image?.url ?? "",
+  };
 }
