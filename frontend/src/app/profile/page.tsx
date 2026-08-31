@@ -4,7 +4,6 @@ import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
 import {
   getAddresses,
-  getCurrentUser,
   updateCurrentUser,
   type SavedAddress,
   type User,
@@ -12,6 +11,7 @@ import {
 import { useGlobalStore } from "@/src/store/global.store";
 import { AddressPreviewCard } from "@/src/components/profile/AddressPreviewCard";
 import { ProfileHeader } from "@/src/components/profile/ProfileHeader";
+import { AuthStatus } from "@/src/types/user";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);
@@ -19,18 +19,22 @@ export default function ProfilePage() {
   const [form, setForm] = useState({ name: "", email: "", phoneNumber: "" });
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const authenticatedUser = useGlobalStore((state) => state.user);
+  const authStatus = useGlobalStore((state) => state.authStatus);
   const setGlobalUser = useGlobalStore((state) => state.setUser);
 
   useEffect(() => {
-    Promise.all([getCurrentUser(), getAddresses()])
-      .then(([userResponse, addressResponse]) => {
-        setUser(userResponse.user);
-        setGlobalUser(userResponse.user);
-        setForm({
-          name: userResponse.user.name,
-          email: userResponse.user.email,
-          phoneNumber: userResponse.user.phoneNumber ?? "",
-        });
+    if (authStatus !== AuthStatus.Authenticated || !authenticatedUser) return;
+
+    setUser(authenticatedUser);
+    setForm({
+      name: authenticatedUser.name,
+      email: authenticatedUser.email,
+      phoneNumber: authenticatedUser.phoneNumber ?? "",
+    });
+
+    getAddresses()
+      .then((addressResponse) => {
         setAddresses(addressResponse.addresses);
       })
       .catch((requestError) =>
@@ -40,7 +44,7 @@ export default function ProfilePage() {
             : "Unable to load your profile.",
         ),
       );
-  }, []);
+  }, [authStatus, authenticatedUser]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();

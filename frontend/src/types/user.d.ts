@@ -1,3 +1,9 @@
+export enum AuthStatus {
+  Loading = "loading",
+  Authenticated = "authenticated",
+  Unauthenticated = "unauthenticated",
+}
+
 export enum Role {
   USER = "USER",
   ADMIN = "ADMIN",

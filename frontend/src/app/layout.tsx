@@ -4,13 +4,16 @@ import {
   Fredoka,
   Geist_Mono,
   Inter,
-  Poppins, Geist } from "next/font/google";
+  Poppins,
+  Geist,
+} from "next/font/google";
 import "./globals.css";
 import { NavbarSection } from "../components/sections/NavbarSection";
 import { FooterSection } from "../components/sections/FooterSection";
+import { AuthInitializer } from "../components/auth/AuthInitializer";
 import { cn } from "@/lib/utils";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 const displayFont = Fredoka({
   variable: "--font-display",
@@ -55,9 +58,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", "antialiased", displayFont.variable, headingFont.variable, bodyFont.variable, metaFont.variable, geistMono.variable, "font-sans", geist.variable)}
+      className={cn(
+        "h-full",
+        "antialiased",
+        displayFont.variable,
+        headingFont.variable,
+        bodyFont.variable,
+        metaFont.variable,
+        geistMono.variable,
+        "font-sans",
+        geist.variable,
+      )}
     >
       <body className="flex min-h-full flex-col">
+        <AuthInitializer />
         <NavbarSection />
         {children}
         <FooterSection />
