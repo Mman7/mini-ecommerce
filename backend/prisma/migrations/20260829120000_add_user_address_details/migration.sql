@@ -11,3 +11,10 @@ ALTER TABLE "UserAddress"
 ALTER COLUMN "city" DROP DEFAULT,
 ALTER COLUMN "postalCode" DROP DEFAULT,
 ALTER COLUMN "country" DROP DEFAULT;
+
+UPDATE "UserAddress"
+SET "state" = ''
+WHERE "state" IS NULL;
+
+ALTER TABLE "UserAddress"
+ALTER COLUMN "state" SET NOT NULL;
