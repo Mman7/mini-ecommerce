@@ -50,10 +50,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <form
-      className="glass-panel rounded-lg p-5 shadow-[0_8px_30px_rgba(0,0,0,0.5)] sm:p-6"
-      onSubmit={handleSubmit(onSubmit)}
-    >
+    <form onSubmit={handleSubmit(onSubmit)}>
       <div className="space-y-5">
         <div>
           <label

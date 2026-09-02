@@ -11,7 +11,9 @@ import "./globals.css";
 import { NavbarSection } from "../components/sections/NavbarSection";
 import { FooterSection } from "../components/sections/FooterSection";
 import { AuthInitializer } from "../components/auth/AuthInitializer";
+import { PageTransition } from "../components/motion/PageTransition";
 import { cn } from "@/lib/utils";
+import { SmoothScroll } from "../components/motion/SmoothScroll";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -70,11 +72,14 @@ export default function RootLayout({
         geist.variable,
       )}
     >
-      <body className="flex min-h-full flex-col">
+      <body>
+        <SmoothScroll />
         <AuthInitializer />
-        <NavbarSection />
-        {children}
-        <FooterSection />
+        <PageTransition>
+          <NavbarSection />
+          {children}
+          <FooterSection />
+        </PageTransition>
       </body>
     </html>
   );

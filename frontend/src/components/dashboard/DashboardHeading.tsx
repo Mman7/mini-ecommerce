@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { TextInView } from "../motion/TextInView";
 
 export function DashboardHeading({
   eyebrow,
@@ -19,9 +20,11 @@ export function DashboardHeading({
             {eyebrow}
           </p>
         ) : null}
-        <h1 className="heading-font text-foreground text-2xl font-semibold sm:text-3xl">
-          {title}
-        </h1>
+        <TextInView>
+          <h1 className="heading-font text-foreground text-2xl font-semibold sm:text-3xl">
+            {title}
+          </h1>
+        </TextInView>
         <p className="text-text-muted mt-1 text-sm">{description}</p>
       </div>
       {action}

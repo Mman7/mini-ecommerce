@@ -1,4 +1,10 @@
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
+import {
+  SlideInBackground,
+  type SlideDirection,
+} from "../motion/SlideInBackground";
+import { TextInView } from "../motion/TextInView";
+import type { CSSProperties } from "react";
 
 export type CollectionItem = {
   id: string;
@@ -13,61 +19,65 @@ type CollectionsSectionProps = {
 
 type CollectionCardProps = {
   item: CollectionItem;
-  cfg?: { wrapperClass?: string; imageStyle?: React.CSSProperties };
-  wrapperClasses: string;
+  config: CollectionLayoutConfig;
 };
 
-const gridConfig: Array<{
-  wrapperClass?: string;
-  imageStyle?: React.CSSProperties;
-}> = [
+type CollectionLayoutConfig = {
+  wrapperClass: string;
+  objectPosition: CSSProperties["objectPosition"];
+  direction: SlideDirection;
+  delay: number;
+};
+
+const collectionLayout: CollectionLayoutConfig[] = [
   {
     wrapperClass: "col-span-4",
-    imageStyle: { backgroundPosition: "center" },
+    objectPosition: "center",
+    direction: "left",
+    delay: 0.5,
   },
   {
     wrapperClass: "col-span-2",
-    imageStyle: { backgroundPosition: "top" },
+    objectPosition: "top",
+    direction: "right",
+    delay: 0.5,
   },
   {
     wrapperClass: "col-span-2",
-    imageStyle: { backgroundPosition: "bottom" },
+    objectPosition: "bottom",
+    direction: "top",
+    delay: 0.5,
   },
   {
     wrapperClass: "col-span-4",
-    imageStyle: { backgroundPosition: "center" },
+    objectPosition: "center",
+    direction: "bottom",
+    delay: 0.5,
   },
 ];
 
-function CollectionCard({ item, cfg, wrapperClasses }: CollectionCardProps) {
+function CollectionCard({ item, config }: CollectionCardProps) {
   return (
-    <article className={`${wrapperClasses} relative h-70 overflow-hidden`}>
-      {/* subtle primary glow behind the card */}
-      <div
-        className="absolute -inset-3 rounded-sm opacity-10 blur-xl"
-        style={{ background: "var(--primary)" }}
-        aria-hidden
+    <article
+      className={`${config.wrapperClass} relative h-70 overflow-hidden rounded-sm`}
+    >
+      <SlideInBackground
+        alt={item.title}
+        direction={config.direction}
+        delay={config.delay}
+        image={item.image}
+        objectPosition={config.objectPosition}
       />
 
-      {/* background image */}
-      <div
-        className="absolute inset-0 z-10 bg-cover bg-center"
-        style={{
-          backgroundImage: `url(${item.image})`,
-          ...(cfg?.imageStyle || {}),
-        }}
-        aria-hidden
-      />
-
-      <div className="absolute inset-0 z-20 bg-linear-to-t from-black/70 via-black/30 to-transparent" />
+      <div className="absolute inset-0 z-20 bg-linear-to-t from-black/50 via-black/30 to-transparent" />
 
       <div className="relative z-30 flex h-full items-end p-4">
-        <div className="space-y-1">
+        <TextInView className="space-y-1">
           <h3 className="heading-font text-lg font-medium text-white">
             {item.title}
           </h3>
           <p className="text-sm text-white">{item.subtitle}</p>
-        </div>
+        </TextInView>
       </div>
     </article>
   );
@@ -88,19 +98,11 @@ export function CollectionsSection({ items }: CollectionsSectionProps) {
           View All Collections
         </a>
       </div>
-      <div className="flex-col lg:grid grid-cols-6 grid-rows-2 gap-8">
+      <div className="grid-cols-6 grid-rows-2 flex-col gap-8 lg:grid">
         {items.map((item, index) => {
-          const rowSPanClass = gridConfig[index]?.wrapperClass;
-          const wrapperClasses = `${rowSPanClass} rounded-sm`;
+          const config = collectionLayout[index % collectionLayout.length];
 
-          return (
-            <CollectionCard
-              key={item.id}
-              item={item}
-              cfg={gridConfig[index]}
-              wrapperClasses={wrapperClasses}
-            />
-          );
+          return <CollectionCard key={item.id} item={item} config={config} />;
         })}
       </div>
     </section>

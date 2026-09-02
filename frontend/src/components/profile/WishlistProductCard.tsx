@@ -1,4 +1,5 @@
 "use client";
+import { TextInView } from "../motion/TextInView";
 
 import Image from "next/image";
 import { Bell, Heart, ShoppingBag } from "lucide-react";
@@ -63,9 +64,11 @@ export function WishlistProductCard({ product }: { product: WishlistProduct }) {
 
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="min-w-0">
-          <h2 className="heading-font text-foreground truncate text-lg font-medium">
-            {product.name}
-          </h2>
+          <TextInView>
+            <h2 className="heading-font text-foreground truncate text-lg font-medium">
+              {product.name}
+            </h2>
+          </TextInView>
           <p className="text-text-muted mt-1 truncate text-sm">
             {product.variant}
           </p>

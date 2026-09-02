@@ -1,4 +1,5 @@
 import type { User } from "@/src/api/user.api";
+import { TextInView } from "../motion/TextInView";
 
 export function ProfileHeader({ user }: { user: User | null }) {
   return (
@@ -7,9 +8,11 @@ export function ProfileHeader({ user }: { user: User | null }) {
         {user?.name?.charAt(0).toUpperCase() || "U"}
       </div>
       <div>
-        <h2 className="heading-font text-2xl font-semibold">
-          {user?.name || "Your profile"}
-        </h2>
+        <TextInView>
+          <h2 className="heading-font text-2xl font-semibold">
+            {user?.name || "Your profile"}
+          </h2>
+        </TextInView>
         <p className="text-text-muted mt-1 text-sm">
           {user?.email || "Loading account details..."}
         </p>

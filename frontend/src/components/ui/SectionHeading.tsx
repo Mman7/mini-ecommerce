@@ -1,3 +1,5 @@
+import { TextInView } from "../motion/TextInView";
+
 type SectionHeadingProps = {
   eyebrow?: string;
   title: string;
@@ -25,11 +27,13 @@ export function SectionHeading({
           {eyebrow}
         </p>
       ) : null}
-      <h2
-        className={`heading-font text-2xl leading-tight font-semibold sm:text-3xl ${titleClassName}`}
-      >
-        {title}
-      </h2>
+      <TextInView>
+        <h2
+          className={`heading-font text-2xl leading-tight font-semibold sm:text-3xl ${titleClassName}`}
+        >
+          {title}
+        </h2>
+      </TextInView>
       {description ? (
         <p
           className={joinClasses(
