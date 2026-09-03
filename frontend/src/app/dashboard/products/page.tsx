@@ -27,7 +27,7 @@ const products = [
     "128",
     "Active",
     "May 12, 2025",
-    "/homepage/pink-plush-bunny.jpg",
+    "/homepage/white-plush-rabbit-on-shelf.png",
   ],
   [
     "Sakura Dream Music Box",
@@ -36,7 +36,7 @@ const products = [
     "12",
     "Low Stock",
     "May 10, 2025",
-    "/homepage/gift-wrap-display.jpg",
+    "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
   ],
   [
     "Komorebi Blind Box Series",
@@ -45,7 +45,7 @@ const products = [
     "0",
     "Out of Stock",
     "May 08, 2025",
-    "/homepage/acrylic-figurines-display.jpg",
+    "/homepage/blue-maneki-neko-figurine-display-case.png",
   ],
   [
     "Pastel Bear Keychain",
@@ -54,7 +54,7 @@ const products = [
     "45",
     "Active",
     "May 05, 2025",
-    "/homepage/blue-lucky-cat-case.jpg",
+    "/homepage/blue-maneki-neko-figurine-display-case.png",
   ],
   [
     "Yume Cat Night Light",
@@ -63,7 +63,7 @@ const products = [
     "22",
     "Low Stock",
     "May 03, 2025",
-    "/homepage/cozy-reading-lamp-desk.jpg",
+    "/homepage/lamp-on-desk-with-books-and-notebook.png",
   ],
   [
     "Floral Letter Set",
@@ -72,7 +72,7 @@ const products = [
     "74",
     "Active",
     "Apr 29, 2025",
-    "/homepage/floral-journal-pen.jpg",
+    "/homepage/komorebi-stationery-fountain-pen.png",
   ],
 ];
 

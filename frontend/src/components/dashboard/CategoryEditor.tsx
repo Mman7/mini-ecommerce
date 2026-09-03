@@ -31,21 +31,21 @@ const categoryProducts: CategoryProduct[] = [
   {
     id: "tsuki-bear-plush",
     name: "Tsuki Bear Plush",
-    image: "/homepage/pink-plush-bunny.jpg",
+    image: "/homepage/white-plush-rabbit-on-shelf.png",
     status: "Active",
     price: "RM 45.00",
   },
   {
     id: "hoshi-rabbit-plush",
     name: "Hoshi Rabbit Plush",
-    image: "/homepage/plush-toy-lineup.jpg",
+    image: "/homepage/plush-toys-on-wooden-shelf.png",
     status: "Active",
     price: "RM 38.00",
   },
   {
     id: "kumo-cloud-cushion",
     name: "Kumo Cloud Cushion",
-    image: "/homepage/cozy-reading-lamp-desk.jpg",
+    image: "/homepage/lamp-on-desk-with-books-and-notebook.png",
     status: "Draft",
     price: "RM 55.00",
   },
@@ -62,7 +62,7 @@ export function CategoryEditor({ mode }: CategoryEditorProps) {
   );
   const [active, setActive] = useState(true);
   const [cover, setCover] = useState<string | null>(
-    isEdit ? "/homepage/plush-toy-lineup.jpg" : null,
+    isEdit ? "/homepage/plush-toys-on-wooden-shelf.png" : null,
   );
   const [notice, setNotice] = useState("");
 

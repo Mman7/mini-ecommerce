@@ -40,7 +40,7 @@ import {
 
 const checkoutSteps = ["Shipping", "Payment", "Review"];
 const shippingCost = 500;
-const fallbackImage = "/homepage/pink-plush-bunny.jpg";
+const fallbackImage = "/homepage/white-plush-rabbit-on-shelf.png";
 type PaymentMethod = "google" | "apple" | "card";
 type CardFields = { name: string; number: string; expiry: string; cvc: string };
 

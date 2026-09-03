@@ -21,28 +21,28 @@ const topProducts = [
     category: "Plushies",
     sold: "128 sold",
     price: "RM 89.00",
-    image: "/homepage/pink-plush-bunny.jpg",
+    image: "/homepage/white-plush-rabbit-on-shelf.png",
   },
   {
     name: "Sakura Dream Music Box",
     category: "Home Decor",
     sold: "96 sold",
     price: "RM 129.00",
-    image: "/homepage/gift-wrap-display.jpg",
+    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
   },
   {
     name: "Komorebi Blind Box Series",
     category: "Collectibles",
     sold: "88 sold",
     price: "RM 69.00",
-    image: "/homepage/acrylic-figurines-display.jpg",
+    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
   },
   {
     name: "Pastel Bear Keychain",
     category: "Accessories",
     sold: "76 sold",
     price: "RM 38.00",
-    image: "/homepage/blue-lucky-cat-case.jpg",
+    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
   },
 ];
 

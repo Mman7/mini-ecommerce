@@ -26,10 +26,10 @@ type ProductPageProps = {
 };
 
 const galleryImages = [
-  "/homepage/pink-plush-bunny.jpg",
-  "/homepage/plush-toy-lineup.jpg",
-  "/homepage/acrylic-figurines-display.jpg",
-  "/homepage/gift-wrap-display.jpg",
+  "/homepage/white-plush-rabbit-on-shelf.png",
+  "/homepage/plush-toys-on-wooden-shelf.png",
+  "/homepage/blue-maneki-neko-figurine-display-case.png",
+  "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
 ];
 
 const recommendationIds = [
@@ -47,7 +47,7 @@ const fallbackProduct: Product = {
   id: "mock-sakura-showcase",
   name: "Sakura Bun-Bun Showcase",
   price: 3200,
-  image: "/homepage/acrylic-figurines-display.jpg",
+  image: "/homepage/blue-maneki-neko-figurine-display-case.png",
   category: "Plush Toys",
   brand: "Harajuku Artisans",
   rating: 5,

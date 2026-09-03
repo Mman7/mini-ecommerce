@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import type { CSSProperties } from "react";
 
 export type SlideDirection = "left" | "right" | "top" | "bottom";
-// TODO each background  before slide in  got  a gray color background,change the gray coloor
+
 type SlideInBackgroundProps = {
   image: string;
   alt: string;
@@ -35,7 +35,7 @@ export function SlideInBackground({
       viewport={{ once: true, amount: 0.2 }}
     >
       <motion.div
-        className="absolute inset-0 bg-[#858585]"
+        className="bg-background absolute inset-0"
         variants={{
           hidden: initialPosition[direction],
           visible: { x: "0%", y: "0%" },

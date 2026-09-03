@@ -31,7 +31,7 @@ const cartItems: CartItem[] = [
     name: "Sakura Fox Plush",
     subtitle: "Handcrafted Plush",
     price: "\u00a54,800",
-    image: "/homepage/pink-plush-bunny.jpg",
+    image: "/homepage/white-plush-rabbit-on-shelf.png",
     quantity: 1,
   },
   {
@@ -39,7 +39,7 @@ const cartItems: CartItem[] = [
     name: "Totoro Velour Edition",
     subtitle: "High quality Edition",
     price: "\u00a512,500",
-    image: "/homepage/acrylic-figurines-display.jpg",
+    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
     quantity: 1,
   },
 ];
@@ -50,14 +50,14 @@ const giftAddons: GiftAddon[] = [
     name: "Premium Gift Wrapping",
     subtitle: "Premium Paper",
     price: "\u00a51,200",
-    image: "/homepage/gift-wrap-display.jpg",
+    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
   },
   {
     id: "gift-2",
     name: "Small Greeting Cards",
     subtitle: "Small Greeting Card",
     price: "\u00a5500",
-    image: "/homepage/floral-envelope-desk.jpg",
+    image: "/homepage/photo-stationery-notebooks-quill-candle.png",
   },
 ];
 
@@ -282,7 +282,7 @@ export default function ShoppingCartPage() {
         <div className="glass-panel mx-auto grid max-w-5xl overflow-hidden rounded-xl md:grid-cols-2">
           <div className="relative min-h-62">
             <Image
-              src="/homepage/bookstore-cozy-chairs.jpg"
+              src="/homepage/cozy-bookstore-interior-armchairs-lamp-books.png"
               alt="Join our Atelier Circle"
               fill
               className="object-cover"

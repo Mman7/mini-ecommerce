@@ -22,9 +22,13 @@ import { DashboardShell } from "../../../../../components/dashboard";
 type ProductImage = { id: string; src: string; primary?: boolean };
 
 const initialImages: ProductImage[] = [
-  { id: "hero", src: "/homepage/pink-plush-bunny.jpg", primary: true },
-  { id: "detail", src: "/homepage/plush-toy-lineup.jpg" },
-  { id: "lifestyle", src: "/homepage/gift-wrap-display.jpg" },
+  {
+    id: "hero",
+    src: "/homepage/white-plush-rabbit-on-shelf.png",
+    primary: true,
+  },
+  { id: "detail", src: "/homepage/plush-toys-on-wooden-shelf.png" },
+  { id: "lifestyle", src: "/homepage/komorebi-gift-atelier-wrapped-boxes.png" },
 ];
 
 export default function EditProductPage() {
@@ -350,7 +354,7 @@ export default function EditProductPage() {
                     src={
                       images.find((image) => image.primary)?.src ??
                       images[0]?.src ??
-                      "/homepage/pink-plush-bunny.jpg"
+                      "/homepage/white-plush-rabbit-on-shelf.png"
                     }
                     alt="Sakura Fox Plush preview"
                     fill

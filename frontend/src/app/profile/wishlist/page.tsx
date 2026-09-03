@@ -7,7 +7,7 @@ const wishlistProducts = [
     name: "Kitsune Spirit Plush",
     variant: "Snow White - Large",
     price: "RM 149.00",
-    image: "/homepage/pink-plush-bunny.jpg",
+    image: "/homepage/white-plush-rabbit-on-shelf.png",
     availability: "in-stock" as const,
   },
   {
@@ -15,7 +15,7 @@ const wishlistProducts = [
     name: "Sakura Dream Bunny",
     variant: "Blush - Medium",
     price: "RM 89.00",
-    image: "/homepage/plush-toy-lineup.jpg",
+    image: "/homepage/plush-toys-on-wooden-shelf.png",
     availability: "limited" as const,
   },
   {
@@ -23,7 +23,7 @@ const wishlistProducts = [
     name: "Midnight Bear Figurine",
     variant: "Matte Black - Standard",
     price: "RM 210.00",
-    image: "/homepage/acrylic-figurines-display.jpg",
+    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
     availability: "out-of-stock" as const,
   },
   {
@@ -31,7 +31,7 @@ const wishlistProducts = [
     name: "Momiji Amber Drop",
     variant: "Resin - Petite",
     price: "RM 45.00",
-    image: "/homepage/gift-wrap-display.jpg",
+    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
     availability: "in-stock" as const,
   },
 ];

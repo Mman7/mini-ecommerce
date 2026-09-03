@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Check, Package } from "lucide-react";
 import { getOrder, type Order } from "@/src/api/order.api";
 
-const fallbackImage = "/homepage/pink-plush-bunny.jpg";
+const fallbackImage = "/homepage/white-plush-rabbit-on-shelf.png";
 
 function formatYen(value: string | number) {
   return `¥${Number(value).toLocaleString("ja-JP")}`;
