@@ -2,9 +2,13 @@
 
 import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
+import { motion } from "motion/react";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
+
+const NAVBAR_FIXED_SCROLL_Y = 800;
 
 const navLinks = [
   { label: "Shop All", link: "/products" },
@@ -14,14 +18,32 @@ const navLinks = [
 
 export function NavbarSection() {
   const pathname = usePathname();
+  const [isScrolled, setIsScrolled] = useState(false);
   const user = useGlobalStore((state) => state.user);
   const authStatus = useGlobalStore((state) => state.authStatus);
   const isAuthenticated = authStatus === AuthStatus.Authenticated;
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY >= NAVBAR_FIXED_SCROLL_Y);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   if (pathname.startsWith("/dashboard")) return null;
 
   return (
-    <header className="fixed top-0 z-100 w-full">
+    <motion.header
+      key={isScrolled ? "fixed" : "block"}
+      initial={isScrolled ? { y: -100 } : false}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.35, ease: "easeOut" }}
+      className={`${isScrolled ? "fixed top-0" : "block"} z-100 w-full`}
+    >
       <nav className="bg-surface-1 border-surface-3 border-b">
         <div className="mx-auto flex max-w-330 items-center justify-between gap-4 px-4 py-3 sm:px-5">
           <div className="flex items-center">
@@ -90,6 +112,6 @@ export function NavbarSection() {
           </div>
         </div>
       </nav>
-    </header>
+    </motion.header>
   );
 }

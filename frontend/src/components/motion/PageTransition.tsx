@@ -3,8 +3,6 @@
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { AuthPage, AuthMode } from "../auth/AuthPage";
-import { NavbarSection } from "../sections/NavbarSection";
-import { FooterSection } from "../sections/FooterSection";
 
 type PageTransitionProps = {
   children: React.ReactNode;
@@ -17,11 +15,9 @@ export function PageTransition({ children }: PageTransitionProps) {
   if (pathname === "/login" || pathname === "/register") {
     return (
       <div className="flex min-h-0 flex-1 flex-col">
-        <NavbarSection />
         <AuthPage
           mode={pathname === "/login" ? AuthMode.LOGIN : AuthMode.REGISTER}
         />
-        <FooterSection />
       </div>
     );
   }

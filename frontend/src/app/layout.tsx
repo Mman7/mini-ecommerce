@@ -72,14 +72,13 @@ export default function RootLayout({
         geist.variable,
       )}
     >
+      {/* TODO move the navbar and footer outside of the page transition for better performance */}
       <body>
         <SmoothScroll />
         <AuthInitializer />
-        <PageTransition>
-          <NavbarSection />
-          {children}
-          <FooterSection />
-        </PageTransition>
+        <NavbarSection />
+        <PageTransition>{children}</PageTransition>
+        <FooterSection />
       </body>
     </html>
   );
