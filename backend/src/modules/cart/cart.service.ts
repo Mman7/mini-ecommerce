@@ -14,6 +14,15 @@ const cartItemSelect = {
           description: true,
           price: true,
           isActive: true,
+          productImages: {
+            select: {
+              url: true,
+              altText: true,
+              isThumbnail: true,
+              sortOrder: true,
+            },
+            orderBy: { sortOrder: "asc" },
+          },
         },
       },
     },

@@ -4,7 +4,7 @@ import { motion } from "motion/react";
 import type { CSSProperties } from "react";
 
 export type SlideDirection = "left" | "right" | "top" | "bottom";
-
+// TODO each background  before slide in  got  a gray color background,change the gray coloor
 type SlideInBackgroundProps = {
   image: string;
   alt: string;
