@@ -2,61 +2,7 @@ import { ArrowUpRight } from "lucide-react";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { TextInView } from "@/src/components/motion/TextInView";
 import { Button } from "@/src/components/ui/Button";
-
-type EditorialTile = {
-  title: string;
-  description?: string;
-  image: string;
-  href?: string;
-};
-
-const moments: EditorialTile[] = [
-  {
-    title: "For Someone Special",
-    image: "/homepage/woman-holding-gift-in-cafe.png",
-  },
-  {
-    title: "Just Because",
-    image: "/homepage/photo-woman-writing-notebook-desk.png",
-  },
-  {
-    title: "Little Celebrations",
-    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
-  },
-];
-
-const guides: EditorialTile[] = [
-  {
-    title: "Under RM50",
-    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    href: "/products?maxPrice=50",
-  },
-  {
-    title: "Under RM100",
-    image: "/homepage/komorebi-stationery-fountain-pen.png",
-    href: "/products?maxPrice=100",
-  },
-  {
-    title: "Little Luxuries",
-    image: "/homepage/white-plush-rabbit-on-shelf.png",
-    href: "/products",
-  },
-];
-
-const gallery = [
-  ["/homepage/plush-toys-on-wooden-shelf.png", "Plush companions"],
-  [
-    "/homepage/photo-stationery-notebooks-quill-candle.png",
-    "A note worth keeping",
-  ],
-  ["/homepage/lamp-on-desk-with-books-and-notebook.png", "Quiet corners"],
-  ["/homepage/blue-maneki-neko-figurine-display-case.png", "Tiny treasures"],
-  ["/homepage/opening-blue-gift-box.png", "The unwrapping"],
-  [
-    "/homepage/cozy-bookstore-interior-armchairs-lamp-books.png",
-    "Tokyo shelves",
-  ],
-];
+import { moments, guides, EditorialTile, gallery } from "@/src/path/Image_path";
 
 function ImageTile({ item, index }: { item: EditorialTile; index: number }) {
   return (
@@ -112,12 +58,17 @@ export function AtelierPhilosophySection() {
   return (
     <section className="mt-32 overflow-hidden">
       <div className="relative min-h-130 overflow-hidden">
-        <ImageWithFallback
-          src="/homepage/cozy-bookstore-interior-armchairs-lamp-books.png"
-          alt="Warm Japanese-inspired reading corner with wooden furniture"
-          sizes="100vw"
-          className="object-cover object-center transition-transform duration-1400 hover:scale-[1.04]"
-        />
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          aria-hidden="true"
+          className="absolute inset-0 size-full object-cover object-center"
+        >
+          <source src="/Komorebi_promotional_video_prod.mp4" type="video/mp4" />
+        </video>
         <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/35 to-transparent" />
         <div className="padding-inline absolute inset-0 flex items-end pb-14 md:pb-20">
           <div className="max-w-lg space-y-4">
@@ -224,10 +175,10 @@ export function WhyShopSection() {
             className="border-b border-(--outline-strong) py-7 md:border-r md:border-b-0 md:px-6 md:first:pl-0 md:last:border-r-0 md:last:pr-0"
             delay={index * 0.08}
           >
-            <p className="meta-font text-primary-soft text-xs tracking-[0.18em]">
+            <p className="meta-font text-primary-soft text-sm tracking-[0.18em]">
               0{index + 1}
             </p>
-            <h3 className="heading-font mt-4 text-lg font-medium">{title}</h3>
+            <h3 className="heading-font mt-4 text-xl font-medium">{title}</h3>
             <p className="text-text-muted mt-2 text-sm leading-6">{copy}</p>
           </TextInView>
         ))}
@@ -288,7 +239,7 @@ export function VisualGallerySection() {
               sizes="(min-width: 768px) 25vw, 50vw"
               className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
             />
-            <span className="absolute bottom-3 left-3 bg-black/65 px-2 py-1 text-[10px] tracking-wide text-white">
+            <span className="text-small absolute bottom-3 left-3 bg-black/75 px-2 py-1 tracking-wide text-white">
               {label}
             </span>
           </TextInView>
@@ -300,12 +251,12 @@ export function VisualGallerySection() {
 
 export function FinalCtaSection() {
   return (
-    <section className="padding-inline mt-32 pb-20 md:mt-36">
-      <div className="relative min-h-100 overflow-hidden rounded-sm">
+    <section className="mt-32 md:mt-36">
+      <div className="relative h-120 overflow-hidden rounded-sm">
         <ImageWithFallback
-          src="/homepage/woman-holding-gift-in-cafe.png"
+          src="/homepage/komorebi-gift-atelier-store-display.png"
           alt="A beautifully wrapped gift ready to be given"
-          sizes="100vw"
+          fill
           className="object-cover object-center transition-transform duration-1400 hover:scale-[1.04]"
         />
         <div className="absolute inset-0 bg-black/60" />

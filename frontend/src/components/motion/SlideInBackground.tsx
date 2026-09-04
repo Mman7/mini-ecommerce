@@ -35,7 +35,7 @@ export function SlideInBackground({
       viewport={{ once: true, amount: 0.2 }}
     >
       <motion.div
-        className="bg-background absolute inset-0"
+        className="absolute inset-0 bg-black"
         variants={{
           hidden: initialPosition[direction],
           visible: { x: "0%", y: "0%" },

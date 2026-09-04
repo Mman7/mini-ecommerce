@@ -3,7 +3,7 @@ import FiltersSidebar from "../../components/sections/FiltersSidebar";
 import SortingBar from "../../components/sections/SortingBar";
 import Pagination from "../../components/ui/Pagination";
 import { mockProducts } from "../../lib/mock-products";
-import { BackgroundImage } from "../../components/ui/BackgroundImage";
+import { AtelierBackdrop } from "../../components/ui/BackgroundImage";
 import Link from "next/link";
 import {
   Breadcrumb,
@@ -19,7 +19,7 @@ export default function ProductsPage() {
     <main className="pb-15">
       <section className="padding-inline mb-xl relative flex h-[40vh] items-center overflow-hidden md:h-[50vh]">
         <div className="">
-          <BackgroundImage />
+          <AtelierBackdrop />
           <div className="pointer-events-none absolute inset-0 z-10 bg-linear-to-r from-black/90 via-black/60 to-transparent" />
         </div>
         <div className="px-margin-mobile md:px-margin-desktop relative z-10 w-full py-12 text-left md:py-20">

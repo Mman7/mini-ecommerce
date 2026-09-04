@@ -228,22 +228,9 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background/98 text-foreground;
 
     min-height: 100dvh;
-
-    background:
-      radial-gradient(
-        circle at 12% 8%,
-        rgba(233, 139, 44, 0.28),
-        transparent 25%
-      ),
-      radial-gradient(
-        circle at 88% 14%,
-        rgba(133, 211, 220, 0.18),
-        transparent 32%
-      ),
-      linear-gradient(180deg, #111012 0%, #141315 45%, #121114 100%);
 
     font-family: var(--font-body), sans-serif;
   }

@@ -1,11 +1,13 @@
 "use client";
 import { useEffect, useState } from "react";
 
-export function BackgroundImage() {
+export function AtelierBackdrop({ videoSrc }: { videoSrc?: string }) {
   const [loaded, setLoaded] = useState<boolean | null>(null);
   const src = "/Shared/Atelier%20Interior.png";
 
   useEffect(() => {
+    if (videoSrc) return;
+
     let mounted = true;
     const img = new Image();
     img.src = src;
@@ -14,7 +16,23 @@ export function BackgroundImage() {
     return () => {
       mounted = false;
     };
-  }, [src]);
+  }, [src, videoSrc]);
+
+  if (videoSrc) {
+    return (
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="metadata"
+        aria-hidden="true"
+        className="absolute inset-0 size-full object-cover object-center"
+      >
+        <source src={videoSrc} type="video/mp4" />
+      </video>
+    );
+  }
 
   if (loaded === null || loaded === false) {
     // show neutral gray background while loading or if image failed

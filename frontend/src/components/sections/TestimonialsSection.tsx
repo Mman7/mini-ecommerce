@@ -13,7 +13,7 @@ type TestimonialsSectionProps = {
 
 export function TestimonialsSection({ entries }: TestimonialsSectionProps) {
   return (
-    <section className="padding-inline my-20 space-y-6 pb-2">
+    <section className="padding-inline my-40 space-y-6 pb-2">
       <SectionHeading
         align="center"
         titleClassName="mb-10"

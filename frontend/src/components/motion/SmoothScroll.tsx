@@ -6,11 +6,15 @@ import { useEffect } from "react";
 export function SmoothScroll() {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.6,
+      duration: 3.5,
       smoothWheel: true,
-      wheelMultiplier: 0.9,
-      touchMultiplier: 1.2,
-      easing: (t) => 1 - Math.pow(1 - t, 5),
+      // More movement from each wheel input
+      wheelMultiplier: 0.8,
+      // Keep touch relatively natural
+      touchMultiplier: 1.1,
+      // Long, slippery deceleration
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+
       autoRaf: true,
     });
 

@@ -1,19 +1,21 @@
 import { Button } from "@/src/components/ui/Button";
-
+import Image from "next/image";
 export function NewsletterSection() {
   return (
     <section className="padding-inline">
-      <div className="bg-surface-3 mt-16 overflow-hidden rounded-sm p-4 py-10">
-        <div className="grid items-stretch gap-0 md:grid-cols-[1.1fr_1fr]">
-          <div
-            className="mr-1 min-h-56 rounded-md bg-cover bg-center md:min-h-65"
-            style={{
-              backgroundImage:
-                "url('https://images.unsplash.com/photo-1504274066651-8d31a536b11a?auto=format&fit=crop&w=1200&q=80')",
-            }}
-          />
+      <div className="bg-surface-3 mt-16 overflow-hidden rounded-sm p-4 px-12 py-10">
+        <div className="grid items-stretch gap-12 md:grid-cols-[1.1fr_1fr]">
+          <div className="relative min-h-56 overflow-hidden rounded-sm md:min-h-65">
+            <Image
+              className="object-cover object-center"
+              src="/Shared/Atelier.jpg"
+              alt="Atelier"
+              fill
+              sizes="(min-width: 768px) 60vw, 120vw"
+            />
+          </div>
 
-          <div className="mx-10 flex items-center">
+          <div className="flex items-center">
             <div className="w-full space-y-4">
               <h3 className="heading-font text-2xl font-semibold">
                 Join our Atelier Circle
