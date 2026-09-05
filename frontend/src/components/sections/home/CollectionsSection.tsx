@@ -1,10 +1,11 @@
 import { SectionHeading } from "@/src/components/ui/SectionHeading";
-import {
-  SlideInBackground,
-  type SlideDirection,
-} from "../motion/SlideInBackground";
-import { TextInView } from "../motion/TextInView";
+
 import type { CSSProperties } from "react";
+import {
+  SlideDirection,
+  SlideInBackground,
+} from "../../motion/SlideInBackground";
+import { TextInView } from "../../motion/TextInView";
 
 export type CollectionItem = {
   id: string;
@@ -84,6 +85,7 @@ function CollectionCard({ item, config }: CollectionCardProps) {
 }
 
 export function CollectionsSection({ items }: CollectionsSectionProps) {
+  // TODO get collection items from API or context if needed
   return (
     <section className="padding-inline mt-16 space-y-6">
       <div className="flex items-end justify-between gap-4">

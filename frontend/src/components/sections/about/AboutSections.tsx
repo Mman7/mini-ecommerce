@@ -2,8 +2,8 @@
 
 import { ArrowUpRight, CheckCircle2, Gift, Gem, Handshake } from "lucide-react";
 import { motion } from "motion/react";
-import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { TextInView } from "@/src/components/motion/TextInView";
+import Image from "next/image";
 import { Button } from "@/src/components/ui/Button";
 
 const categories = [
@@ -93,7 +93,8 @@ function StoryImage({
     <div
       className={`bg-surface-2 relative overflow-hidden rounded-sm ${className}`}
     >
-      <ImageWithFallback
+      <Image
+        fill
         src={src}
         alt={alt}
         sizes="(min-width: 768px) 50vw, 100vw"
@@ -112,8 +113,9 @@ export function HeroSection() {
         transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
         className="relative h-145 overflow-hidden rounded-sm sm:h-170"
       >
-        <ImageWithFallback
-          src="/homepage/komorebi-gift-atelier-store-display.png"
+        <Image
+          fill
+          src="/homepage/about_page_banner.png"
           alt="A warmly arranged Komorebi gift atelier"
           sizes="100vw"
           className="object-cover object-center"
@@ -125,16 +127,24 @@ export function HeroSection() {
           transition={{ duration: 0.7, delay: 0.25 }}
           className="absolute inset-x-6 bottom-8 max-w-xl sm:inset-x-12 sm:bottom-12"
         >
-          <Eyebrow>The Komorebi Atelier</Eyebrow>
-          <h1 className="title-font mt-4 max-w-lg text-4xl leading-[1.08] font-semibold sm:text-6xl">
-            Our Little Corner of Tokyo
-          </h1>
-          <p className="text-text-muted mt-5 max-w-sm text-base leading-7 sm:text-lg">
-            A sanctuary for little things worth keeping.
-          </p>
-          <Button href="/products" className="mt-7 rounded-sm">
-            Explore the Collection <ArrowUpRight className="ml-2 size-4" />
-          </Button>
+          <TextInView delay={0.1}>
+            <Eyebrow>The Komorebi Atelier</Eyebrow>
+          </TextInView>
+          <TextInView delay={0.18}>
+            <h1 className="title-font mt-4 max-w-lg text-4xl leading-[1.08] font-semibold sm:text-6xl">
+              Our Little Corner of Tokyo
+            </h1>
+          </TextInView>
+          <TextInView delay={0.26}>
+            <p className="text-text-muted mt-5 max-w-sm text-base leading-7 sm:text-lg">
+              A sanctuary for little things worth keeping.
+            </p>
+          </TextInView>
+          <TextInView delay={0.34}>
+            <Button href="/products" className="mt-7 rounded-sm">
+              Explore the Collection <ArrowUpRight className="ml-2 size-4" />
+            </Button>
+          </TextInView>
         </motion.div>
       </motion.div>
     </section>
@@ -205,7 +215,8 @@ export function KomorebiSection() {
         transition={{ duration: 1.2 }}
         className="absolute inset-0"
       >
-        <ImageWithFallback
+        <Image
+          fill
           src="/homepage/cozy-bookstore-interior-armchairs-lamp-books.png"
           alt="Warm sunlight and quiet shelves in a Tokyo-inspired interior"
           sizes="100vw"
@@ -266,7 +277,8 @@ export function CuratedWorldSection() {
             delay={index * 0.07}
             className="group bg-surface-2 relative min-h-90 overflow-hidden rounded-sm"
           >
-            <ImageWithFallback
+            <Image
+              fill
               src={category.image}
               alt={category.title}
               sizes="(min-width: 640px) 50vw, 100vw"
@@ -461,7 +473,8 @@ export function GallerySection() {
             delay={index * 0.06}
             className={`group relative overflow-hidden rounded-sm ${index === 0 ? "col-span-2 row-span-2 aspect-square md:aspect-auto" : "aspect-square"}`}
           >
-            <ImageWithFallback
+            <Image
+              fill
               src={image}
               alt={label}
               sizes="(min-width: 768px) 25vw, 50vw"
@@ -533,10 +546,11 @@ export function CollectionCtaSection() {
     <section className="mt-32 md:mt-44">
       <div className="bg-surface-2 relative min-h-110 overflow-hidden rounded-sm py-30">
         <div className="absolute inset-0">
-          <ImageWithFallback
+          <Image
             src="/homepage/opening-blue-gift-box.png"
             alt="A blue gift box ready to reveal a small joy"
             sizes="100vw"
+            fill
             className="object-cover object-center"
           />
         </div>

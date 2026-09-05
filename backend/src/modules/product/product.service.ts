@@ -1,6 +1,10 @@
 import { prisma } from "../../utils/prisma.ts";
 import { deleteFileByPath } from "../file/file.service.ts";
-import type { Product, ProductSearchQuery } from "../../types/product.js";
+import type {
+  Product,
+  ProductResponse,
+  ProductSearchQuery,
+} from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
 export const getTotalProducts = async () => {
@@ -36,10 +40,57 @@ export const createProduct = ({
   });
 };
 
+const productInclude = {
+  productImages: { orderBy: { sortOrder: "asc" as const } },
+  category: { select: { categoryId: true, name: true } },
+  inventory: { select: { stock: true } },
+};
+
+type ProductWithRelations = {
+  productId: number;
+  name: string;
+  description: string;
+  price: { toString(): string } | number;
+  createdAt: Date;
+  updatedAt: Date;
+  isActive: boolean;
+  productImages: Array<{
+    id: number;
+    productId: number;
+    url: string;
+    altText: string | null;
+    sortOrder: number;
+    createdAt: Date;
+    updatedAt: Date;
+    isThumbnail: boolean;
+  }>;
+  category: { categoryId: number; name: string } | null;
+  inventory: { stock: number } | null;
+};
+
+export const serializeProduct = (
+  product: ProductWithRelations,
+): ProductResponse => ({
+  productId: product.productId,
+  name: product.name,
+  description: product.description,
+  price: Number(product.price),
+  createdAt: product.createdAt.toISOString(),
+  updatedAt: product.updatedAt.toISOString(),
+  isActive: product.isActive,
+  productImages: product.productImages.map((image) => ({
+    ...image,
+    createdAt: image.createdAt.toISOString(),
+    updatedAt: image.updatedAt.toISOString(),
+  })),
+  category: product.category,
+  stock: product.inventory?.stock ?? 0,
+});
+
 export const getProductById = (id: number) => {
   return prisma.product.findUnique({
     where: { productId: id },
-    include: { productImages: true },
+    include: productInclude,
   });
 };
 
@@ -52,26 +103,45 @@ export const getProductStock = async (id: number) => {
   return inventory?.stock ?? 0;
 };
 
-export const getProducts = ({
+export const getProducts = async ({
   page,
   limit,
   maxPrice,
   minPrice,
   name,
+  categoryId,
+  inStock,
+  sortBy = "productId",
+  sortOrder = "asc",
 }: ProductSearchQuery) => {
-  return prisma.product.findMany({
-    skip: (page - 1) * limit,
-    take: limit,
-    where: {
-      AND: [
-        { name: { contains: name, mode: "insensitive" } },
-        { price: { gte: minPrice ?? 0, lte: maxPrice ?? Number.MAX_VALUE } },
-      ],
+  const where = {
+    isActive: true,
+    name: { contains: name, mode: "insensitive" as const },
+    price: { gte: minPrice ?? 0, lte: maxPrice ?? Number.MAX_VALUE },
+    ...(categoryId !== undefined ? { categoryId } : {}),
+    ...(inStock === true ? { inventory: { stock: { gt: 0 } } } : {}),
+  };
+
+  const [items, total] = await prisma.$transaction([
+    prisma.product.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+      where,
+      include: productInclude,
+      orderBy: { [sortBy]: sortOrder },
+    }),
+    prisma.product.count({ where }),
+  ]);
+
+  return {
+    items: items.map(serializeProduct),
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
     },
-    orderBy: {
-      productId: "asc",
-    },
-  });
+  };
 };
 
 export const updateProductById = (id: number, data: ProductUpdateInput) => {
@@ -188,7 +258,6 @@ export const getProductsCount = () => {
 
 // get recommended item based on the most purchased items
 export const getRecommendedProducts = async (limit: number) => {
-  console.log("hello");
   const recommendedProducts = await prisma.orderItem.groupBy({
     by: ["productId"],
     _sum: {
@@ -207,7 +276,7 @@ export const getRecommendedProducts = async (limit: number) => {
       productId: { in: recommendedProducts.map(({ productId }) => productId) },
       isActive: true,
     },
-    include: { productImages: true },
+    include: productInclude,
   });
   const productsById = new Map(
     products.map((product) => [product.productId, product]),
@@ -226,11 +295,7 @@ export const getRecommendedProducts = async (limit: number) => {
         },
         isActive: true,
       },
-      include: {
-        productImages: {
-          where: { isThumbnail: true },
-        },
-      },
+      include: productInclude,
       orderBy: {
         productId: "asc",
       },
@@ -239,11 +304,5 @@ export const getRecommendedProducts = async (limit: number) => {
 
     finalRecommendedProducts.push(...randomProducts);
   }
-  if (finalRecommendedProducts.length > 0) {
-    console.log(
-      "Recommended products:",
-      finalRecommendedProducts[0]?.productImages,
-    );
-  }
-  return finalRecommendedProducts;
+  return finalRecommendedProducts.map(serializeProduct);
 };

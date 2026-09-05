@@ -1,6 +1,6 @@
 import { Button } from "@/src/components/ui/Button";
-import { AtelierBackdrop } from "../ui/BackgroundImage";
-import { TextInView } from "../motion/TextInView";
+import { TextInView } from "../../motion/TextInView";
+import { AtelierBackdrop } from "../../ui/BackgroundImage";
 
 export function HeroSection() {
   return (

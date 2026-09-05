@@ -146,6 +146,7 @@ function ProductTile({
 }
 
 export async function KomorebiEditSection() {
+  // TODO get recommended products from API or context if needed
   const products = await loadProducts(
     () => getRecommendedProducts(4),
     fallbackProducts,
@@ -180,10 +181,15 @@ export async function KomorebiEditSection() {
 }
 
 export async function NewArrivalsSection() {
-  const products = await loadProducts(
-    () => getProducts({ page: 1, limit: 4 }),
-    fallbackProducts2,
-  );
+  const products = await loadProducts(async () => {
+    const response = await getProducts({
+      page: 1,
+      limit: 4,
+      sortBy: "createdAt",
+      sortOrder: "desc",
+    });
+    return response.items;
+  }, fallbackProducts2);
   return (
     <section className="padding-inline mt-28 md:mt-36">
       <div className="mb-8 flex items-end justify-between gap-5">

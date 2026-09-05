@@ -15,6 +15,7 @@ interface createProductRequestBody {
 }
 
 export const createProduct = async (req: Request, res: Response) => {
+  // TODO add stock for inventory module, so that product availability can be managed when created
   const { name, description, price, sortOrders }: createProductRequestBody =
     req.body as createProductRequestBody;
 
@@ -88,16 +89,30 @@ export const createProduct = async (req: Request, res: Response) => {
 
 export const getProducts = async (req: Request, res: Response) => {
   const { id } = req.params;
-  const { page, limit, name, minPrice, maxPrice } = req.query;
+  const {
+    page,
+    limit,
+    name,
+    minPrice,
+    maxPrice,
+    categoryId,
+    inStock,
+    sortBy,
+    sortOrder,
+  } = req.query;
 
   try {
     // If an ID param is provided, return a single product
     if (id !== undefined && id !== "") {
-      const productData = await productService.getProductById(Number(id));
+      const productId = Number(id);
+      if (!Number.isInteger(productId) || productId <= 0) {
+        return res.status(400).json({ error: "Valid product ID is required" });
+      }
+      const productData = await productService.getProductById(productId);
       if (!productData) {
         return res.status(404).json({ error: "Product not found" });
       }
-      return res.status(200).json(productData);
+      return res.status(200).json(productService.serializeProduct(productData));
     }
 
     // If no ID param is provided, return a list of products based on the query parameters
@@ -108,13 +123,54 @@ export const getProducts = async (req: Request, res: Response) => {
     }
 
     // Parse query parameters and set default values if necessary
+    const parsedPage = Number(page);
+    const parsedLimit = Number(limit);
+    const parsedMinPrice = minPrice !== undefined ? Number(minPrice) : 0;
+    const parsedMaxPrice =
+      maxPrice !== undefined ? Number(maxPrice) : Number.MAX_VALUE;
+    const parsedCategoryId =
+      categoryId !== undefined ? Number(categoryId) : undefined;
+    const parsedInStock =
+      inStock === undefined ? undefined : inStock === "true";
+    const validSortFields = ["productId", "name", "price", "createdAt"];
+    const validSortOrders = ["asc", "desc"];
+
+    if (
+      !Number.isInteger(parsedPage) ||
+      parsedPage < 1 ||
+      !Number.isInteger(parsedLimit) ||
+      parsedLimit < 1 ||
+      parsedLimit > 100 ||
+      !Number.isFinite(parsedMinPrice) ||
+      parsedMinPrice < 0 ||
+      !Number.isFinite(parsedMaxPrice) ||
+      parsedMaxPrice < parsedMinPrice ||
+      (parsedCategoryId !== undefined &&
+        (!Number.isInteger(parsedCategoryId) || parsedCategoryId < 1)) ||
+      (inStock !== undefined && inStock !== "true" && inStock !== "false") ||
+      (sortBy !== undefined && !validSortFields.includes(String(sortBy))) ||
+      (sortOrder !== undefined && !validSortOrders.includes(String(sortOrder)))
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Invalid product query parameters" });
+    }
+
     const query: ProductSearchQuery = {
-      page: Number(page) || 1,
-      limit: Number(limit) || 10,
+      page: parsedPage,
+      limit: parsedLimit,
       name: String(name || ""),
-      minPrice: minPrice !== undefined ? Number(minPrice) : 0,
-      maxPrice: maxPrice !== undefined ? Number(maxPrice) : Number.MAX_VALUE,
+      minPrice: parsedMinPrice,
+      maxPrice: parsedMaxPrice,
+      sortBy: (sortBy ? String(sortBy) : "productId") as
+        | "productId"
+        | "name"
+        | "price"
+        | "createdAt",
+      sortOrder: (sortOrder ? String(sortOrder) : "asc") as "asc" | "desc",
     };
+    if (parsedCategoryId !== undefined) query.categoryId = parsedCategoryId;
+    if (parsedInStock !== undefined) query.inStock = parsedInStock;
 
     const products = await productService.getProducts(query);
 
@@ -130,11 +186,15 @@ export const getProduct = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Product ID is required" });
   }
   try {
-    const productData = await productService.getProductById(Number(id));
+    const productId = Number(id);
+    if (!Number.isInteger(productId) || productId <= 0) {
+      return res.status(400).json({ error: "Valid product ID is required" });
+    }
+    const productData = await productService.getProductById(productId);
     if (!productData) {
       return res.status(404).json({ error: "Product not found" });
     }
-    return res.status(200).json(productData);
+    return res.status(200).json(productService.serializeProduct(productData));
   } catch (error) {
     return res.status(500).json({ error: "Failed to get product" });
   }

@@ -89,7 +89,7 @@ export function ProfileSidebar({
                 key={item.key}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                className={`meta-font flex items-center justify-center gap-2 rounded-md px-3 py-3 text-xs transition sm:justify-start md:px-4 ${
+                className={`meta-font flex items-center justify-center gap-2 px-3 py-3 text-xs transition sm:justify-start md:px-4 ${
                   active
                     ? "border-primary bg-surface-2 text-primary border-l-2"
                     : "text-text-muted hover:text-foreground hover:bg-(--glass-bg)"

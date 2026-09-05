@@ -14,6 +14,11 @@ const cartItemSelect = {
           description: true,
           price: true,
           isActive: true,
+          inventory: {
+            select: {
+              stock: true,
+            },
+          },
           productImages: {
             select: {
               url: true,
@@ -29,13 +34,33 @@ const cartItemSelect = {
   },
 } as const;
 
+function serializeCart(cart: any) {
+  if (!cart) return cart;
+
+  return {
+    ...cart,
+    items: cart.items.map((item: any) => {
+      const { inventory, ...product } = item.product;
+      return {
+        ...item,
+        product: {
+          ...product,
+          stock: inventory?.stock ?? 0,
+        },
+      };
+    }),
+  };
+}
+
 export const getCartItems = async (userId: string) => {
-  return prisma.cart.findUnique({
+  const cart = await prisma.cart.findUnique({
     where: {
       userId,
     },
     select: cartItemSelect,
   });
+
+  return serializeCart(cart);
 };
 
 const createCart = async (userId: string, data: CartItem[]) => {
@@ -80,7 +105,7 @@ export const updateCartItem = async ({
   itemId: string;
   quantity: number;
 }) => {
-  return prisma.cart.update({
+  const cart = await prisma.cart.update({
     where: {
       userId,
     },
@@ -98,6 +123,8 @@ export const updateCartItem = async ({
     },
     select: cartItemSelect,
   });
+
+  return serializeCart(cart);
 };
 
 export const addCartItem = async (userId: string, item: CartItem) => {
@@ -121,7 +148,7 @@ export const addCartItem = async (userId: string, item: CartItem) => {
     select: cartItemSelect,
   });
 
-  return cart;
+  return serializeCart(cart);
 };
 
 export const deleteCartItem = async ({
@@ -134,7 +161,7 @@ export const deleteCartItem = async ({
   // Check if the item exists in the cart before attempting to delete it
   await getCartItems(userId);
 
-  return prisma.cart.update({
+  const cart = await prisma.cart.update({
     where: {
       userId,
     },
@@ -147,10 +174,12 @@ export const deleteCartItem = async ({
     },
     select: cartItemSelect,
   });
+
+  return serializeCart(cart);
 };
 
 export const clearCart = async (userId: string) => {
-  return prisma.cart.update({
+  const cart = await prisma.cart.update({
     where: {
       userId,
     },
@@ -161,4 +190,6 @@ export const clearCart = async (userId: string) => {
     },
     select: cartItemSelect,
   });
+
+  return serializeCart(cart);
 };

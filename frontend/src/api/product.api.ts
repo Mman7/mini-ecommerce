@@ -12,7 +12,7 @@ export type ProductImage = {
 };
 
 export type Product = {
-  productId?: number;
+  productId: number;
   name: string;
   description: string;
   price: number;
@@ -20,6 +20,20 @@ export type Product = {
   updatedAt: string;
   isActive: boolean;
   productImages: ProductImage[];
+  category: { categoryId: number; name: string } | null;
+  stock: number;
+};
+
+export type ProductPagination = {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+};
+
+export type ProductListResponse = {
+  items: Product[];
+  pagination: ProductPagination;
 };
 
 export type ProductSearchParams = {
@@ -28,6 +42,10 @@ export type ProductSearchParams = {
   name?: string;
   minPrice?: number;
   maxPrice?: number;
+  categoryId?: number;
+  inStock?: boolean;
+  sortBy?: "productId" | "name" | "price" | "createdAt";
+  sortOrder?: "asc" | "desc";
 };
 
 export function getProducts(params: ProductSearchParams) {
@@ -35,7 +53,7 @@ export function getProducts(params: ProductSearchParams) {
   Object.entries(params).forEach(([key, value]) => {
     if (value !== undefined) searchParams.set(key, String(value));
   });
-  return request<Product[]>(`/products?${searchParams.toString()}`);
+  return request<ProductListResponse>(`/products?${searchParams.toString()}`);
 }
 
 export function getProduct(productId: number) {

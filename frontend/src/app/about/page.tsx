@@ -12,7 +12,7 @@ import {
   PackagingSection,
   PhilosophySection,
   StorySection,
-} from "./sections";
+} from "@/src/components/sections/about/AboutSections";
 
 export default function AboutPage() {
   return (

@@ -26,4 +26,30 @@ export type ProductSearchQuery = {
   name: string;
   minPrice?: number;
   maxPrice?: number;
+  categoryId?: number;
+  inStock?: boolean;
+  sortBy?: "productId" | "name" | "price" | "createdAt";
+  sortOrder?: "asc" | "desc";
+};
+
+export type ProductResponse = {
+  productId: number;
+  name: string;
+  description: string;
+  price: number;
+  createdAt: string;
+  updatedAt: string;
+  isActive: boolean;
+  productImages: Array<{
+    id: number;
+    productId: number;
+    url: string;
+    altText: string | null;
+    sortOrder: number;
+    createdAt: string;
+    updatedAt: string;
+    isThumbnail: boolean;
+  }>;
+  category: { categoryId: number; name: string } | null;
+  stock: number;
 };

@@ -7,10 +7,12 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
+import { useCartStore } from "@/src/store/cart.store";
 
 const NAVBAR_FIXED_SCROLL_Y = 800;
 
 const navLinks = [
+  { label: "About Us", link: "/about" },
   { label: "Shop All", link: "/products" },
   { label: "New Arrivals", link: "/products" },
   { label: "Collectibles", link: "/products" },
@@ -22,17 +24,9 @@ export function NavbarSection() {
   const user = useGlobalStore((state) => state.user);
   const authStatus = useGlobalStore((state) => state.authStatus);
   const isAuthenticated = authStatus === AuthStatus.Authenticated;
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY >= NAVBAR_FIXED_SCROLL_Y);
-    };
-
-    handleScroll();
-    window.addEventListener("scroll", handleScroll, { passive: true });
-
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
+  const cartCount = useCartStore((state) =>
+    state.items.reduce((total, item) => total + item.quantity, 0),
+  );
 
   if (pathname.startsWith("/dashboard")) return null;
 
@@ -91,10 +85,15 @@ export function NavbarSection() {
             </Link>
             <Link
               href="/cart"
-              aria-label="Bag"
-              className="text-text-muted hover:text-primary items-center justify-center rounded-full bg-transparent transition"
+              aria-label={`Bag${cartCount ? `, ${cartCount} items` : ""}`}
+              className="text-text-muted hover:text-primary relative flex items-center justify-center rounded-full bg-transparent transition"
             >
               <ShoppingBag size={18} />
+              {cartCount > 0 && (
+                <span className="bg-primary text-primary-ink absolute -top-2 -right-2 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-bold">
+                  {cartCount}
+                </span>
+              )}
             </Link>
             <Link
               href={isAuthenticated ? "/profile" : "/login"}

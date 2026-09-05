@@ -1,12 +1,25 @@
-import type { Product } from "../types/product";
+type MockProduct = {
+  id: string;
+  name: string;
+  price: number;
+  image: string;
+  category: { categoryId: number; name: string };
+  brand: string;
+  rating: number;
+  label?: string;
+  variant?: string;
+};
 
-export const mockProducts: Product[] = [
+export const mockProducts: MockProduct[] = [
   {
     id: "totoro-velour",
     name: "Totoro Velour Edition",
     price: 4500,
     image: "/homepage/plush-toys-on-wooden-shelf.png",
-    category: "Plush Toys",
+    category: {
+      categoryId: 1,
+      name: "Plush Toys",
+    },
     brand: "Studio Ghibli",
     rating: 4.9,
     label: "New Arrival",
@@ -17,7 +30,7 @@ export const mockProducts: Product[] = [
     name: "Sakura Bun-Bun",
     price: 3200,
     image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    category: "Plush Toys",
+    category: { categoryId: 1, name: "Plush Toys" },
     brand: "Harajuku Artisans",
     rating: 5.0,
   },
@@ -26,7 +39,7 @@ export const mockProducts: Product[] = [
     name: "Anya Star Edition",
     price: 12800,
     image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
-    category: "Anime Figurines",
+    category: { categoryId: 2, name: "Anime Figurines" },
     brand: "Good Smile Company",
     rating: 4.8,
     label: "Limited",
@@ -37,7 +50,7 @@ export const mockProducts: Product[] = [
     name: "Tea Ritual Mini Set",
     price: 5900,
     image: "/homepage/komorebi-stationery-fountain-pen.png",
-    category: "Stationery",
+    category: { categoryId: 3, name: "Stationery" },
     brand: "Kyoto Traditions",
     rating: 4.7,
   },
@@ -46,7 +59,7 @@ export const mockProducts: Product[] = [
     name: "Soot Sprite Fluff",
     price: 1800,
     image: "/homepage/plush-toys-on-wooden-shelf.png",
-    category: "Plush Toys",
+    category: { categoryId: 1, name: "Plush Toys" },
     brand: "Studio Ghibli",
     rating: 4.9,
   },
@@ -55,7 +68,7 @@ export const mockProducts: Product[] = [
     name: "Neo-Shogun Neko",
     price: 22500,
     image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    category: "Vinyl Art",
+    category: { categoryId: 4, name: "Vinyl Art" },
     brand: "Art Toy Lab",
     rating: 5.0,
     label: "Collector's Choice",

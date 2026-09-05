@@ -1,5 +1,6 @@
 import { Button } from "@/src/components/ui/Button";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
+import Image from "next/image";
 import { TextInView } from "@/src/components/motion/TextInView";
 
 export function AtelierIntroductionSection() {
@@ -7,10 +8,11 @@ export function AtelierIntroductionSection() {
     <section className="bg-surface-1 padding-inline mt-28 py-12 md:mt-36 md:py-16">
       <div className="grid items-center gap-10 md:grid-cols-[1.1fr_0.9fr] md:gap-16">
         <div className="bg-surface-2 relative aspect-4/5 overflow-hidden rounded-sm md:aspect-4/3">
-          <ImageWithFallback
+          <Image
             src="/homepage/opening-blue-gift-box.png"
-            alt="Hands opening a carefully wrapped gift on an atelier table"
+            alt="A warmly arranged Komorebi gift atelier"
             sizes="(min-width: 768px) 55vw, 100vw"
+            fill
             className="object-cover object-center transition-transform duration-700 hover:scale-[1.03]"
           />
         </div>

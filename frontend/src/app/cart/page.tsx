@@ -1,355 +1,446 @@
-import Image from "next/image";
-import { ChevronDown, ChevronRight } from "lucide-react";
+"use client";
+// TODO: when initial laod,showing unable to load check is it because the auth status didnt refresh
+import Link from "next/link";
+import { AnimatePresence, motion } from "motion/react";
+import { ArrowRight, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+  removeCartItem,
+  updateCartItem,
+  type Cart,
+  type CartItem,
+} from "@/src/api/cart.api";
+import { useCartStore } from "@/src/store/cart.store";
+import { useGlobalStore } from "@/src/store/global.store";
+import { AuthStatus } from "@/src/types/user";
 
-type CartItem = {
-  id: string;
-  name: string;
-  subtitle: string;
-  price: string;
-  image: string;
-  quantity: number;
-};
+const fallbackImage = "/homepage/white-plush-rabbit-on-shelf.png";
 
-type GiftAddon = {
-  id: string;
-  name: string;
-  subtitle: string;
-  price: string;
-  image: string;
-};
+type LoadState = "loading" | "ready" | "unauthorized" | "error";
 
-type Testimonial = {
-  id: string;
-  name: string;
-  role: string;
-  quote: string;
-};
+function formatPrice(value: number | string) {
+  return new Intl.NumberFormat("ja-JP", {
+    style: "currency",
+    currency: "JPY",
+    maximumFractionDigits: 0,
+  }).format(Number(value));
+}
 
-const cartItems: CartItem[] = [
-  {
-    id: "cart-1",
-    name: "Sakura Fox Plush",
-    subtitle: "Handcrafted Plush",
-    price: "\u00a54,800",
-    image: "/homepage/white-plush-rabbit-on-shelf.png",
-    quantity: 1,
-  },
-  {
-    id: "cart-2",
-    name: "Totoro Velour Edition",
-    subtitle: "High quality Edition",
-    price: "\u00a512,500",
-    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    quantity: 1,
-  },
-];
+function imageUrl(url?: string) {
+  if (!url) return fallbackImage;
+  const normalized = url.replaceAll("\\", "/");
+  const uploadsIndex = normalized.toLowerCase().lastIndexOf("/uploads/");
+  return uploadsIndex >= 0 ? normalized.slice(uploadsIndex) : normalized;
+}
 
-const giftAddons: GiftAddon[] = [
-  {
-    id: "gift-1",
-    name: "Premium Gift Wrapping",
-    subtitle: "Premium Paper",
-    price: "\u00a51,200",
-    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
-  },
-  {
-    id: "gift-2",
-    name: "Small Greeting Cards",
-    subtitle: "Small Greeting Card",
-    price: "\u00a5500",
-    image: "/homepage/photo-stationery-notebooks-quill-candle.png",
-  },
-];
+function itemSubtotal(item: CartItem) {
+  return Number(item.product.price) * item.quantity;
+}
 
-const testimonials: Testimonial[] = [
-  {
-    id: "ts-1",
-    name: "Emi Sato",
-    role: "Collector",
-    quote:
-      "The attention to detail in every plushie is simply breathtaking. It's not just a gift store, it's a curated experience of joy.",
-  },
-  {
-    id: "ts-2",
-    name: "Kenji Tanaka",
-    role: "Art Director",
-    quote:
-      "Finally, a place that treats stationery with the respect it deserves. The glass pens are a dream to use for my sketches.",
-  },
-  {
-    id: "ts-3",
-    name: "Mia Chen",
-    role: "Gifting Expert",
-    quote:
-      "The packaging alone is worth the cost. Every order feels like a personal treasure being handed over in Tokyo.",
-  },
-];
+function CartItemRow({
+  item,
+  pending,
+  onQuantityChange,
+  onRemove,
+}: {
+  item: CartItem;
+  pending: string | null;
+  onQuantityChange: (item: CartItem, quantity: number) => void;
+  onRemove: (item: CartItem) => void;
+}) {
+  const stock = item.product.stock;
+  const unavailable = !item.product.isActive || stock < 1;
+  const quantityLimit = Math.max(stock, 1);
+  const isPending = pending === item.id;
+
+  return (
+    <motion.article
+      layout
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{
+        opacity: 0,
+        height: 0,
+        marginBottom: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
+      }}
+      transition={{ duration: 0.25, ease: "easeOut" }}
+      className="border-surface-3 grid gap-4 border-b py-6 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:gap-5"
+    >
+      <div className="bg-surface-2 h-28 overflow-hidden rounded-xl border border-(--outline-strong) sm:h-28 sm:w-28">
+        <img
+          src={imageUrl(
+            item.product.productImages.find((image) => image.isThumbnail)
+              ?.url ?? item.product.productImages[0]?.url,
+          )}
+          alt={item.product.productImages[0]?.altText ?? item.product.name}
+          className="h-full w-full object-cover"
+        />
+      </div>
+
+      <div className="flex min-w-0 flex-col justify-between gap-4">
+        <div>
+          <h2 className="heading-font text-foreground text-xl font-medium">
+            {item.product.name}
+          </h2>
+          <p className="text-text-muted mt-1 text-sm">SKU {item.productId}</p>
+          <p className="meta-font text-primary-soft mt-3 text-sm font-semibold">
+            {formatPrice(item.product.price)} each
+          </p>
+          {unavailable ? (
+            <p className="text-secondary mt-2 text-sm" role="alert">
+              This item is currently unavailable
+            </p>
+          ) : item.quantity > stock ? (
+            <p className="text-secondary mt-2 text-sm" role="alert">
+              Only {stock} left in stock
+            </p>
+          ) : stock <= 5 ? (
+            <p className="text-primary-soft mt-2 text-sm">
+              Only {stock} left in stock
+            </p>
+          ) : null}
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="bg-surface-2 inline-flex h-10 items-center overflow-hidden rounded-xl border border-(--outline-strong)">
+            <button
+              type="button"
+              aria-label={`Decrease quantity for ${item.product.name}`}
+              disabled={isPending || unavailable || item.quantity <= 1}
+              onClick={() => onQuantityChange(item, item.quantity - 1)}
+              className="focus-amber text-text-muted hover:bg-surface-3 inline-flex h-full w-10 items-center justify-center transition disabled:opacity-35"
+            >
+              <Minus className="h-4 w-4" />
+            </button>
+            <span
+              aria-live="polite"
+              className="meta-font text-foreground inline-flex w-10 justify-center text-sm font-semibold"
+            >
+              {isPending ? "..." : item.quantity}
+            </span>
+            <button
+              type="button"
+              aria-label={`Increase quantity for ${item.product.name}`}
+              disabled={
+                isPending || unavailable || item.quantity >= quantityLimit
+              }
+              onClick={() => onQuantityChange(item, item.quantity + 1)}
+              className="focus-amber text-text-muted hover:bg-surface-3 inline-flex h-full w-10 items-center justify-center transition disabled:opacity-35"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+          <button
+            type="button"
+            disabled={isPending}
+            onClick={() => onRemove(item)}
+            className="focus-amber text-text-muted hover:text-secondary inline-flex items-center gap-2 text-xs transition disabled:opacity-50"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+            Remove
+          </button>
+        </div>
+      </div>
+
+      <p className="meta-font text-primary-soft self-start text-lg font-semibold sm:text-right">
+        {formatPrice(itemSubtotal(item))}
+      </p>
+    </motion.article>
+  );
+}
+
+function CartSummary({
+  subtotal,
+  hasInvalidItems,
+}: {
+  subtotal: number;
+  hasInvalidItems: boolean;
+}) {
+  const canCheckout = subtotal > 0 && !hasInvalidItems;
+  return (
+    <aside className="bg-surface-2 border-surface-3 rounded-2xl border p-6 lg:sticky lg:top-24">
+      <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
+        Your selection
+      </p>
+      <h2 className="heading-font text-foreground mt-3 border-b border-(--outline-strong) pb-5 text-2xl">
+        Order Summary
+      </h2>
+      <dl className="text-text-muted mt-5 space-y-4 text-sm">
+        <div className="flex items-center justify-between gap-4">
+          <dt>Subtotal</dt>
+          <dd className="meta-font text-foreground">{formatPrice(subtotal)}</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt>Shipping</dt>
+          <dd className="text-right">Calculated at checkout</dd>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <dt>Discount</dt>
+          <dd>--</dd>
+        </div>
+      </dl>
+      <div className="border-surface-3 mt-6 flex items-center justify-between border-t pt-5">
+        <span className="heading-font text-foreground text-lg">Total</span>
+        <span className="title-font text-primary-soft text-2xl font-semibold">
+          {formatPrice(subtotal)}
+        </span>
+      </div>
+      {hasInvalidItems && (
+        <p className="text-secondary mt-4 text-sm" role="alert">
+          Update or remove unavailable items before checkout.
+        </p>
+      )}
+      <Link
+        href={canCheckout ? "/payment" : "#"}
+        aria-disabled={!canCheckout}
+        tabIndex={canCheckout ? undefined : -1}
+        className={`meta-font mt-6 flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${canCheckout ? "bg-primary-soft text-primary-ink hover:bg-primary" : "bg-surface-3 text-text-muted pointer-events-none opacity-50"}`}
+      >
+        Proceed to Checkout
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+      <p className="text-text-muted mt-4 text-center text-xs">
+        Final prices and inventory are verified securely at checkout.
+      </p>
+    </aside>
+  );
+}
+
+function CartSkeleton() {
+  return (
+    <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)]">
+      <div className="space-y-5">
+        {Array.from({ length: 3 }, (_, index) => (
+          <div
+            key={index}
+            className="border-surface-3 flex gap-5 border-b py-6"
+          >
+            <div className="bg-surface-3 h-28 w-28 animate-pulse rounded-xl" />
+            <div className="flex-1 space-y-3">
+              <div className="bg-surface-3 h-6 w-2/3 animate-pulse rounded" />
+              <div className="bg-surface-3 h-4 w-1/3 animate-pulse rounded" />
+              <div className="bg-surface-3 h-10 w-28 animate-pulse rounded-xl" />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="bg-surface-2 h-72 animate-pulse rounded-2xl" />
+    </div>
+  );
+}
+
+function EmptyCart() {
+  return (
+    <section className="bg-surface-2 border-surface-3 rounded-2xl border px-6 py-20 text-center">
+      <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
+        A quiet shelf awaits
+      </p>
+      <h2 className="heading-font text-foreground mt-4 text-4xl font-semibold">
+        Your Bag is Waiting
+      </h2>
+      <p className="text-text-muted mx-auto mt-4 max-w-md text-sm leading-7">
+        Your little collection of joy is currently empty. Discover something
+        lovely for your atelier.
+      </p>
+      <Link
+        href="/products"
+        className="meta-font bg-primary-soft text-primary-ink hover:bg-primary mt-8 inline-flex h-12 items-center gap-2 rounded-xl px-6 text-sm font-semibold transition"
+      >
+        Explore the Collection
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+    </section>
+  );
+}
 
 export default function ShoppingCartPage() {
-  return (
-    <main className="pb-16">
-      <section className="padding-inline relative mb-12 flex h-[40vh] items-center overflow-hidden md:h-[50vh]">
-        <Image
-          src="/Shared/Atelier Interior.png"
-          alt="Shopping cart hero"
-          fill
-          priority
-          className="object-cover"
-        />
-        <div className="from-background/95 via-background/78 pointer-events-none absolute inset-0 bg-linear-to-r to-transparent" />
-        <div className="relative z-10 w-full py-12 md:py-20">
-          <nav className="mb-3 flex items-center gap-2">
-            <span className="title-font text-md font-semibold tracking-wide text-(--outline)">
-              Home
-            </span>
-            <ChevronRight className="h-3 w-3 stroke-current text-(--outline)" />
-            <span className="title-font text-primary-soft text-md font-semibold tracking-wide">
-              Cart
-            </span>
-          </nav>
-          <h1 className="heading-font text-foreground text-4xl font-semibold md:text-6xl">
-            Shopping Cart
-          </h1>
-          <p className="text-text-muted mt-4 max-w-xl text-base leading-relaxed md:text-lg">
-            Discover an exquisite collection of luxury plushies, handcrafted
-            stationery, and artisanal treasures from the heart of Tokyo&apos;s
-            boutique culture.
-          </p>
-        </div>
-      </section>
+  const authStatus = useGlobalStore((state) => state.authStatus);
+  const items = useCartStore((state) => state.items);
+  const refreshCart = useCartStore((state) => state.refreshCart);
+  const setCart = useCartStore((state) => state.setCart);
+  const [loadState, setLoadState] = useState<LoadState>("loading");
+  const [error, setError] = useState("");
+  const [pending, setPending] = useState<string | null>(null);
 
-      <section className="padding-inline mt-12">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(320px,1fr)] lg:items-start">
-          <div>
-            <div className="border-surface-3 mb-5 flex items-baseline gap-2 border-b pb-4">
-              <h2 className="heading-font text-foreground text-3xl font-semibold">
-                Shopping Cart
-              </h2>
-              <span className="meta-font text-text-muted text-sm">
-                (2 items)
+  async function loadCart() {
+    setLoadState("loading");
+    setError("");
+    await refreshCart();
+    const latestError = useCartStore.getState().error;
+    if (latestError === "unauthorized") {
+      setLoadState("unauthorized");
+    } else if (latestError) {
+      setError(latestError);
+      setLoadState("error");
+    } else {
+      setLoadState("ready");
+    }
+  }
+
+  useEffect(() => {
+    if (authStatus === AuthStatus.Authenticated) void loadCart();
+    if (authStatus === AuthStatus.Unauthenticated) setLoadState("unauthorized");
+  }, [authStatus]);
+
+  async function changeQuantity(item: CartItem, quantity: number) {
+    if (quantity < 1 || quantity > item.product.stock) return;
+    setPending(item.id);
+    setError("");
+    try {
+      setCart(await updateCartItem(item.id, quantity));
+    } catch {
+      setError(
+        "That quantity is no longer available. Your bag was not changed.",
+      );
+      await loadCart();
+    } finally {
+      setPending(null);
+    }
+  }
+
+  async function removeItem(item: CartItem) {
+    setPending(item.id);
+    setError("");
+    try {
+      setCart(await removeCartItem(item.id));
+    } catch {
+      setError("We could not remove that item. Please try again.");
+      await loadCart();
+    } finally {
+      setPending(null);
+    }
+  }
+
+  if (authStatus === AuthStatus.Loading || loadState === "loading") {
+    return (
+      <main className="padding-inline min-h-dvh py-24">
+        <CartHeader />
+        <CartSkeleton />
+      </main>
+    );
+  }
+
+  if (loadState === "unauthorized") {
+    return (
+      <main className="padding-inline min-h-dvh py-24">
+        <CartHeader />
+        <section className="bg-surface-2 border-surface-3 rounded-2xl border px-6 py-20 text-center">
+          <h2 className="heading-font text-foreground text-3xl font-semibold">
+            Sign in to view your bag
+          </h2>
+          <p className="text-text-muted mx-auto mt-4 max-w-md text-sm leading-7">
+            Your saved pieces are waiting securely with your account.
+          </p>
+          <Link
+            href="/login?redirect=/cart"
+            className="meta-font bg-primary-soft text-primary-ink mt-8 inline-flex h-12 items-center rounded-xl px-6 text-sm font-semibold"
+          >
+            Sign in
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
+  if (loadState === "error") {
+    return (
+      <main className="padding-inline min-h-dvh py-24">
+        <CartHeader />
+        <section className="bg-surface-2 border-surface-3 rounded-2xl border px-6 py-20 text-center">
+          <h2 className="heading-font text-foreground text-3xl font-semibold">
+            Your bag could not be opened
+          </h2>
+          <p className="text-text-muted mt-4 text-sm">{error}</p>
+          <button
+            type="button"
+            onClick={() => void loadCart()}
+            className="meta-font bg-primary-soft text-primary-ink mt-8 inline-flex h-12 items-center gap-2 rounded-xl px-6 text-sm font-semibold"
+          >
+            <RefreshCw className="h-4 w-4" />
+            Try Again
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  const subtotal = items.reduce((total, item) => total + itemSubtotal(item), 0);
+  const quantity = items.reduce((total, item) => total + item.quantity, 0);
+  const hasInvalidItems = items.some(
+    (item) => !item.product.isActive || item.product.stock < item.quantity,
+  );
+
+  return (
+    <main className="padding-inline min-h-dvh pt-24 pb-20">
+      <CartHeader quantity={quantity} />
+      {error && (
+        <p className="text-secondary mb-5 text-sm" role="alert">
+          {error}
+        </p>
+      )}
+      {items.length === 0 ? (
+        <EmptyCart />
+      ) : (
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,2fr)_minmax(300px,1fr)] lg:items-start">
+          <section>
+            <div className="border-surface-3 mb-2 flex items-end justify-between border-b pb-4">
+              <div>
+                <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
+                  Curated for you
+                </p>
+                <h2 className="heading-font text-foreground mt-2 text-3xl font-semibold">
+                  Your Selection
+                </h2>
+              </div>
+              <span className="text-text-muted text-sm">
+                {quantity} {quantity === 1 ? "piece" : "pieces"}
               </span>
             </div>
-
-            <div className="space-y-1">
-              {cartItems.map((item) => (
-                <article
+            <AnimatePresence initial={false}>
+              {items.map((item) => (
+                <CartItemRow
                   key={item.id}
-                  className="border-surface-3/70 grid gap-5 border-b py-7 sm:grid-cols-[120px_minmax(0,1fr)]"
-                >
-                  <div className="shelf-surface relative h-28 overflow-hidden rounded-lg border border-(--glass-border) sm:h-30 sm:w-30">
-                    <Image
-                      src={item.image}
-                      alt={item.name}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-
-                  <div className="flex flex-col justify-between gap-4">
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
-                        <h3 className="heading-font text-foreground text-xl font-medium">
-                          {item.name}
-                        </h3>
-                        <p className="text-text-muted text-sm">
-                          {item.subtitle}
-                        </p>
-                      </div>
-                      <p className="meta-font text-primary-soft text-lg font-semibold">
-                        {item.price}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="bg-surface-2 inline-flex items-center rounded-md border border-(--outline-strong)">
-                        <button
-                          aria-label={`Decrease quantity for ${item.name}`}
-                          className="focus-amber text-text-muted hover:text-foreground px-3 py-1 text-sm transition"
-                        >
-                          -
-                        </button>
-                        <span className="meta-font text-foreground w-8 text-center text-sm">
-                          {item.quantity}
-                        </span>
-                        <button
-                          aria-label={`Increase quantity for ${item.name}`}
-                          className="focus-amber text-text-muted hover:text-foreground px-3 py-1 text-sm transition"
-                        >
-                          +
-                        </button>
-                      </div>
-
-                      <button className="meta-font focus-amber hover:text-primary-soft text-xs text-(--outline) underline decoration-(--outline-strong) underline-offset-4 transition">
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                </article>
+                  item={item}
+                  pending={pending}
+                  onQuantityChange={(nextItem, nextQuantity) =>
+                    void changeQuantity(nextItem, nextQuantity)
+                  }
+                  onRemove={(nextItem) => void removeItem(nextItem)}
+                />
               ))}
-            </div>
-
-            <form className="mt-6 flex flex-col gap-3 sm:flex-row" action="#">
-              <input
-                className="focus-amber bg-surface-2 text-foreground w-full rounded-md border border-(--outline-strong) px-4 py-3 text-sm placeholder:text-(--outline)"
-                type="text"
-                name="promoCode"
-                placeholder="Gift Code / Promotional Code"
-              />
-              <button
-                type="submit"
-                className="focus-amber meta-font text-foreground hover:bg-surface-3 rounded-md border border-(--outline) px-5 py-3 text-sm transition"
-              >
-                Apply
-              </button>
-            </form>
-          </div>
-
-          <aside className="space-y-5">
-            <section className="glass-panel rounded-xl p-6">
-              <h3 className="heading-font border-surface-3 text-foreground border-b pb-4 text-2xl">
-                Order Summary
-              </h3>
-
-              <div className="mt-5 space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-text-muted text-sm">Subtotal:</span>
-                  <span className="meta-font text-foreground">
-                    \u00a517,300
-                  </span>
-                </div>
-                <div className="flex items-start justify-between gap-4">
-                  <span className="text-text-muted text-sm">Shipping:</span>
-                  <div className="text-right">
-                    <p className="meta-font text-foreground">Free</p>
-                    <p className="text-xs text-(--outline)">
-                      (Orders over \u00a515,000)
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              <button className="focus-amber meta-font bg-primary-soft hover:bg-primary mt-6 w-full rounded-lg px-4 py-3 text-sm font-semibold text-(--primary-ink) transition">
-                Secure Checkout
-              </button>
-            </section>
-
-            <section className="glass-panel rounded-xl p-6">
-              <h3 className="heading-font text-foreground text-2xl">
-                Complete the Gift
-              </h3>
-              <p className="text-text-muted mt-1 text-sm">
-                Choose an item to complete your gift.
-              </p>
-
-              <div className="mt-5 space-y-5">
-                {giftAddons.map((addon) => (
-                  <article key={addon.id} className="group cursor-pointer">
-                    <div className="relative mb-3 h-28 overflow-hidden rounded-lg border border-(--glass-border)">
-                      <Image
-                        src={addon.image}
-                        alt={addon.name}
-                        fill
-                        className="object-cover transition duration-500 group-hover:scale-105"
-                      />
-                    </div>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="meta-font text-foreground group-hover:text-primary-soft text-sm font-semibold transition">
-                          {addon.name}
-                        </h4>
-                        <p className="mt-1 text-xs text-(--outline)">
-                          {addon.subtitle}
-                        </p>
-                      </div>
-                      <span className="meta-font text-primary-soft text-sm">
-                        {addon.price}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
-
-              <button className="focus-amber meta-font text-text-muted hover:text-foreground mt-5 inline-flex w-full items-center justify-center gap-2 rounded-md border border-(--outline-strong) px-4 py-2.5 text-sm transition hover:border-(--outline)">
-                Add to cart
-                <ChevronDown className="h-4 w-4" />
-              </button>
-            </section>
-          </aside>
+            </AnimatePresence>
+          </section>
+          <CartSummary subtotal={subtotal} hasInvalidItems={hasInvalidItems} />
         </div>
-      </section>
-
-      <section className="padding-inline mt-20">
-        <div className="glass-panel mx-auto grid max-w-5xl overflow-hidden rounded-xl md:grid-cols-2">
-          <div className="relative min-h-62">
-            <Image
-              src="/homepage/cozy-bookstore-interior-armchairs-lamp-books.png"
-              alt="Join our Atelier Circle"
-              fill
-              className="object-cover"
-            />
-          </div>
-
-          <div className="p-7 md:p-10">
-            <h3 className="heading-font text-foreground text-4xl leading-tight">
-              Join our Atelier Circle
-            </h3>
-            <p className="text-text-muted mt-4 text-sm leading-relaxed">
-              Receive early access to seasonal collections, artisan stories, and
-              exclusive gift-gifting guides directly from Tokyo.
-            </p>
-            <form className="mt-6 space-y-3" action="#">
-              <input
-                type="email"
-                placeholder="Your email address"
-                className="focus-amber bg-surface-1 text-foreground w-full rounded-md border border-(--outline-strong) px-4 py-3 text-sm placeholder:text-(--outline)"
-              />
-              <button
-                type="submit"
-                className="focus-amber meta-font bg-secondary w-full rounded-md px-5 py-3 text-sm font-semibold text-(--primary-ink) transition hover:brightness-95"
-              >
-                Subscribe to Joy
-              </button>
-            </form>
-            <p className="mt-4 text-[11px] text-(--outline)">
-              By joining, you agree to our privacy policy and terms of service.
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="padding-inline mt-20">
-        <h2 className="heading-font text-foreground text-center text-4xl">
-          Cherished Moments
-        </h2>
-        <div className="mt-10 grid gap-4 md:grid-cols-3">
-          {testimonials.map((item) => (
-            <article key={item.id} className="glass-panel rounded-xl p-6">
-              <div className="mb-4 flex items-center gap-3">
-                <div className="bg-surface-3 text-primary-soft flex h-10 w-10 items-center justify-center rounded-full text-xs">
-                  {item.name
-                    .split(" ")
-                    .map((entry) => entry[0])
-                    .join("")
-                    .slice(0, 2)
-                    .toUpperCase()}
-                </div>
-                <div>
-                  <p className="meta-font text-foreground text-sm">
-                    {item.name}
-                  </p>
-                  <p className="text-xs text-(--outline)">{item.role}</p>
-                </div>
-              </div>
-              <p className="text-text-muted text-sm leading-relaxed italic">
-                &quot;{item.quote}&quot;
-              </p>
-              <p className="meta-font text-primary-soft mt-4 text-xs tracking-[0.18em]">
-                *****
-              </p>
-            </article>
-          ))}
-        </div>
-      </section>
+      )}
     </main>
+  );
+}
+
+function CartHeader({ quantity }: { quantity?: number }) {
+  return (
+    <header className="mb-10">
+      <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
+        Komorebi Gift Atelier
+      </p>
+      <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <h1 className="heading-font text-foreground text-5xl font-semibold sm:text-6xl">
+            Your Bag
+          </h1>
+          <p className="text-text-muted mt-4 max-w-xl text-sm leading-7 sm:text-base">
+            A considered collection of small joys, held for your next moment of
+            giving.
+          </p>
+        </div>
+        {quantity !== undefined && (
+          <span className="meta-font text-text-muted text-sm">
+            {quantity} {quantity === 1 ? "item" : "items"}
+          </span>
+        )}
+      </div>
+    </header>
   );
 }

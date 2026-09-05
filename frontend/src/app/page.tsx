@@ -1,16 +1,14 @@
 import {
   type CollectionItem,
   CollectionsSection,
-} from "@/src/components/sections/CollectionsSection";
-import { FooterSection } from "@/src/components/sections/FooterSection";
-import { HeroSection } from "@/src/components/sections/HeroSection";
-import { SeasonalEditSection } from "@/src/components/sections/SeasonalEditSection";
-import { NewsletterSection } from "@/src/components/sections/NewsletterSection";
+} from "@/src/components/sections/home/CollectionsSection";
+import { HeroSection } from "@/src/components/sections/home/HeroSection";
+import { NewsletterSection } from "@/src/components/sections/home/NewsletterSection";
 import {
   type Testimonial,
   TestimonialsSection,
-} from "@/src/components/sections/TestimonialsSection";
-import { AtelierIntroductionSection } from "@/src/components/sections/AtelierIntroductionSection";
+} from "@/src/components/sections/home/TestimonialsSection";
+import { AtelierIntroductionSection } from "@/src/components/sections/home/AtelierIntroductionSection";
 import {
   AtelierPhilosophySection,
   FinalCtaSection,
@@ -19,11 +17,11 @@ import {
   TokyoBoutiqueStorySection,
   VisualGallerySection,
   WhyShopSection,
-} from "@/src/components/sections/EditorialHomepageSections";
+} from "@/src/components/sections/home/EditorialHomepageSections";
 import {
   KomorebiEditSection,
   NewArrivalsSection,
-} from "@/src/components/sections/ProductDiscoverySections";
+} from "@/src/components/sections/home/ProductDiscoverySections";
 
 const collections: CollectionItem[] = [
   {
@@ -82,9 +80,8 @@ export default function Home() {
       <HeroSection />
       <CollectionsSection items={collections} />
       <AtelierIntroductionSection />
-      <KomorebiEditSection />
       <GiftMomentsSection />
-      <SeasonalEditSection />
+      <KomorebiEditSection />
       <AtelierPhilosophySection />
       <NewArrivalsSection />
       <TokyoBoutiqueStorySection />

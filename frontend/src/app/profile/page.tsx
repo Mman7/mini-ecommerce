@@ -1,3 +1,4 @@
+// TODO check and fix profile page rendering and form submission
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -14,6 +15,10 @@ import { ProfileHeader } from "@/src/components/profile/ProfileHeader";
 import { AuthStatus } from "@/src/types/user";
 
 export default function ProfilePage() {
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [form, setForm] = useState({ name: "", email: "", phoneNumber: "" });
@@ -24,7 +29,9 @@ export default function ProfilePage() {
   const setGlobalUser = useGlobalStore((state) => state.setUser);
 
   useEffect(() => {
-    if (authStatus !== AuthStatus.Authenticated || !authenticatedUser) return;
+    if (authStatus !== AuthStatus.Authenticated || !authenticatedUser) {
+      return;
+    }
 
     setUser(authenticatedUser);
     setForm({
@@ -34,16 +41,16 @@ export default function ProfilePage() {
     });
 
     getAddresses()
-      .then((addressResponse) => {
-        setAddresses(addressResponse.addresses);
+      .then((response) => {
+        setAddresses(response.addresses);
       })
-      .catch((requestError) =>
+      .catch((requestError) => {
         setError(
           requestError instanceof Error
             ? requestError.message
             : "Unable to load your profile.",
-        ),
-      );
+        );
+      });
   }, [authStatus, authenticatedUser]);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
