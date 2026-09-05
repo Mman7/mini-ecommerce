@@ -1,24 +1,34 @@
 "use client";
 import { useEffect, useState } from "react";
 
-export function AtelierBackdrop({ videoSrc }: { videoSrc?: string }) {
+type AtelierBackdropProps = {
+  videoSrc?: string;
+  fallbackSrc?: string;
+};
+
+export function AtelierBackdrop({
+  videoSrc,
+  fallbackSrc,
+}: AtelierBackdropProps) {
   const [loaded, setLoaded] = useState<boolean | null>(null);
+  const [videoFailed, setVideoFailed] = useState(false);
   const src = "/Shared/Atelier%20Interior.png";
+  const imageSrc = fallbackSrc ?? src;
 
   useEffect(() => {
-    if (videoSrc) return;
+    if (videoSrc && !videoFailed) return;
 
     let mounted = true;
     const img = new Image();
-    img.src = src;
+    img.src = imageSrc;
     img.onload = () => mounted && setLoaded(true);
     img.onerror = () => mounted && setLoaded(false);
     return () => {
       mounted = false;
     };
-  }, [src, videoSrc]);
+  }, [imageSrc, videoFailed, videoSrc]);
 
-  if (videoSrc) {
+  if (videoSrc && !videoFailed) {
     return (
       <video
         autoPlay
@@ -27,6 +37,7 @@ export function AtelierBackdrop({ videoSrc }: { videoSrc?: string }) {
         playsInline
         preload="metadata"
         aria-hidden="true"
+        onError={() => setVideoFailed(true)}
         className="absolute inset-0 size-full object-cover object-center"
       >
         <source src={videoSrc} type="video/mp4" />
@@ -43,7 +54,7 @@ export function AtelierBackdrop({ videoSrc }: { videoSrc?: string }) {
     <div
       className="absolute inset-0"
       style={{
-        backgroundImage: `url('${src}')`,
+        backgroundImage: `url('${imageSrc}')`,
         backgroundSize: "cover",
         backgroundPosition: "center",
       }}

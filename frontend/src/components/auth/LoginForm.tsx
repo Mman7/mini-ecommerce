@@ -7,6 +7,8 @@ import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { login } from "@/src/api/auth.api";
 import { useGlobalStore } from "@/src/store/global.store";
+import { AuthStatus } from "@/src/types/user";
+import { useCartStore } from "@/src/store/cart.store";
 
 type LoginFormValues = {
   email: string;
@@ -20,6 +22,8 @@ export default function LoginForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
   const setUser = useGlobalStore((state) => state.setUser);
+  const setAuthStatus = useGlobalStore((state) => state.setAuthStatus);
+  const refreshCart = useCartStore((state) => state.refreshCart);
   const {
     register: registerField,
     handleSubmit,
@@ -35,6 +39,8 @@ export default function LoginForm() {
       // Update the global store with the logged-in user and redirect to the home page
       const user = res.user;
       setUser(user);
+      setAuthStatus(AuthStatus.Authenticated);
+      void refreshCart();
       router.push("/");
     } catch (requestError) {
       setError(

@@ -6,7 +6,10 @@ export function HeroSection() {
   return (
     <section className="">
       <TextInView className="relative min-h-140 sm:aspect-video sm:min-h-0">
-        <AtelierBackdrop videoSrc="/Komorebi_promotional_video_prod.mp4" />
+        <AtelierBackdrop
+          videoSrc="/Komorebi_promotional_video_prod.mp4"
+          fallbackSrc="/homepage/komorebi-gift-atelier-store-display.png"
+        />
         <div className="pointer-events-none absolute inset-0 z-20 bg-linear-to-r from-black/50 via-black/60 to-transparent" />
 
         <div className="padding-inline absolute inset-0 z-30 flex items-end pb-10 sm:items-center sm:pb-0">

@@ -1,10 +1,12 @@
 import { request } from "./client.api";
+import type { Product } from "./product.api";
 
 export type Favourite = {
   id: number;
   userId: string;
   productId: number;
   createdAt: string;
+  product: Product | null;
 };
 
 export function getFavourites() {
