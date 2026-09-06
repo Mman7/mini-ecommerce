@@ -26,6 +26,28 @@ export const getTotalRevenue = async (req: Request, res: Response) => {
   }
 };
 
+export const getOverview = async (req: Request, res: Response) => {
+  try {
+    const to = req.query.to ? new Date(String(req.query.to)) : new Date();
+    const from = req.query.from
+      ? new Date(String(req.query.from))
+      : new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    if (
+      Number.isNaN(from.getTime()) ||
+      Number.isNaN(to.getTime()) ||
+      from >= to
+    ) {
+      res.status(400).json({ message: "Invalid overview date range" });
+      return;
+    }
+
+    res.status(200).json(await adminService.getOverview({ from, to }));
+  } catch {
+    res.status(500).json({ message: "Failed to retrieve dashboard overview" });
+  }
+};
+
 export const createProduct = productController.createProduct;
 export const updateProduct = productController.updateProduct;
 export const updateProductImage = productController.updateProductImage;

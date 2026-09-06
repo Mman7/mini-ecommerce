@@ -10,6 +10,7 @@ adminRoute.use(authMiddleware, isAdmin);
 
 adminRoute.get("/total-orders", adminController.getTotalOrders);
 adminRoute.get("/total-revenue", adminController.getTotalRevenue);
+adminRoute.get("/overview", adminController.getOverview);
 
 adminRoute.post(
   "/products",
