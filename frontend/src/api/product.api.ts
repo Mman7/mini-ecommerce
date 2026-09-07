@@ -64,6 +64,72 @@ export function getProductsCount() {
   return request<{ count: number }>("/products/count");
 }
 
+export type AdminProductListParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: number;
+  status?: "active" | "inactive";
+  stock?: "in" | "low" | "out";
+  sortBy?: "name" | "price" | "stock" | "createdAt";
+  sortOrder?: "asc" | "desc";
+};
+
+export type AdminProductListResponse = ProductListResponse & {
+  statistics: {
+    all: number;
+    active: number;
+    outOfStock: number;
+    lowStock: number;
+  };
+};
+
+export function getAdminProducts(params: AdminProductListParams = {}) {
+  const searchParams = new URLSearchParams();
+  Object.entries({ page: 1, limit: 20, ...params }).forEach(([key, value]) => {
+    if (value !== undefined && value !== "")
+      searchParams.set(key, String(value));
+  });
+  return request<AdminProductListResponse>(
+    `/admin/products?${searchParams.toString()}`,
+  );
+}
+
+export function getAdminProduct(productId: number) {
+  return request<Product>(`/admin/products/${productId}`);
+}
+
+export function createAdminProduct(data: FormData) {
+  return request<Product>("/admin/products", { method: "POST", body: data });
+}
+
+export function updateAdminProduct(
+  productId: number,
+  data: Partial<Pick<Product, "name" | "description" | "price" | "isActive">>,
+) {
+  return request<{ item: Product }>(`/admin/products/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+}
+
+export function deleteAdminProduct(productId: number) {
+  return request<{ message: string }>(`/admin/products/${productId}`, {
+    method: "DELETE",
+  });
+}
+
+export function updateAdminProductImage(
+  productId: number,
+  imageId: number,
+  data: FormData,
+) {
+  return request<ProductImage>(
+    `/admin/products/${productId}/images/${imageId}`,
+    { method: "PATCH", body: data },
+  );
+}
+
 export async function getRecommendedProducts(
   limit: number = 4,
 ): Promise<Product[]> {

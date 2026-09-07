@@ -1,27 +1,26 @@
 import { Router } from "express";
-import { authMiddleware, isAdmin } from "../../middleware/auth.middleware.ts";
 import * as categoryController from "./category.controller.ts";
+import {
+  validateCategoryId,
+  validateCategoryProductIds,
+} from "./category.validator.ts";
 
 const categoryRouter = Router();
-
-// Create a category
-// Add a product to a category
-categoryRouter.post(
-  "/:categoryId/products/:productId",
-  authMiddleware,
-  isAdmin,
-  categoryController.addProductToCategory,
-);
 
 // Get all categories
 categoryRouter.get("/", categoryController.getAllCategories);
 
 // Get a single category
-categoryRouter.get("/:categoryId", categoryController.getCategoryById);
+categoryRouter.get(
+  "/:categoryId",
+  validateCategoryId,
+  categoryController.getCategoryById,
+);
 
 // Get products in a category
 categoryRouter.get(
   "/:categoryId/products",
+  validateCategoryId,
   categoryController.getCategoryProducts,
 );
 

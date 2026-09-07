@@ -3,18 +3,78 @@ import * as updateCategoryService from "./category.service.ts";
 import * as productService from "../product/product.service.ts";
 import type { UpdateCategoryInput } from "../../types/category.js";
 
+export const getAdminCategories = async (req: Request, res: Response) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+  if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 100
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Invalid category query parameters" });
+  }
+  try {
+    return res.status(200).json(
+      await updateCategoryService.getCategoriesForAdmin({
+        page,
+        limit,
+        search: req.query.search ? String(req.query.search) : undefined,
+        status:
+          req.query.status === "active" || req.query.status === "inactive"
+            ? req.query.status
+            : undefined,
+        sortBy:
+          req.query.sortBy === "name" || req.query.sortBy === "updatedAt"
+            ? req.query.sortBy
+            : "createdAt",
+        sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
+      }),
+    );
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve categories" });
+  }
+};
+
+export const getAdminCategory = async (req: Request, res: Response) => {
+  const categoryId = Number(req.params.categoryId);
+  if (!Number.isInteger(categoryId) || categoryId < 1)
+    return res.status(400).json({ message: "Invalid category ID" });
+  try {
+    const category =
+      await updateCategoryService.getCategoryForAdmin(categoryId);
+    return category
+      ? res.status(200).json(category)
+      : res.status(404).json({ message: "Category not found" });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve category" });
+  }
+};
+
 export const updateCategory = async (req: Request, res: Response) => {
   const { categoryId } = req.params;
-  const { name, description }: UpdateCategoryInput = req.body;
+  const { name, description, isActive } = req.body as UpdateCategoryInput & {
+    isActive?: boolean;
+  };
 
   if (typeof categoryId !== "string" || isNaN(parseInt(categoryId))) {
     return res.status(400).json({ message: "Invalid category ID" });
   }
 
   try {
+    if (isActive !== undefined && typeof isActive !== "boolean") {
+      return res.status(400).json({ message: "isActive must be a boolean" });
+    }
     const category = await updateCategoryService.updateCategory(
       parseInt(categoryId),
-      { name, description },
+      {
+        ...(name !== undefined ? { name } : {}),
+        ...(description !== undefined ? { description } : {}),
+        ...(isActive !== undefined ? { isActive } : {}),
+      },
     );
     res.status(200).json(category);
   } catch (error) {
@@ -42,6 +102,12 @@ export const deleteCategory = async (req: Request, res: Response) => {
     );
     if (!validCategory) {
       return res.status(404).json({ message: "Category not found" });
+    }
+    if (validCategory.products.length > 0) {
+      return res.status(409).json({
+        message:
+          "Category contains products. Reassign them before deleting it.",
+      });
     }
     const category = await updateCategoryService.deleteCategory(
       parseInt(categoryId),

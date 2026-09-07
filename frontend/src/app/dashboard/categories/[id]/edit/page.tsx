@@ -1,4 +1,5 @@
-import { CategoryEditor } from "../../../../../components/dashboard/CategoryEditor";
+import { CategoryEditor } from "@/src/components/dashboard/CategoryEditor";
+import { DashboardShell } from "@/src/components/dashboard";
 
 type EditCategoryPageProps = {
   params: Promise<{ id: string }>;
@@ -7,6 +8,10 @@ type EditCategoryPageProps = {
 export default async function EditCategoryPage({
   params,
 }: EditCategoryPageProps) {
-  await params;
-  return <CategoryEditor mode="edit" />;
+  const { id } = await params;
+  return (
+    <DashboardShell activeSection="categories">
+      <CategoryEditor mode="edit" categoryId={Number(id)} />
+    </DashboardShell>
+  );
 }

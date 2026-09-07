@@ -1,17 +1,67 @@
 import type { Request, Response } from "express";
 import * as adminService from "../admin/admin.service.ts";
-import * as categoryController from "../category/category.controller.ts";
 import * as inventoryController from "../inventory/inventory.controller.ts";
-import * as orderController from "../order/order.controller.ts";
-import * as productController from "../product/product.controller.ts";
 import * as userController from "../user/user.controller.ts";
+import { OrderStatus } from "../../enums/order_status.ts";
 
-export const getTotalOrders = async (req: Request, res: Response) => {
+export const getAdminOrders = async (req: Request, res: Response) => {
   try {
-    const totalOrders = await adminService.getTotalOrders();
-    res.status(200).json({ totalOrders });
+    return res
+      .status(200)
+      .json(await adminService.getAdminOrders(res.locals.adminOrderQuery));
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve orders" });
+  }
+};
+
+export const getAdminOrder = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    const order = await adminService.getAdminOrder(orderId);
+    return order
+      ? res.status(200).json(order)
+      : res.status(404).json({ message: "Order not found" });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve order" });
+  }
+};
+
+export const updateAdminOrderStatus = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  const status = req.body?.status;
+  if (!orderId || !Object.values(OrderStatus).includes(status as OrderStatus)) {
+    return res.status(400).json({ message: "Invalid order status" });
+  }
+  try {
+    return res
+      .status(200)
+      .json(await adminService.updateAdminOrderStatus(orderId, status));
   } catch (error) {
-    res.status(500).json({ message: "Failed to retrieve total orders", error });
+    return res.status(400).json({
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update order status",
+    });
+  }
+};
+
+export const cancelAdminOrder = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    return res.status(200).json(await adminService.cancelAdminOrder(orderId));
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to cancel order",
+    });
   }
 };
 
@@ -23,6 +73,15 @@ export const getTotalRevenue = async (req: Request, res: Response) => {
     res
       .status(500)
       .json({ message: "Failed to retrieve total revenue", error });
+  }
+};
+
+export const getTotalOrders = async (req: Request, res: Response) => {
+  try {
+    const totalOrders = await adminService.getTotalOrders();
+    res.status(200).json({ totalOrders });
+  } catch (error) {
+    res.status(500).json({ message: "Failed to retrieve total orders", error });
   }
 };
 
@@ -48,16 +107,6 @@ export const getOverview = async (req: Request, res: Response) => {
   }
 };
 
-export const createProduct = productController.createProduct;
-export const updateProduct = productController.updateProduct;
-export const updateProductImage = productController.updateProductImage;
-export const deleteProduct = productController.deleteProduct;
-export const createCategory = categoryController.createCategory;
-export const updateCategory = categoryController.updateCategory;
-export const deleteCategory = categoryController.deleteCategory;
-export const deleteCategoryProducts = categoryController.deleteCategoryProducts;
-export const addProductToCategory = categoryController.addProductToCategory;
-export const getAllOrders = orderController.getAllOrders;
 export const getAllUsers = userController.getAllUsers;
 export const activeUser = userController.activeUserController;
 export const inactiveUser = userController.inactiveUserController;

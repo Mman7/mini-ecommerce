@@ -3,6 +3,105 @@ import * as orderService from "./order.service.ts";
 import type { OrderItemInput } from "../../types/order.js";
 import { OrderStatus } from "../../enums/order_status.ts";
 
+const parseAdminPageQuery = (req: Request) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+  return Number.isInteger(page) &&
+    page > 0 &&
+    Number.isInteger(limit) &&
+    limit > 0 &&
+    limit <= 100
+    ? { page, limit }
+    : null;
+};
+
+const parseAdminStatus = (value: unknown) => {
+  if (value === undefined || value === "") return undefined;
+  return Object.values(OrderStatus).includes(value as OrderStatus)
+    ? (value as OrderStatus)
+    : null;
+};
+
+export const getAdminOrders = async (req: Request, res: Response) => {
+  const pagination = parseAdminPageQuery(req);
+  const status = parseAdminStatus(req.query.status);
+  const from = req.query.from ? new Date(String(req.query.from)) : undefined;
+  const to = req.query.to ? new Date(String(req.query.to)) : undefined;
+  if (
+    !pagination ||
+    status === null ||
+    (from && Number.isNaN(from.getTime())) ||
+    (to && Number.isNaN(to.getTime()))
+  ) {
+    return res.status(400).json({ message: "Invalid order query parameters" });
+  }
+  try {
+    return res.status(200).json(
+      await orderService.getOrdersForAdmin({
+        ...pagination,
+        search: req.query.search ? String(req.query.search) : undefined,
+        status,
+        from,
+        to,
+        sortBy: req.query.sortBy === "total" ? "total" : "createdAt",
+        sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
+      }),
+    );
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve orders" });
+  }
+};
+
+export const getAdminOrder = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    const order = await orderService.getOrderForAdmin(orderId);
+    return order
+      ? res.status(200).json(order)
+      : res.status(404).json({ message: "Order not found" });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve order" });
+  }
+};
+
+export const updateAdminOrderStatus = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  const status = parseAdminStatus(req.body?.status);
+  if (!orderId || !status)
+    return res.status(400).json({ message: "Invalid order status" });
+  try {
+    return res
+      .status(200)
+      .json(await orderService.updateOrderStatusByAdmin(orderId, status));
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to update order status",
+    });
+  }
+};
+
+export const cancelAdminOrder = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    return res.status(200).json(await orderService.cancelOrderByAdmin(orderId));
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to cancel order",
+    });
+  }
+};
+
 export const createOrder = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
 
@@ -12,16 +111,6 @@ export const createOrder = async (req: Request, res: Response) => {
       addressId: number;
     };
 
-    if (
-      !userId ||
-      !orderProduct?.length ||
-      !Number.isInteger(addressId) ||
-      addressId < 1
-    ) {
-      return res
-        .status(400)
-        .json({ error: "Product ID, quantity, and address ID are required" });
-    }
     // create order in the database
     const order = await orderService.createOrder(
       userId,
@@ -45,15 +134,7 @@ export const createOrder = async (req: Request, res: Response) => {
 export const getOrderById = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
   try {
-    const { orderId } = req.params;
-
-    if (!orderId) {
-      return res.status(400).json({ error: "Order ID is required" });
-    }
-
-    if (typeof orderId !== "string") {
-      return res.status(400).json({ error: "Order ID must be a string" });
-    }
+    const { orderId } = req.params as { orderId: string };
 
     // check if the order belongs to the user
     const order = await orderService.getOrderById(orderId);
@@ -88,29 +169,10 @@ export const getMyOrders = async (req: Request, res: Response) => {
   }
 };
 
-// get all orders
-export const getAllOrders = async (req: Request, res: Response) => {
-  try {
-    const orders = await orderService.getAllOrders();
-    res.status(200).json({ msg: "Orders retrieved successfully", orders });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to retrieve orders" });
-  }
-};
-
 export const cancelOrder = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
   try {
     const { orderId } = req.params as { orderId: string };
-    if (!orderId) {
-      return res.status(400).json({ error: "Order ID is required" });
-    }
-    // remove these validation move to service layer
-    const validOrderStatuses: string[] = [
-      OrderStatus.PENDING,
-      OrderStatus.PROCESSING,
-    ];
     // check order exists and if the order status is valid for cancellation
     const validOrder = await orderService.getOrderById(orderId);
     if (!validOrder) {
@@ -123,16 +185,6 @@ export const cancelOrder = async (req: Request, res: Response) => {
         .json({ error: "You do not have permission to cancel this order" });
     }
     const order = validOrder;
-
-    if (!validOrderStatuses.includes(order.status)) {
-      return res.status(400).json({
-        error: `Order cannot be cancelled. Current status: ${order.status}`,
-      });
-    }
-
-    if (!order) {
-      return res.status(404).json({ error: "Order not found" });
-    }
 
     // cancel order and restore the inventory
     const cancelledOrder = await orderService.cancelOrder(orderId, userId);

@@ -43,7 +43,7 @@ export const createProduct = ({
 const productInclude = {
   productImages: { orderBy: { sortOrder: "asc" as const } },
   category: { select: { categoryId: true, name: true } },
-  inventory: { select: { stock: true } },
+  inventory: { select: { stock: true, reorderAt: true } },
 };
 
 type ProductWithRelations = {
@@ -65,7 +65,7 @@ type ProductWithRelations = {
     isThumbnail: boolean;
   }>;
   category: { categoryId: number; name: string } | null;
-  inventory: { stock: number } | null;
+  inventory: { stock: number; reorderAt: number | null } | null;
 };
 
 export const serializeProduct = (
@@ -143,6 +143,76 @@ export const getProducts = async ({
     },
   };
 };
+
+export type AdminProductQuery = {
+  page: number;
+  limit: number;
+  search?: string | undefined;
+  categoryId?: number | undefined;
+  status?: "active" | "inactive" | undefined;
+  stock?: "in" | "low" | "out" | undefined;
+  sortBy?: "name" | "price" | "stock" | "createdAt" | undefined;
+  sortOrder?: "asc" | "desc" | undefined;
+};
+
+export const getProductsForAdmin = async ({
+  page,
+  limit,
+  search,
+  categoryId,
+  status,
+  stock,
+  sortBy,
+  sortOrder,
+}: AdminProductQuery) => {
+  const inventoryFilter =
+    stock === "out"
+      ? { stock: { equals: 0 } }
+      : stock === "in"
+        ? { stock: { gt: 0 } }
+        : stock === "low"
+          ? { stock: { gt: 0, lte: 10 } }
+          : undefined;
+  const where = {
+    ...(search
+      ? { name: { contains: search, mode: "insensitive" as const } }
+      : {}),
+    ...(categoryId !== undefined ? { categoryId } : {}),
+    ...(status !== undefined ? { isActive: status === "active" } : {}),
+    ...(inventoryFilter !== undefined ? { inventory: inventoryFilter } : {}),
+  };
+  const orderBy =
+    sortBy === "stock"
+      ? { inventory: { stock: sortOrder ?? "desc" } }
+      : { [sortBy ?? "createdAt"]: sortOrder ?? "desc" };
+  const [items, total, all, active, outOfStock, lowStock] =
+    await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        include: productInclude,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.product.count({ where }),
+      prisma.product.count(),
+      prisma.product.count({ where: { isActive: true } }),
+      prisma.product.count({ where: { inventory: { stock: { equals: 0 } } } }),
+      prisma.product.count({
+        where: { inventory: { stock: { gt: 0, lte: 10 } } },
+      }),
+    ]);
+  return {
+    items: items.map((product) => serializeProduct(product)),
+    statistics: { all, active, outOfStock, lowStock },
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  };
+};
+
+export const getProductForAdmin = (productId: number) =>
+  prisma.product
+    .findUnique({ where: { productId }, include: productInclude })
+    .then((product) => (product ? serializeProduct(product) : null));
 
 export const updateProductById = (id: number, data: ProductUpdateInput) => {
   return prisma.product.update({

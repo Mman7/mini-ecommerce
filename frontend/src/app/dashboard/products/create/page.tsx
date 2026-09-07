@@ -1,5 +1,5 @@
 "use client";
-
+// TODO a product can have thumbnail images and normal product images
 import {
   ChevronDown,
   CloudUpload,
@@ -11,6 +11,7 @@ import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { DashboardShell } from "../../../../components/dashboard";
+import { createAdminProduct } from "../../../../api/product.api";
 
 type ProductStatus = "Draft" | "Active" | "Archived";
 
@@ -27,6 +28,8 @@ export default function CreateProductPage() {
   const [status, setStatus] = useState<ProductStatus>("Draft");
   const [visible, setVisible] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
   useEffect(() => {
@@ -47,6 +50,7 @@ export default function CreateProductPage() {
 
   function setImage(file?: File) {
     if (!file || !file.type.startsWith("image/")) return;
+    setImageFile(file);
     setImagePreview((current) => {
       if (current?.startsWith("blob:")) URL.revokeObjectURL(current);
       return URL.createObjectURL(file);
@@ -62,17 +66,44 @@ export default function CreateProductPage() {
     setImage(event.dataTransfer.files?.[0]);
   }
 
-  function handleSubmit(
+  async function handleSubmit(
     event: FormEvent<HTMLFormElement>,
     nextStatus = status,
   ) {
     event.preventDefault();
     setStatus(nextStatus);
-    setMessage(
-      nextStatus === "Draft"
-        ? "Product saved as draft."
-        : "Product ready to publish.",
-    );
+    if (
+      !productName.trim() ||
+      !description.trim() ||
+      !price ||
+      Number(price) < 0 ||
+      !imageFile
+    ) {
+      setMessage(
+        "Name, description, a non-negative price, and a thumbnail image are required.",
+      );
+      return;
+    }
+    setSaving(true);
+    const formData = new FormData();
+    formData.append("name", productName.trim());
+    formData.append("description", description.trim());
+    formData.append("price", price);
+    formData.append("thumbnail", imageFile);
+    try {
+      await createAdminProduct(formData);
+      setMessage(
+        nextStatus === "Draft"
+          ? "Product saved."
+          : "Product created successfully.",
+      );
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to create product.",
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -118,9 +149,10 @@ export default function CreateProductPage() {
             </button>
             <button
               type="submit"
-              className="meta-font bg-primary hover:bg-primary-soft flex h-9 items-center rounded-md px-5 text-xs font-semibold text-(--primary-ink) shadow-(--glow) transition"
+              disabled={saving}
+              className="meta-font bg-primary hover:bg-primary-soft text-primary-foreground flex h-9 items-center rounded-md px-5 text-xs font-semibold shadow-(--glow) transition"
             >
-              Create Product
+              {saving ? "Creating..." : "Create Product"}
             </button>
           </div>
         </div>

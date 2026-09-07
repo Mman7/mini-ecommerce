@@ -17,7 +17,15 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
+import { useEffect } from "react";
+import { useParams } from "next/navigation";
 import { DashboardShell } from "../../../../../components/dashboard";
+import {
+  deleteAdminProduct,
+  getAdminProduct,
+  updateAdminProduct,
+} from "../../../../../api/product.api";
+import { useRouter } from "next/navigation";
 
 type ProductImage = { id: string; src: string; primary?: boolean };
 
@@ -32,6 +40,8 @@ const initialImages: ProductImage[] = [
 ];
 
 export default function EditProductPage() {
+  const { id } = useParams<{ id: string }>();
+  const router = useRouter();
   const [name, setName] = useState("Sakura Fox Plush");
   const [slug, setSlug] = useState("sakura-fox-plush");
   const [sku, setSku] = useState("PLUSH-SAK-001");
@@ -47,9 +57,40 @@ export default function EditProductPage() {
   const [images, setImages] = useState(initialImages);
   const [message, setMessage] = useState("");
 
-  function handleSave(event: FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    getAdminProduct(Number(id))
+      .then((product) => {
+        setName(product.name);
+        setDescription(product.description);
+        setPrice(String(product.price));
+        setVisible(product.isActive);
+        setStock(String(product.stock));
+        setImages(
+          product.productImages.map((image) => ({
+            id: String(image.id),
+            src: image.url,
+            primary: image.isThumbnail,
+          })),
+        );
+      })
+      .catch(() => setMessage("Unable to load this product."));
+  }, [id]);
+
+  async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setMessage("Changes saved successfully.");
+    try {
+      await updateAdminProduct(Number(id), {
+        name,
+        description,
+        price: Number(price),
+        isActive: visible,
+      });
+      setMessage("Changes saved successfully.");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to save changes.",
+      );
+    }
   }
 
   function handleMedia(event: ChangeEvent<HTMLInputElement>) {
@@ -73,7 +114,15 @@ export default function EditProductPage() {
 
   function deleteProduct() {
     if (window.confirm("Delete this product permanently?")) {
-      setMessage("Product deletion requested.");
+      deleteAdminProduct(Number(id))
+        .then(() => router.push("/dashboard/products"))
+        .catch((error) =>
+          setMessage(
+            error instanceof Error
+              ? error.message
+              : "Unable to delete product.",
+          ),
+        );
     }
   }
 
@@ -110,7 +159,7 @@ export default function EditProductPage() {
             </Link>
             <button
               type="submit"
-              className="meta-font bg-primary hover:bg-primary-soft flex h-9 items-center gap-2 rounded-md px-5 text-xs font-semibold text-(--primary-ink) shadow-(--glow) transition"
+              className="meta-font bg-primary hover:bg-primary-soft text-primary-foreground flex h-9 items-center gap-2 rounded-md px-5 text-xs font-semibold shadow-(--glow) transition"
             >
               <Save size={13} /> Save Changes
             </button>
@@ -516,7 +565,7 @@ function ImageTile({
         </button>
       </div>
       {image.primary ? (
-        <span className="meta-font bg-primary absolute top-2 left-2 rounded px-2 py-1 text-[10px] font-bold text-(--primary-ink)">
+        <span className="meta-font bg-primary text-primary-foreground absolute top-2 left-2 rounded px-2 py-1 text-[10px] font-bold">
           ★ Primary
         </span>
       ) : null}

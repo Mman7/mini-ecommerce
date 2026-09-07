@@ -4,29 +4,205 @@ import * as categoryService from "../category/category.service.ts";
 import * as productService from "../product/product.service.ts";
 import * as userService from "../user/user.service.ts";
 import { prisma } from "../../utils/prisma.ts";
+import { OrderStatus } from "../../enums/order_status.ts";
 
-const revenueStatuses = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"] as const;
+const revenueStatuses = [
+  OrderStatus.PAID,
+  OrderStatus.PROCESSING,
+  OrderStatus.SHIPPED,
+  OrderStatus.DELIVERED,
+] as const;
 
 type OverviewRange = { from: Date; to: Date };
 
+type PageQuery = { page: number; limit: number };
+
+const productInclude = {
+  productImages: { orderBy: { sortOrder: "asc" as const } },
+  category: { select: { categoryId: true, name: true } },
+  inventory: { select: { stock: true, reorderAt: true } },
+};
+
+const serializeDate = (value: Date) => value.toISOString();
+
+export const getAdminProducts = async ({
+  page,
+  limit,
+  search,
+  categoryId,
+  status,
+  stock,
+  sortBy,
+  sortOrder,
+}: PageQuery & {
+  search?: string | undefined;
+  categoryId?: number | undefined;
+  status?: "active" | "inactive" | undefined;
+  stock?: "in" | "low" | "out" | undefined;
+  sortBy?: "name" | "price" | "stock" | "createdAt" | undefined;
+  sortOrder?: "asc" | "desc" | undefined;
+}) => {
+  const inventoryFilter =
+    stock === "out"
+      ? { stock: { equals: 0 } }
+      : stock === "in"
+        ? { stock: { gt: 0 } }
+        : stock === "low"
+          ? { stock: { gt: 0, lte: 10 } }
+          : undefined;
+  const where = {
+    ...(search
+      ? { name: { contains: search, mode: "insensitive" as const } }
+      : {}),
+    ...(categoryId !== undefined ? { categoryId } : {}),
+    ...(status !== undefined ? { isActive: status === "active" } : {}),
+    ...(inventoryFilter !== undefined ? { inventory: inventoryFilter } : {}),
+  };
+  const orderBy =
+    sortBy === "stock"
+      ? { inventory: { stock: sortOrder ?? "desc" } }
+      : { [sortBy ?? "createdAt"]: sortOrder ?? "desc" };
+  const [items, total, allCount, activeCount, outOfStockCount, lowStockCount] =
+    await prisma.$transaction([
+      prisma.product.findMany({
+        where,
+        include: productInclude,
+        orderBy,
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.product.count({ where }),
+      prisma.product.count(),
+      prisma.product.count({ where: { isActive: true } }),
+      prisma.product.count({ where: { inventory: { stock: { equals: 0 } } } }),
+      prisma.product.count({
+        where: { inventory: { stock: { gt: 0, lte: 10 } } },
+      }),
+    ]);
+  return {
+    items: items.map((product) => ({
+      ...product,
+      price: Number(product.price),
+      createdAt: serializeDate(product.createdAt),
+      updatedAt: serializeDate(product.updatedAt),
+      productImages: product.productImages.map((image) => ({
+        ...image,
+        createdAt: serializeDate(image.createdAt),
+        updatedAt: serializeDate(image.updatedAt),
+      })),
+      stock: product.inventory?.stock ?? 0,
+    })),
+    statistics: {
+      all: allCount,
+      active: activeCount,
+      outOfStock: outOfStockCount,
+      lowStock: lowStockCount,
+    },
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  };
+};
+
+export const getAdminProduct = async (productId: number) => {
+  const product = await prisma.product.findUnique({
+    where: { productId },
+    include: productInclude,
+  });
+  if (!product) return null;
+  return {
+    ...product,
+    price: Number(product.price),
+    createdAt: serializeDate(product.createdAt),
+    updatedAt: serializeDate(product.updatedAt),
+    productImages: product.productImages.map((image) => ({
+      ...image,
+      createdAt: serializeDate(image.createdAt),
+      updatedAt: serializeDate(image.updatedAt),
+    })),
+    stock: product.inventory?.stock ?? 0,
+  };
+};
+
+export const getAdminCategories = async ({
+  page,
+  limit,
+  search,
+  status,
+  sortBy,
+  sortOrder,
+}: PageQuery & {
+  search?: string | undefined;
+  status?: "active" | "inactive" | undefined;
+  sortBy?: "name" | "createdAt" | "updatedAt" | undefined;
+  sortOrder?: "asc" | "desc" | undefined;
+}) => {
+  return categoryService.getCategoriesForAdmin({
+    page,
+    limit,
+    search,
+    status,
+    sortBy,
+    sortOrder,
+  });
+};
+
+export const getAdminCategory = async (categoryId: number) => {
+  return categoryService.getCategoryForAdmin(categoryId);
+};
+
+export const getAdminOrders = async ({
+  page,
+  limit,
+  search,
+  status,
+  from,
+  to,
+  sortBy,
+  sortOrder,
+}: PageQuery & {
+  search?: string | undefined;
+  status?: OrderStatus | undefined;
+  from?: Date | undefined;
+  to?: Date | undefined;
+  sortBy?: "createdAt" | "total" | undefined;
+  sortOrder?: "asc" | "desc" | undefined;
+}) => {
+  return orderService.getOrdersForAdmin({
+    page,
+    limit,
+    search,
+    status,
+    from,
+    to,
+    sortBy,
+    sortOrder,
+  });
+};
+
+export const getAdminOrder = async (orderId: string) => {
+  return orderService.getOrderForAdmin(orderId);
+};
+
+export const updateAdminOrderStatus = async (
+  orderId: string,
+  status: OrderStatus,
+) => {
+  return orderService.updateOrderStatusByAdmin(orderId, status);
+};
+
+export const cancelAdminOrder = async (orderId: string) => {
+  return orderService.cancelOrderByAdmin(orderId);
+};
+
 export const getTotalOrders = async () => {
-  const allOrders = await orderService.getAllOrders();
-  return allOrders;
+  return orderService.getTotalOrders();
 };
 
 export const getTotalRevenue = async () => {
-  const allOrders = await orderService.getAllOrders();
-  const totalRevenue = allOrders.reduce(
-    (sum, order) => sum + Number(order.total),
-    0,
-  );
-  return totalRevenue;
+  return orderService.getTotalRevenue();
 };
 
 export const getOrdersByUserId = async (userId: string) => {
-  const allOrders = await orderService.getAllOrders();
-  const userOrders = allOrders.filter((order) => order.userId === userId);
-  return userOrders;
+  return orderService.getOrdersByUser(userId);
 };
 
 export const getTotalCategory = async () => {

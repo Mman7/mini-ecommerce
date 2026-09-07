@@ -7,6 +7,78 @@ import type {
 } from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
+const parseAdminPageQuery = (req: Request) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+  return Number.isInteger(page) &&
+    page > 0 &&
+    Number.isInteger(limit) &&
+    limit > 0 &&
+    limit <= 100
+    ? { page, limit }
+    : null;
+};
+
+export const getAdminProducts = async (req: Request, res: Response) => {
+  const pagination = parseAdminPageQuery(req);
+  const categoryId =
+    req.query.categoryId === undefined
+      ? undefined
+      : Number(req.query.categoryId);
+  if (
+    !pagination ||
+    (categoryId !== undefined &&
+      (!Number.isInteger(categoryId) || categoryId < 1))
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Invalid product query parameters" });
+  }
+  try {
+    return res.status(200).json(
+      await productService.getProductsForAdmin({
+        ...pagination,
+        search: req.query.search ? String(req.query.search) : undefined,
+        categoryId,
+        status:
+          req.query.status === "active" || req.query.status === "inactive"
+            ? req.query.status
+            : undefined,
+        stock:
+          req.query.stock === "in" ||
+          req.query.stock === "low" ||
+          req.query.stock === "out"
+            ? req.query.stock
+            : undefined,
+        sortBy:
+          req.query.sortBy === "name" ||
+          req.query.sortBy === "price" ||
+          req.query.sortBy === "stock" ||
+          req.query.sortBy === "createdAt"
+            ? req.query.sortBy
+            : undefined,
+        sortOrder: req.query.sortOrder === "asc" ? "asc" : "desc",
+      }),
+    );
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve products" });
+  }
+};
+
+export const getAdminProduct = async (req: Request, res: Response) => {
+  const productId = Number(req.params.id);
+  if (!Number.isInteger(productId) || productId < 1)
+    return res.status(400).json({ message: "Invalid product ID" });
+  try {
+    const product = await productService.getProductForAdmin(productId);
+    return product
+      ? res.status(200).json(product)
+      : res.status(404).json({ message: "Product not found" });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve product" });
+  }
+};
+
 interface createProductRequestBody {
   name: string;
   description: string;

@@ -1,14 +1,15 @@
 import { Router } from "express";
 import * as authController from "./auth.controller.ts";
+import { validateLogin, validateRegister } from "./auth.validator.ts";
 import { authMiddleware } from "../../middleware/auth.middleware.ts";
 
 const authRouter = Router();
 
 // auth routes for login/logout to controller
 // route to controller
-authRouter.post("/login", authController.handleLogin);
+authRouter.post("/login", validateLogin, authController.handleLogin);
 authRouter.post("/logout", authMiddleware, authController.handleLogout);
-authRouter.post("/register", authController.handleRegister);
+authRouter.post("/register", validateRegister, authController.handleRegister);
 authRouter.post("/refresh", authController.handleRefreshToken);
 
 export default authRouter;
