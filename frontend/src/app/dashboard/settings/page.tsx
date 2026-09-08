@@ -2,12 +2,11 @@
 
 import { Bell, Save, Store } from "lucide-react";
 import { useState } from "react";
-import { DashboardShell } from "../../../components/dashboard";
 
 export default function DashboardSettingsPage() {
   const [notice, setNotice] = useState("");
   return (
-    <DashboardShell activeSection="settings">
+    <>
       <div className="mx-auto max-w-4xl">
         <header className="mb-6">
           <p className="meta-font text-primary mb-2 text-xs tracking-[0.16em] uppercase">
@@ -96,6 +95,6 @@ export default function DashboardSettingsPage() {
           </div>
         </form>
       </div>
-    </DashboardShell>
+    </>
   );
 }

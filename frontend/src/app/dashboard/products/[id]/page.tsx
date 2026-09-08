@@ -8,7 +8,6 @@ import { getAdminProduct, type Product } from "../../../../api/product.api";
 import {
   DashboardHeading,
   DashboardPanel,
-  DashboardShell,
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
@@ -28,7 +27,7 @@ export default function ProductDetailPage() {
       .catch(() => setError("Unable to load this product."));
   }, [id]);
   return (
-    <DashboardShell activeSection="products">
+    <>
       {product ? (
         <>
           <DashboardHeading
@@ -107,6 +106,6 @@ export default function ProductDetailPage() {
           {error || "Loading product..."}
         </p>
       )}
-    </DashboardShell>
+    </>
   );
 }

@@ -7,7 +7,6 @@ import { getAdminCategory } from "../../../../api/category.api";
 import {
   DashboardHeading,
   DashboardPanel,
-  DashboardShell,
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
@@ -24,7 +23,7 @@ export default function CategoryDetailPage() {
       .catch(() => setError("Unable to load this category."));
   }, [id]);
   return (
-    <DashboardShell activeSection="categories">
+    <>
       {category ? (
         <>
           <DashboardHeading
@@ -79,6 +78,6 @@ export default function CategoryDetailPage() {
           {error || "Loading category..."}
         </p>
       )}
-    </DashboardShell>
+    </>
   );
 }

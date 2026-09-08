@@ -4,11 +4,7 @@ import { Archive, CheckCircle2, FolderTree, Plus, Tags } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminCategoryList } from "../../../components/dashboard/AdminCategoryList";
-import {
-  DashboardHeading,
-  DashboardShell,
-  StatCard,
-} from "../../../components/dashboard";
+import { DashboardHeading, StatCard } from "../../../components/dashboard";
 
 type CategoryStatistics = {
   all: number;
@@ -24,7 +20,7 @@ export default function CategoriesPage() {
   });
 
   return (
-    <DashboardShell activeSection="categories">
+    <>
       <DashboardHeading
         eyebrow="Product organization"
         title="Categories"
@@ -68,6 +64,6 @@ export default function CategoriesPage() {
         />
       </div>
       <AdminCategoryList onStatisticsChange={setStats} />
-    </DashboardShell>
+    </>
   );
 }

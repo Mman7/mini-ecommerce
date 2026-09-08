@@ -9,11 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { AdminOrderList } from "../../../components/dashboard/AdminOrderList";
-import {
-  DashboardHeading,
-  DashboardShell,
-  StatCard,
-} from "../../../components/dashboard";
+import { DashboardHeading, StatCard } from "../../../components/dashboard";
 
 type OrderStatistics = Record<string, number>;
 
@@ -22,7 +18,7 @@ export default function OrdersPage() {
   const all = Object.values(counts).reduce((sum, value) => sum + value, 0);
 
   return (
-    <DashboardShell activeSection="orders">
+    <>
       <DashboardHeading
         eyebrow="Order operations"
         title="Orders"
@@ -64,6 +60,6 @@ export default function OrdersPage() {
         />
       </div>
       <AdminOrderList onStatisticsChange={setCounts} />
-    </DashboardShell>
+    </>
   );
 }

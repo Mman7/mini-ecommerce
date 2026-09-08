@@ -26,7 +26,6 @@ import { useGlobalStore } from "@/src/store/global.store";
 import {
   DashboardHeading,
   DashboardPanel,
-  DashboardShell,
   PanelHeading,
   StatCard,
   StatusPill,
@@ -103,7 +102,7 @@ export default function DashboardPage() {
   }).format(new Date());
 
   return (
-    <DashboardShell activeSection="overview">
+    <>
       <DashboardHeading
         eyebrow={today}
         title="Overview"
@@ -382,7 +381,7 @@ export default function DashboardPage() {
           </div>
         </DashboardPanel>
       </div>
-    </DashboardShell>
+    </>
   );
 }
 

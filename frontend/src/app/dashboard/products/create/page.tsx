@@ -10,7 +10,6 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { DashboardShell } from "../../../../components/dashboard";
 import { createAdminProduct } from "../../../../api/product.api";
 
 type ProductStatus = "Draft" | "Active" | "Archived";
@@ -107,7 +106,7 @@ export default function CreateProductPage() {
   }
 
   return (
-    <DashboardShell activeSection="products">
+    <>
       <form onSubmit={(event) => handleSubmit(event)}>
         <div className="mb-6 flex flex-col gap-4 border-b border-(--glass-border) pb-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
@@ -391,7 +390,7 @@ export default function CreateProductPage() {
           </aside>
         </div>
       </form>
-    </DashboardShell>
+    </>
   );
 }
 

@@ -12,7 +12,6 @@ import {
 import {
   DashboardHeading,
   DashboardPanel,
-  DashboardShell,
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
@@ -93,20 +92,20 @@ export default function AdminOrderDetailPage() {
   }
   if (loading)
     return (
-      <DashboardShell activeSection="orders">
+      <>
         <div className="bg-surface-2 h-40 animate-pulse rounded-lg" />
-      </DashboardShell>
+      </>
     );
   if (!order)
     return (
-      <DashboardShell activeSection="orders">
+      <>
         <p role="alert" className="text-secondary">
           {error || "Order not found."}
         </p>
-      </DashboardShell>
+      </>
     );
   return (
-    <DashboardShell activeSection="orders">
+    <>
       <DashboardHeading
         eyebrow="Order operations"
         title={`Order #${order.id.slice(0, 8)}`}
@@ -235,6 +234,6 @@ export default function AdminOrderDetailPage() {
           </DashboardPanel>
         </div>
       </div>
-    </DashboardShell>
+    </>
   );
 }

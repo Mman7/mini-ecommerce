@@ -197,7 +197,14 @@ export const getProductsForAdmin = async ({
       prisma.product.count({ where }),
       prisma.product.count(),
       prisma.product.count({ where: { isActive: true } }),
-      prisma.product.count({ where: { inventory: { stock: { equals: 0 } } } }),
+      prisma.product.count({
+        where: {
+          OR: [
+            { inventory: { is: null } },
+            { inventory: { stock: { equals: 0 } } },
+          ],
+        },
+      }),
       prisma.product.count({
         where: { inventory: { stock: { gt: 0, lte: 10 } } },
       }),

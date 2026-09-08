@@ -12,6 +12,10 @@ export const deleteFileByPath = async (filePath: string): Promise<void> => {
   try {
     await fs.promises.unlink(resolvedFilePath);
   } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      console.warn(`File already missing at ${resolvedFilePath}`);
+      return;
+    }
     console.error(`Error deleting file at ${resolvedFilePath}:`, error);
     throw new Error(`Failed to delete file at ${resolvedFilePath}`);
   }

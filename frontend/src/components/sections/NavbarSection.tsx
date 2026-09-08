@@ -28,6 +28,16 @@ export function NavbarSection() {
     state.items.reduce((total, item) => total + item.quantity, 0),
   );
 
+  useEffect(() => {
+    const updateScrollState = () => {
+      setIsScrolled(window.scrollY >= NAVBAR_FIXED_SCROLL_Y);
+    };
+
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
+
   if (pathname.startsWith("/dashboard")) return null;
 
   return (

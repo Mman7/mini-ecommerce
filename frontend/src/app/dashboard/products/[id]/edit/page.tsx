@@ -9,6 +9,7 @@ import {
   List,
   ListOrdered,
   Save,
+  Star,
   Trash2,
   Underline,
   Upload,
@@ -19,7 +20,15 @@ import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useEffect } from "react";
 import { useParams } from "next/navigation";
-import { DashboardShell } from "../../../../../components/dashboard";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import {
   deleteAdminProduct,
   getAdminProduct,
@@ -56,6 +65,7 @@ export default function EditProductPage() {
   const [visible, setVisible] = useState(true);
   const [images, setImages] = useState(initialImages);
   const [message, setMessage] = useState("");
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
     getAdminProduct(Number(id))
@@ -112,22 +122,20 @@ export default function EditProductPage() {
     );
   }
 
-  function deleteProduct() {
-    if (window.confirm("Delete this product permanently?")) {
-      deleteAdminProduct(Number(id))
-        .then(() => router.push("/dashboard/products"))
-        .catch((error) =>
-          setMessage(
-            error instanceof Error
-              ? error.message
-              : "Unable to delete product.",
-          ),
-        );
+  async function deleteProduct() {
+    try {
+      await deleteAdminProduct(Number(id));
+      setDeleteDialogOpen(false);
+      router.push("/dashboard/products");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "Unable to delete product.",
+      );
     }
   }
 
   return (
-    <DashboardShell activeSection="products">
+    <>
       <form onSubmit={handleSave}>
         <header className="bg-background/95 sticky top-0 z-20 mb-6 flex flex-col gap-4 border-b border-(--glass-border) py-2 pb-6 backdrop-blur-xl md:flex-row md:items-end md:justify-between">
           <div>
@@ -338,7 +346,7 @@ export default function EditProductPage() {
               </div>
               <button
                 type="button"
-                onClick={deleteProduct}
+                onClick={() => setDeleteDialogOpen(true)}
                 className="meta-font shrink-0 rounded-md border border-[#ffb4ab]/50 px-4 py-2 text-xs text-[#ffb4ab] transition hover:bg-[#ffb4ab]/10"
               >
                 Delete Product
@@ -438,7 +446,32 @@ export default function EditProductPage() {
           </aside>
         </div>
       </form>
-    </DashboardShell>
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="text-foreground bg-surface-2! border border-[#ffb4ab]/20">
+          <DialogHeader>
+            <DialogTitle className="text-[#ffb4ab]">
+              Delete product?
+            </DialogTitle>
+            <DialogDescription className="text-text-muted">
+              This action cannot be undone. The product will be permanently
+              removed from the store.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="bg-surface-2!">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="button" variant="destructive" onClick={deleteProduct}>
+              Delete Product
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -550,16 +583,16 @@ function ImageTile({
           title="Set as primary"
           aria-label="Set as primary"
           onClick={() => onPrimary(image.id)}
-          className="bg-surface-4 text-primary-soft rounded-full p-2"
+          className="bg-surface-4 text-primary-soft rounded-full p-2 hover:cursor-pointer"
         >
-          <Save size={14} />
+          <Star size={14} />
         </button>
         <button
           type="button"
           title="Remove image"
           aria-label="Remove image"
           onClick={() => onRemove(image.id)}
-          className="bg-surface-4 rounded-full p-2 text-[#ffb4ab]"
+          className="bg-surface-4 rounded-full p-2 text-[#ffb4ab] hover:cursor-pointer"
         >
           <X size={14} />
         </button>

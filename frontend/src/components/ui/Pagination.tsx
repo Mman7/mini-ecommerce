@@ -1,7 +1,15 @@
 "use client";
 
-import Link from "next/link";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { Fragment } from "react";
+import {
+  Pagination as PaginationRoot,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export default function Pagination({
   page = 1,
@@ -31,44 +39,47 @@ export default function Pagination({
     return `/products?${params.toString()}`;
   };
   return (
-    <nav
-      className="mt-8 flex items-center justify-center gap-2"
-      aria-label="Pagination"
-    >
-      <Link
-        aria-label="Previous page"
-        href={hrefFor(page - 1)}
-        aria-disabled={page === 1}
-        className={`bg-surface-3 text-on-surface/70 flex h-8 w-8 items-center justify-center rounded-full ${page === 1 ? "pointer-events-none opacity-35" : ""}`}
-      >
-        <ChevronLeft className="h-3.5 w-3.5 stroke-current" />
-      </Link>
-      {pages.map((item, index) => (
-        <span key={item} className="contents">
-          {index > 0 && pages[index - 1] !== item - 1 && (
-            <span className="text-on-surface/55 px-1">...</span>
-          )}
-          <Link
-            href={hrefFor(item)}
-            aria-current={item === page ? "page" : undefined}
-            className={`meta-font flex h-8 w-8 items-center justify-center rounded-full text-[13px] font-semibold ${
-              item === page
-                ? "bg-primary text-on-primary shadow-[0_6px_18px_rgba(233,139,44,0.18)]"
-                : "bg-surface-3 text-on-surface/70"
-            }`}
-          >
-            {item}
-          </Link>
-        </span>
-      ))}
-      <Link
-        aria-label="Next page"
-        href={hrefFor(page + 1)}
-        aria-disabled={page === totalPages}
-        className={`bg-surface-3 text-on-surface/70 flex h-8 w-8 items-center justify-center rounded-full ${page === totalPages ? "pointer-events-none opacity-35" : ""}`}
-      >
-        <ChevronRight className="h-3.5 w-3.5 stroke-current" />
-      </Link>
-    </nav>
+    <PaginationRoot className="mt-8" aria-label="Pagination">
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href={hrefFor(page - 1)}
+            aria-disabled={page === 1}
+            className={`bg-surface-3 text-on-surface/70 hover:bg-surface-4 hover:text-on-surface ${page === 1 ? "pointer-events-none opacity-35" : ""}`}
+            text=""
+          />
+        </PaginationItem>
+        {pages.map((item, index) => (
+          <Fragment key={item}>
+            {index > 0 && pages[index - 1] !== item - 1 && (
+              <PaginationItem>
+                <PaginationEllipsis />
+              </PaginationItem>
+            )}
+            <PaginationItem>
+              <PaginationLink
+                href={hrefFor(item)}
+                isActive={item === page}
+                className={`meta-font text-[13px] font-semibold ${
+                  item === page
+                    ? "!bg-primary !text-on-primary !border-transparent shadow-[0_6px_18px_rgba(233,139,44,0.18)]"
+                    : "!bg-surface-3 !text-on-surface/70 hover:!bg-surface-4 hover:!text-on-surface !border-transparent"
+                }`}
+              >
+                {item}
+              </PaginationLink>
+            </PaginationItem>
+          </Fragment>
+        ))}
+        <PaginationItem>
+          <PaginationNext
+            href={hrefFor(page + 1)}
+            aria-disabled={page === totalPages}
+            className={`bg-surface-3 text-on-surface/70 hover:bg-surface-4 hover:text-on-surface ${page === totalPages ? "pointer-events-none opacity-35" : ""}`}
+            text=""
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </PaginationRoot>
   );
 }

@@ -4,11 +4,7 @@ import { Boxes, Package, PackageMinus, Plus } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 import { AdminProductList } from "../../../components/dashboard/AdminProductList";
-import {
-  DashboardHeading,
-  DashboardShell,
-  StatCard,
-} from "../../../components/dashboard";
+import { DashboardHeading, StatCard } from "../../../components/dashboard";
 
 type ProductStatistics = {
   all: number;
@@ -26,7 +22,7 @@ export default function ProductsPage() {
   });
 
   return (
-    <DashboardShell activeSection="products">
+    <>
       <DashboardHeading
         eyebrow="Product catalog"
         title="Products"
@@ -69,6 +65,6 @@ export default function ProductsPage() {
         />
       </div>
       <AdminProductList onStatisticsChange={setStats} />
-    </DashboardShell>
+    </>
   );
 }

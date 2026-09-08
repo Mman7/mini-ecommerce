@@ -2,7 +2,6 @@ import { Download, Repeat2, UserPlus, Users, Crown } from "lucide-react";
 import {
   DashboardHeading,
   DashboardPanel,
-  DashboardShell,
   PanelHeading,
   StatCard,
   StatusPill,
@@ -64,7 +63,7 @@ const avatarColors = [
 
 export default function DashboardCustomersPage() {
   return (
-    <DashboardShell activeSection="customers">
+    <>
       <DashboardHeading
         eyebrow="Your community"
         title="Customers"
@@ -215,6 +214,6 @@ export default function DashboardCustomersPage() {
           </div>
         </div>
       </DashboardPanel>
-    </DashboardShell>
+    </>
   );
 }

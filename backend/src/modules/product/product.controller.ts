@@ -87,7 +87,6 @@ interface createProductRequestBody {
 }
 
 export const createProduct = async (req: Request, res: Response) => {
-  // TODO add stock for inventory module, so that product availability can be managed when created
   const { name, description, price, sortOrders }: createProductRequestBody =
     req.body as createProductRequestBody;
 

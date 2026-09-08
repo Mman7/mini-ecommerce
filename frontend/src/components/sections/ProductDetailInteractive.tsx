@@ -8,6 +8,12 @@ import { ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "../../api/product.api";
 import { addCartItem } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 import { FavoriteButton } from "../ui/FavoriteButton";
 import ProductCard from "../ui/ProductCard";
 
@@ -212,14 +218,16 @@ export default function ProductDetailInteractive({
             </div>
           </div>
           <div className="mt-9 border-t border-white/10 pt-5">
-            <details className="group border-b border-white/7 py-4" open>
-              <summary className="heading-font text-foreground flex cursor-pointer list-none items-center justify-between text-[28px] leading-tight font-medium">
-                Product details<span>⌄</span>
-              </summary>
-              <p className="text-text-muted mt-3 max-w-[58ch] text-[15px] leading-7">
-                {product.description}
-              </p>
-            </details>
+            <Accordion>
+              <AccordionItem value="product-details" className="border-white/7">
+                <AccordionTrigger className="heading-font text-foreground py-4 text-[28px] leading-tight font-medium hover:no-underline">
+                  Product details
+                </AccordionTrigger>
+                <AccordionContent className="text-text-muted max-w-[58ch] text-[15px] leading-7">
+                  {product.description}
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
           </div>
         </motion.div>
       </section>
