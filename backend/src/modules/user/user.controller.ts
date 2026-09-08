@@ -166,6 +166,117 @@ export const getAllUsers = async (req: Request, res: Response) => {
     .json({ message: "Total users retrieved successfully!", totalUser });
 };
 
+export const getCustomers = async (req: Request, res: Response) => {
+  try {
+    const query = res.locals.adminCustomerQuery;
+    const [customers, stats] = await Promise.all([
+      userService.getCustomersForAdmin(query),
+      userService.getCustomerStatsForAdmin(),
+    ]);
+    return res.status(200).json({ ...customers, stats });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve customers" });
+  }
+};
+
+export const getCustomer = async (req: Request, res: Response) => {
+  const customerId =
+    typeof req.params.id === "string" ? req.params.id : undefined;
+  if (!customerId)
+    return res.status(400).json({ message: "Customer ID is required" });
+  try {
+    const customer = await userService.getCustomerForAdmin(customerId);
+    return customer
+      ? res.status(200).json(customer)
+      : res.status(404).json({ message: "Customer not found" });
+  } catch {
+    return res.status(500).json({ message: "Failed to retrieve customer" });
+  }
+};
+
+export const updateCustomer = async (req: Request, res: Response) => {
+  const customerId =
+    typeof req.params.id === "string" ? req.params.id : undefined;
+  if (!customerId)
+    return res.status(400).json({ message: "Customer ID is required" });
+  const { name, email, phoneNumber } = req.body as {
+    name?: string;
+    email?: string;
+    phoneNumber?: string | null;
+  };
+  if (!name?.trim() || !email?.trim()) {
+    return res.status(400).json({ message: "Name and email are required" });
+  }
+  try {
+    const customer = await userService.updateCustomerForAdmin(customerId, {
+      name: name.trim(),
+      email: email.trim(),
+      phoneNumber: phoneNumber?.trim() || null,
+    });
+    return res.status(200).json(customer);
+  } catch {
+    return res.status(400).json({ message: "Unable to update customer" });
+  }
+};
+
+export const updateCustomerStatus = async (req: Request, res: Response) => {
+  const customerId =
+    typeof req.params.id === "string" ? req.params.id : undefined;
+  const isActive = req.body?.isActive;
+  if (!customerId || typeof isActive !== "boolean") {
+    return res
+      .status(400)
+      .json({ message: "A valid customer status is required" });
+  }
+  try {
+    const customer = await userService.updateCustomerStatusForAdmin(
+      customerId,
+      isActive,
+    );
+    return customer
+      ? res.status(200).json(customer)
+      : res.status(404).json({ message: "Customer not found" });
+  } catch {
+    return res
+      .status(400)
+      .json({ message: "Unable to update customer status" });
+  }
+};
+
+export const getCustomerExport = async (req: Request, res: Response) => {
+  try {
+    const query = { ...res.locals.adminCustomerQuery, page: 1, limit: 100000 };
+    const { items } = await userService.getCustomersForAdmin(query);
+    const escape = (value: string | number | null) =>
+      `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const rows = [
+      "Customer ID,Name,Email,Phone,Orders,Total Spent,Last Order,Status,Created At",
+    ];
+    rows.push(
+      ...items.map((customer) =>
+        [
+          customer.userId,
+          customer.name,
+          customer.email,
+          customer.phoneNumber,
+          customer.orders,
+          customer.totalSpent.toFixed(2),
+          customer.lastOrder,
+          customer.status,
+          customer.createdAt,
+        ]
+          .map(escape)
+          .join(","),
+      ),
+    );
+    res.setHeader("Content-Type", "text/csv; charset=utf-8");
+    res.setHeader("Content-Disposition", "attachment; filename=customers.csv");
+    return res.status(200).send(rows.join("\n"));
+  } catch {
+    return res.status(500).json({ message: "Failed to export customers" });
+  }
+};
+
 export const activeUserController = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

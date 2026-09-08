@@ -1,9 +1,13 @@
 import { Router } from "express";
 import { authMiddleware, isAdmin } from "../../middleware/auth.middleware.ts";
 import * as adminController from "./admin.controller.ts";
-import { validateAdminOrderQuery } from "./admin.validator.ts";
+import {
+  validateAdminCustomerQuery,
+  validateAdminOrderQuery,
+} from "./admin.validator.ts";
 import * as productController from "../product/product.controller.ts";
 import * as categoryController from "../category/category.controller.ts";
+import * as userController from "../user/user.controller.ts";
 import { upload } from "../../middleware/upload.middleware.ts";
 import { handleSingleImageUploadError } from "../../middleware/upload-error.middleware.ts";
 import {
@@ -83,6 +87,19 @@ adminRoute.patch(
 );
 adminRoute.patch("/orders/:orderId/cancel", adminController.cancelAdminOrder);
 adminRoute.get("/users", adminController.getAllUsers);
+adminRoute.get(
+  "/customers",
+  validateAdminCustomerQuery,
+  userController.getCustomers,
+);
+adminRoute.get(
+  "/customers/export",
+  validateAdminCustomerQuery,
+  userController.getCustomerExport,
+);
+adminRoute.get("/customers/:id", userController.getCustomer);
+adminRoute.patch("/customers/:id", userController.updateCustomer);
+adminRoute.patch("/customers/:id/status", userController.updateCustomerStatus);
 adminRoute.patch("/users/:id/activate", adminController.activeUser);
 adminRoute.patch("/users/:id/deactivate", adminController.inactiveUser);
 

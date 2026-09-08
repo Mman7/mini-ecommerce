@@ -1,6 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { OrderStatus } from "../../enums/order_status.ts";
 import type { AdminOrderQuery } from "../order/order.service.ts";
+import type { AdminCustomerQuery } from "../user/user.service.ts";
 
 export const validateAdminOrderQuery = (
   req: Request,
@@ -42,5 +43,50 @@ export const validateAdminOrderQuery = (
     sortBy: sortBy as AdminOrderQuery["sortBy"],
     sortOrder: sortOrder as AdminOrderQuery["sortOrder"],
   } satisfies AdminOrderQuery;
+  next();
+};
+
+export const validateAdminCustomerQuery = (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const page = Number(req.query.page ?? 1);
+  const limit = Number(req.query.limit ?? 20);
+  const status = req.query.status;
+  const sort = req.query.sort ?? "newest";
+  const order = req.query.order ?? "desc";
+  const validStatuses = ["regular", "vip", "inactive"];
+  const validSorts = [
+    "newest",
+    "oldest",
+    "nameAsc",
+    "nameDesc",
+    "orders",
+    "spending",
+    "latestOrder",
+  ];
+  if (
+    !Number.isInteger(page) ||
+    page < 1 ||
+    !Number.isInteger(limit) ||
+    limit < 1 ||
+    limit > 100 ||
+    (status !== undefined && !validStatuses.includes(String(status))) ||
+    !validSorts.includes(String(sort)) ||
+    (order !== "asc" && order !== "desc")
+  ) {
+    return res
+      .status(400)
+      .json({ message: "Invalid customer query parameters" });
+  }
+  res.locals.adminCustomerQuery = {
+    page,
+    limit,
+    search: req.query.search ? String(req.query.search) : undefined,
+    status: status as AdminCustomerQuery["status"],
+    sort: sort as AdminCustomerQuery["sort"],
+    order: order as AdminCustomerQuery["order"],
+  } satisfies AdminCustomerQuery;
   next();
 };

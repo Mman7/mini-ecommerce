@@ -158,6 +158,7 @@ export default function DashboardPage() {
           label="Avg. Order Value"
           value={summary ? currency.format(summary.averageOrderValue) : "--"}
           detail={loading ? "Loading" : "Selected period"}
+          accent="green"
           icon={<Sparkles />}
         />
       </div>
