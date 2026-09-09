@@ -5,3 +5,4 @@ export { PanelHeading } from "./PanelHeading";
 export { StatCard } from "./StatCard";
 export { StatusPill } from "./StatusPill";
 export { TableAction } from "./TableAction";
+export { DataTable } from "./DataTable";

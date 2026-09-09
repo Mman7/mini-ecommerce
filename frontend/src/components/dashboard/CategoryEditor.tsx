@@ -10,6 +10,7 @@ import {
   updateAdminCategory,
 } from "../../api/category.api";
 import { DashboardPanel, PanelHeading, StatusPill } from "./index";
+import { toast } from "@/components/ui/toast";
 
 type CategoryEditorProps = { mode: "create" | "edit"; categoryId?: number };
 
@@ -42,6 +43,11 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
     try {
       if (mode === "create") {
         await createAdminCategory({ name: name.trim() });
+        toast.add({
+          title: "Category created",
+          description: `${name.trim()} was added successfully.`,
+          type: "success",
+        });
         router.push("/dashboard/categories");
       } else if (categoryId) {
         await updateAdminCategory(categoryId, {
@@ -49,11 +55,17 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
           isActive: active,
         });
         setNotice("Category changes saved.");
+        toast.add({
+          title: "Category updated",
+          description: "Category changes were saved successfully.",
+          type: "success",
+        });
       }
     } catch (error) {
-      setNotice(
-        error instanceof Error ? error.message : "Unable to save category.",
-      );
+      const description =
+        error instanceof Error ? error.message : "Unable to save category.";
+      setNotice(description);
+      toast.add({ title: "Category save failed", description, type: "error" });
     } finally {
       setSaving(false);
     }
@@ -68,11 +80,21 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
       return;
     try {
       await deleteAdminCategory(categoryId);
+      toast.add({
+        title: "Category deleted",
+        description: "The category was removed successfully.",
+        type: "success",
+      });
       router.push("/dashboard/categories");
     } catch (error) {
-      setNotice(
-        error instanceof Error ? error.message : "Unable to delete category.",
-      );
+      const description =
+        error instanceof Error ? error.message : "Unable to delete category.";
+      setNotice(description);
+      toast.add({
+        title: "Category deletion failed",
+        description,
+        type: "error",
+      });
     }
   }
   return (

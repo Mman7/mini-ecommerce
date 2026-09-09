@@ -34,10 +34,15 @@ export const getCurrentStock = async (productId: number) => {
   return inventory?.stock ?? 0;
 };
 
-export const updateStock = async (productId: number, stock: number) => {
-  const inventory = await prisma.inventory.update({
+export const updateStock = async (
+  productId: number,
+  stock: number,
+  reorderAt?: number,
+) => {
+  const inventory = await prisma.inventory.upsert({
     where: { productId },
-    data: { stock },
+    create: { productId, stock, reorderAt: reorderAt ?? null },
+    update: { stock, ...(reorderAt !== undefined ? { reorderAt } : {}) },
     select: {
       stock: true,
       id: true,

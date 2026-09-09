@@ -10,7 +10,14 @@ import {
   type AdminProductListResponse,
 } from "../../api/product.api";
 import { getCategories, type Category } from "../../api/category.api";
-import { DashboardPanel, PanelHeading, StatusPill, TableAction } from "./index";
+import {
+  DashboardPanel,
+  DataTable,
+  PanelHeading,
+  StatusPill,
+  TableAction,
+} from "./index";
+import type { ColumnDef } from "@tanstack/react-table";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -99,6 +106,112 @@ export function AdminProductList({
     router.push(`${pathname}?${next.toString()}`);
   }
 
+  const columns: ColumnDef<Product>[] = [
+    {
+      id: "product",
+      header: "Product",
+      cell: ({ row }) => {
+        const product = row.original;
+        const image =
+          product.productImages.find((item) => item.isThumbnail) ??
+          product.productImages[0];
+        const imageSrc = getImageSrc(image?.url);
+        return (
+          <div className="flex items-center gap-3">
+            <div className="bg-surface-3 relative h-9 w-9 shrink-0 overflow-hidden rounded">
+              {imageSrc ? (
+                <Image
+                  src={imageSrc}
+                  alt={image.altText ?? product.name}
+                  fill
+                  sizes="36px"
+                  className="object-cover"
+                />
+              ) : null}
+            </div>
+            <span className="text-foreground text-sm">{product.name}</span>
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "category.name",
+      header: "Category",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">
+          {row.original.category?.name ?? "Uncategorized"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "price",
+      header: "Price",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          {money.format(row.original.price)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "stock",
+      header: "Stock",
+      cell: ({ row }) => (
+        <span
+          className={
+            row.original.stock === 0
+              ? "text-secondary text-xs"
+              : "text-text-muted text-xs"
+          }
+        >
+          {row.original.stock}
+        </span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => {
+        const stockLabel =
+          row.original.stock === 0
+            ? "Out of Stock"
+            : row.original.stock <= 10
+              ? "Low Stock"
+              : "In Stock";
+        return (
+          <>
+            <StatusPill
+              status={row.original.isActive ? "Active" : "Inactive"}
+            />
+            <span className="ml-1">
+              <StatusPill status={stockLabel} />
+            </span>
+          </>
+        );
+      },
+    },
+    {
+      accessorKey: "updatedAt",
+      header: "Updated",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">
+          {new Date(row.original.updatedAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="block text-right">Action</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <TableAction
+            label={`Edit ${row.original.name}`}
+            href={`/dashboard/products/${row.original.productId}/edit`}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <DashboardPanel className="mt-3">
       <PanelHeading title="All Products" />
@@ -166,94 +279,7 @@ export function AdminProductList({
           No products found.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-190 text-left">
-            <thead className="meta-font bg-surface-2/60 text-xs text-(--outline) uppercase">
-              <tr>
-                <th className="px-4 py-3">Product</th>
-                <th className="py-3">Category</th>
-                <th className="py-3">Price</th>
-                <th className="py-3">Stock</th>
-                <th className="py-3">Status</th>
-                <th className="py-3">Updated</th>
-                <th className="py-3 pr-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((product: Product) => {
-                const image =
-                  product.productImages.find((item) => item.isThumbnail) ??
-                  product.productImages[0];
-                const imageSrc = getImageSrc(image?.url);
-                const stockLabel =
-                  product.stock === 0
-                    ? "Out of Stock"
-                    : product.stock <= 10
-                      ? "Low Stock"
-                      : "In Stock";
-                return (
-                  <tr
-                    key={product.productId}
-                    className="border-t border-(--glass-border)"
-                  >
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <div className="bg-surface-3 relative h-9 w-9 shrink-0 overflow-hidden rounded">
-                          {imageSrc ? (
-                            <Image
-                              src={imageSrc}
-                              alt={image.altText ?? product.name}
-                              fill
-                              sizes="36px"
-                              className="object-cover"
-                            />
-                          ) : null}
-                        </div>
-                        <span className="text-foreground text-sm">
-                          {product.name}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="py-2.5 text-xs text-(--outline)">
-                      {product.category?.name ?? "Uncategorized"}
-                    </td>
-                    <td className="text-text-muted py-2.5 text-xs">
-                      {money.format(product.price)}
-                    </td>
-                    <td
-                      className={
-                        product.stock === 0
-                          ? "text-secondary py-2.5 text-xs"
-                          : "text-text-muted py-2.5 text-xs"
-                      }
-                    >
-                      {product.stock}
-                    </td>
-                    <td className="py-2.5">
-                      <StatusPill
-                        status={product.isActive ? "Active" : "Inactive"}
-                      />
-                      <span className="ml-1">
-                        <StatusPill status={stockLabel} />
-                      </span>
-                    </td>
-                    <td className="py-2.5 text-xs text-(--outline)">
-                      {new Date(product.updatedAt).toLocaleDateString()}
-                    </td>
-                    <td className="py-2.5 pr-4">
-                      <div className="flex justify-end">
-                        <TableAction
-                          label={`Edit ${product.name}`}
-                          href={`/dashboard/products/${product.productId}/edit`}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={data.items} className="min-w-190" />
       )}
       <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
         <span>

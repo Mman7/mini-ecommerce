@@ -5,7 +5,7 @@ export const createStock = async (req: Request, res: Response) => {
   try {
     const { productId, stock } = req.body;
 
-    if (!productId || !stock) {
+    if (!productId || stock === undefined) {
       return res
         .status(400)
         .json({ error: "Product ID and stock are required" });
@@ -66,7 +66,7 @@ export const updateStock = async (req: Request, res: Response) => {
     const { productId } = req.params;
     const { stock } = req.body;
 
-    if (!productId || !stock) {
+    if (!productId || stock === undefined) {
       return res
         .status(400)
         .json({ error: "Product ID and stock are required" });
@@ -83,17 +83,17 @@ export const updateStock = async (req: Request, res: Response) => {
         .json({ error: "Product ID must be a valid number" });
     }
 
-    // check if productId exists in inventory
-    const existingStock = await inventoryService.getCurrentStock(productIdNum);
-
-    if (existingStock === 0) {
-      return res
-        .status(400)
-        .json({ error: "Stock for this product does not exist" });
+    const reorderAt = req.body?.reorderAt;
+    if (
+      reorderAt !== undefined &&
+      (!Number.isInteger(reorderAt) || reorderAt < 0)
+    ) {
+      return res.status(400).json({ error: "reorderAt must be non-negative" });
     }
     const updatedStock = await inventoryService.updateStock(
       productIdNum,
       stock,
+      reorderAt,
     );
     res.json({ msg: "Stock updated successfully", stock: updatedStock });
   } catch (error) {

@@ -17,12 +17,20 @@ export const createProduct = ({
   description,
   price,
   productImages,
-}: Product) => {
+  categoryId,
+  stock = 0,
+  reorderAt,
+}: Product & {
+  categoryId?: number;
+  stock?: number;
+  reorderAt?: number;
+}) => {
   return prisma.product.create({
     data: {
       name,
       description,
       price,
+      categoryId,
       productImages: {
         create: productImages.map(
           ({ url, altText, sortOrder, isThumbnail }) => ({
@@ -32,6 +40,9 @@ export const createProduct = ({
             isThumbnail,
           }),
         ),
+      },
+      inventory: {
+        create: { stock, reorderAt: reorderAt ?? null },
       },
     },
     include: {
@@ -249,9 +260,17 @@ export const updateProductImageById = async (
     );
   }
 
-  const updatedImage = await prisma.productImage.update({
-    where: { id: imageId },
-    data,
+  const updatedImage = await prisma.$transaction(async (transaction) => {
+    if (data.isThumbnail === true) {
+      await transaction.productImage.updateMany({
+        where: { productId },
+        data: { isThumbnail: false },
+      });
+    }
+    return transaction.productImage.update({
+      where: { id: imageId },
+      data,
+    });
   });
 
   if (data.url && data.url !== image.url) {

@@ -105,11 +105,26 @@ export function createAdminProduct(data: FormData) {
 
 export function updateAdminProduct(
   productId: number,
-  data: Partial<Pick<Product, "name" | "description" | "price" | "isActive">>,
+  data: Partial<
+    Pick<Product, "name" | "description" | "price" | "isActive"> & {
+      categoryId: number | null;
+    }
+  >,
 ) {
   return request<{ item: Product }>(`/admin/products/${productId}`, {
     method: "PATCH",
     body: JSON.stringify(data),
+  });
+}
+
+export function updateAdminProductInventory(
+  productId: number,
+  stock: number,
+  reorderAt: number,
+) {
+  return request<{ stock: number }>(`/admin/inventory/${productId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ stock, reorderAt }),
   });
 }
 

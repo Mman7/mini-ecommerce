@@ -8,7 +8,15 @@ import {
   type AdminCategory,
   updateAdminCategory,
 } from "../../api/category.api";
-import { DashboardPanel, PanelHeading, StatusPill, TableAction } from "./index";
+import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "@/components/ui/toast";
+import {
+  DashboardPanel,
+  DataTable,
+  PanelHeading,
+  StatusPill,
+  TableAction,
+} from "./index";
 
 export function AdminCategoryList({
   onStatisticsChange,
@@ -84,10 +92,81 @@ export function AdminCategoryList({
             : item,
         ),
       );
+      toast.add({
+        title: "Category updated",
+        description: `${category.name} is now ${updated.isActive ? "active" : "inactive"}.`,
+        type: "success",
+      });
     } catch {
       setError("Unable to update category status.");
+      toast.add({
+        title: "Update failed",
+        description: "Unable to update category status.",
+        type: "error",
+      });
     }
   }
+
+  const columns: ColumnDef<AdminCategory>[] = [
+    {
+      id: "category",
+      header: "Category",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <span className="bg-primary/15 text-primary-soft flex h-8 w-8 items-center justify-center rounded-md">
+            <Tags size={14} />
+          </span>
+          <span className="text-foreground text-sm font-medium">
+            {row.original.name}
+          </span>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "productCount",
+      header: "Products",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          {row.original.productCount}
+        </span>
+      ),
+    },
+    {
+      id: "status",
+      header: "Status",
+      cell: ({ row }) => (
+        <StatusPill status={row.original.isActive ? "Active" : "Inactive"} />
+      ),
+    },
+    {
+      accessorKey: "updatedAt",
+      header: "Updated",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">
+          {new Date(row.original.updatedAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      id: "actions",
+      header: () => <span className="block text-right">Action</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-1">
+          <TableAction
+            label={`Edit ${row.original.name}`}
+            href={`/dashboard/categories/${row.original.categoryId}/edit`}
+          />
+          <button
+            type="button"
+            onClick={() => toggle(row.original)}
+            className="text-text-muted hover:border-primary h-6 rounded border border-(--glass-border) px-2 text-[10px]"
+          >
+            {row.original.isActive ? "Disable" : "Enable"}
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
     <DashboardPanel className="mt-3">
@@ -135,64 +214,7 @@ export function AdminCategoryList({
           No categories found.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-170 text-left">
-            <thead className="meta-font bg-surface-2/60 text-xs text-(--outline) uppercase">
-              <tr>
-                <th className="px-4 py-3">Category</th>
-                <th className="py-3">Products</th>
-                <th className="py-3">Status</th>
-                <th className="py-3">Updated</th>
-                <th className="py-3 pr-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((category) => (
-                <tr
-                  key={category.categoryId}
-                  className="border-t border-(--glass-border)"
-                >
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span className="bg-primary/15 text-primary-soft flex h-8 w-8 items-center justify-center rounded-md">
-                        <Tags size={14} />
-                      </span>
-                      <span className="text-foreground text-sm font-medium">
-                        {category.name}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="text-text-muted py-3 text-xs">
-                    {category.productCount}
-                  </td>
-                  <td className="py-3">
-                    <StatusPill
-                      status={category.isActive ? "Active" : "Inactive"}
-                    />
-                  </td>
-                  <td className="py-3 text-xs text-(--outline)">
-                    {new Date(category.updatedAt).toLocaleDateString()}
-                  </td>
-                  <td className="py-3 pr-4">
-                    <div className="flex justify-end gap-1">
-                      <TableAction
-                        label={`Edit ${category.name}`}
-                        href={`/dashboard/categories/${category.categoryId}/edit`}
-                      />
-                      <button
-                        type="button"
-                        onClick={() => toggle(category)}
-                        className="text-text-muted hover:border-primary h-6 rounded border border-(--glass-border) px-2 text-[10px]"
-                      >
-                        {category.isActive ? "Disable" : "Enable"}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={items} className="min-w-170" />
       )}
       <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
         <span>

@@ -212,7 +212,7 @@ function DashboardNavigation({
             href={item.href}
             aria-current={item.key === activeSection ? "page" : undefined}
             onClick={onNavigate}
-            className={`meta-font flex items-center gap-3 rounded-md text-sm transition ${compact ? "px-3 py-2" : "rounded-none px-5 py-4 text-base"} ${item.key === activeSection ? "bg-surface-2 text-primary shadow-(--glow)" : "text-text-muted hover:text-foreground hover:bg-surface-2"}`}
+            className={`meta-font flex items-center gap-3 rounded-md text-sm transition ${compact ? "px-3 py-2" : "rounded-none px-5 py-4 text-base"} ${item.key === activeSection ? "border-primary border-l-5" : "text-text-muted hover:text-foreground hover:bg-surface-3"}`}
           >
             <item.icon
               size={14}

@@ -32,9 +32,12 @@ import { Button } from "@/components/ui/button";
 import {
   deleteAdminProduct,
   getAdminProduct,
+  updateAdminProductInventory,
   updateAdminProduct,
 } from "../../../../../api/product.api";
+import { getCategories } from "../../../../../api/category.api";
 import { useRouter } from "next/navigation";
+import { toast } from "@/components/ui/toast";
 
 type ProductImage = { id: string; src: string; primary?: boolean };
 
@@ -62,19 +65,24 @@ export default function EditProductPage() {
   const [stock, setStock] = useState("12");
   const [threshold, setThreshold] = useState("3");
   const [category, setCategory] = useState("Plushies");
+  const [categories, setCategories] = useState<
+    Array<{ categoryId: number; name: string }>
+  >([]);
   const [visible, setVisible] = useState(true);
   const [images, setImages] = useState(initialImages);
   const [message, setMessage] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   useEffect(() => {
-    getAdminProduct(Number(id))
-      .then((product) => {
+    Promise.all([getAdminProduct(Number(id)), getCategories()])
+      .then(([product, categoryList]) => {
         setName(product.name);
         setDescription(product.description);
         setPrice(String(product.price));
         setVisible(product.isActive);
         setStock(String(product.stock));
+        setCategory(String(product.category?.categoryId ?? ""));
+        setCategories(categoryList);
         setImages(
           product.productImages.map((image) => ({
             id: String(image.id),
@@ -94,12 +102,24 @@ export default function EditProductPage() {
         description,
         price: Number(price),
         isActive: visible,
+        categoryId: category ? Number(category) : null,
       });
-      setMessage("Changes saved successfully.");
-    } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Unable to save changes.",
+      await updateAdminProductInventory(
+        Number(id),
+        Number(stock),
+        Number(threshold),
       );
+      setMessage("Changes saved successfully.");
+      toast.add({
+        title: "Product updated",
+        description: "Product changes were saved successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      const description =
+        error instanceof Error ? error.message : "Unable to save changes.";
+      setMessage(description);
+      toast.add({ title: "Product save failed", description, type: "error" });
     }
   }
 
@@ -114,23 +134,43 @@ export default function EditProductPage() {
 
   function removeImage(id: string) {
     setImages((current) => current.filter((image) => image.id !== id));
+    toast.add({
+      title: "Image removed",
+      description: "The image was removed from this product draft.",
+      type: "info",
+    });
   }
 
   function makePrimary(id: string) {
     setImages((current) =>
       current.map((image) => ({ ...image, primary: image.id === id })),
     );
+    toast.add({
+      title: "Primary image changed",
+      description: "The selected image is now the product thumbnail.",
+      type: "success",
+    });
   }
 
   async function deleteProduct() {
     try {
       await deleteAdminProduct(Number(id));
+      toast.add({
+        title: "Product deleted",
+        description: "The product was removed successfully.",
+        type: "success",
+      });
       setDeleteDialogOpen(false);
       router.push("/dashboard/products");
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Unable to delete product.",
-      );
+      const description =
+        error instanceof Error ? error.message : "Unable to delete product.";
+      setMessage(description);
+      toast.add({
+        title: "Product deletion failed",
+        description,
+        type: "error",
+      });
     }
   }
 
@@ -390,11 +430,12 @@ export default function EditProductPage() {
                     onChange={(event) => setCategory(event.target.value)}
                     className="form-input appearance-none pr-9"
                   >
-                    <option>Plushies</option>
-                    <option>Collectibles</option>
-                    <option>Accessories</option>
-                    <option>Stationery</option>
-                    <option>Home Decor</option>
+                    <option value="">Uncategorized</option>
+                    {categories.map((item) => (
+                      <option key={item.categoryId} value={item.categoryId}>
+                        {item.name}
+                      </option>
+                    ))}
                   </select>
                   <ChevronDown
                     className="text-text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"

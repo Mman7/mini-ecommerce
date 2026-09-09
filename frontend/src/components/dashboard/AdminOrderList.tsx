@@ -7,7 +7,14 @@ import {
   getAdminOrders,
   type AdminOrderListResponse,
 } from "../../api/order.api";
-import { DashboardPanel, PanelHeading, StatusPill, TableAction } from "./index";
+import type { ColumnDef } from "@tanstack/react-table";
+import {
+  DashboardPanel,
+  DataTable,
+  PanelHeading,
+  StatusPill,
+  TableAction,
+} from "./index";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -61,6 +68,74 @@ export function AdminOrderList({
     router.push(`${pathname}?${next.toString()}`);
   }
 
+  const columns: ColumnDef<AdminOrderListResponse["items"][number]>[] = [
+    {
+      accessorKey: "id",
+      header: "Order ID",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          #{row.original.id.slice(0, 8)}
+        </span>
+      ),
+    },
+    {
+      id: "customer",
+      header: "Customer",
+      cell: ({ row }) => (
+        <span className="text-foreground text-sm">
+          {row.original.user.name}
+          <span className="block text-xs text-(--outline)">
+            {row.original.user.email}
+          </span>
+        </span>
+      ),
+    },
+    {
+      accessorKey: "createdAt",
+      header: "Date",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">
+          {new Date(row.original.createdAt).toLocaleDateString()}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "itemCount",
+      header: "Items",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          {row.original.itemCount}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "total",
+      header: "Amount",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          {money.format(row.original.total)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <StatusPill status={row.original.status} />,
+    },
+    {
+      id: "actions",
+      header: () => <span className="block text-right">Action</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <TableAction
+            label={`View order ${row.original.id}`}
+            href={`/dashboard/orders/${row.original.id}`}
+          />
+        </div>
+      ),
+    },
+  ];
+
   return (
     <DashboardPanel className="mt-3">
       <PanelHeading
@@ -111,56 +186,7 @@ export function AdminOrderList({
           No orders found.
         </div>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-190 text-left">
-            <thead className="meta-font bg-surface-2/60 text-xs text-(--outline) uppercase">
-              <tr>
-                <th className="px-4 py-3">Order ID</th>
-                <th className="py-3">Customer</th>
-                <th className="py-3">Date</th>
-                <th className="py-3">Items</th>
-                <th className="py-3">Amount</th>
-                <th className="py-3">Status</th>
-                <th className="py-3 pr-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data.items.map((order) => (
-                <tr key={order.id} className="border-t border-(--glass-border)">
-                  <td className="text-text-muted px-4 py-3 text-xs">
-                    #{order.id.slice(0, 8)}
-                  </td>
-                  <td className="text-foreground py-3 text-sm">
-                    {order.user.name}
-                    <span className="block text-xs text-(--outline)">
-                      {order.user.email}
-                    </span>
-                  </td>
-                  <td className="py-3 text-xs text-(--outline)">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="text-text-muted py-3 text-xs">
-                    {order.itemCount}
-                  </td>
-                  <td className="text-text-muted py-3 text-xs">
-                    {money.format(order.total)}
-                  </td>
-                  <td className="py-3">
-                    <StatusPill status={order.status} />
-                  </td>
-                  <td className="py-3 pr-4">
-                    <div className="flex justify-end">
-                      <TableAction
-                        label={`View order ${order.id}`}
-                        href={`/dashboard/orders/${order.id}`}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <DataTable columns={columns} data={data.items} className="min-w-190" />
       )}
       <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
         <span>

@@ -15,6 +15,7 @@ import {
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
+import { toast } from "@/components/ui/toast";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -62,11 +63,22 @@ export default function AdminOrderDetailPage() {
     try {
       const updated = await updateAdminOrderStatus(order.id, status);
       setOrder({ ...order, status: updated.status });
+      toast.add({
+        title: "Order status updated",
+        description: `Order #${order.id.slice(0, 8)} is now ${updated.status}.`,
+        type: "success",
+      });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to update order.",
       );
       setStatus(order.status);
+      toast.add({
+        title: "Status update failed",
+        description:
+          cause instanceof Error ? cause.message : "Unable to update order.",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -82,10 +94,21 @@ export default function AdminOrderDetailPage() {
       const updated = await cancelAdminOrder(order.id);
       setOrder({ ...order, status: updated.status });
       setStatus(updated.status);
+      toast.add({
+        title: "Order cancelled",
+        description: "Inventory has been restored.",
+        type: "success",
+      });
     } catch (cause) {
       setError(
         cause instanceof Error ? cause.message : "Unable to cancel order.",
       );
+      toast.add({
+        title: "Cancellation failed",
+        description:
+          cause instanceof Error ? cause.message : "Unable to cancel order.",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }

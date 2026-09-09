@@ -83,12 +83,22 @@ interface createProductRequestBody {
   name: string;
   description: string;
   price: number;
-  sortOrders: number[];
+  categoryId?: number;
+  stock?: number;
+  reorderAt?: number;
+  sortOrders?: number[];
 }
 
 export const createProduct = async (req: Request, res: Response) => {
-  const { name, description, price, sortOrders }: createProductRequestBody =
-    req.body as createProductRequestBody;
+  const {
+    name,
+    description,
+    price,
+    categoryId,
+    stock,
+    reorderAt,
+    sortOrders = [],
+  }: createProductRequestBody = req.body as createProductRequestBody;
 
   const files = (req.files ?? {}) as {
     [fieldname: string]: Express.Multer.File[];
@@ -139,7 +149,11 @@ export const createProduct = async (req: Request, res: Response) => {
       updatedAt: new Date(),
     }));
 
-    const productData: Product = {
+    const productData: Product & {
+      categoryId?: number;
+      stock?: number;
+      reorderAt?: number;
+    } = {
       name,
       description,
       price: parsedPrice,
@@ -147,6 +161,9 @@ export const createProduct = async (req: Request, res: Response) => {
       createdAt: new Date(),
       updatedAt: new Date(),
       productImages: [thumbnailImage, ...imageList],
+      stock: stock === undefined ? 0 : Number(stock),
+      ...(categoryId ? { categoryId: Number(categoryId) } : {}),
+      ...(reorderAt === undefined ? {} : { reorderAt: Number(reorderAt) }),
     };
 
     const product = await productService.createProduct(productData);
@@ -276,7 +293,10 @@ export const updateProduct = async (req: Request, res: Response) => {
   if (id === undefined) {
     return res.status(400).json({ error: "Product ID is required" });
   }
-  const { name, description, price, isActive }: ProductUpdateInput = req.body;
+  const { name, description, price, isActive, categoryId } =
+    req.body as ProductUpdateInput & {
+      categoryId?: number | null;
+    };
 
   const updateData: ProductUpdateInput = {};
   // include only the fields that are provided in the request body
@@ -284,6 +304,10 @@ export const updateProduct = async (req: Request, res: Response) => {
   if (description !== undefined) updateData.description = description;
   if (price !== undefined) updateData.price = price;
   if (isActive !== undefined) updateData.isActive = isActive;
+  if (categoryId !== undefined) {
+    updateData.category =
+      categoryId === null ? { disconnect: true } : { connect: { categoryId } };
+  }
 
   if (Object.keys(updateData).length === 0) {
     return res

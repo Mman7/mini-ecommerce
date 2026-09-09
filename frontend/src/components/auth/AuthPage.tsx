@@ -1,12 +1,11 @@
 "use client";
-// TODO fix the image when switching between login and register pages causing image shadow
-// TODO if mobile show the page transition animation
 import { motion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
+import { useGlobalStore } from "@/src/store/global.store";
 
 export enum AuthMode {
   LOGIN = "login",
@@ -19,6 +18,14 @@ type AuthPageProps = {
 
 export function AuthPage({ mode }: AuthPageProps) {
   const isLogin = mode === AuthMode.LOGIN;
+  const login = useGlobalStore((state) => state.isLoggedIn);
+
+  if (login) {
+    // Redirect to home page or any other page if already logged in
+    if (typeof window !== "undefined") {
+      window.location.href = "/";
+    }
+  }
 
   return (
     <main className="bg-background text-foreground relative min-h-dvh overflow-hidden lg:grid lg:grid-cols-2">

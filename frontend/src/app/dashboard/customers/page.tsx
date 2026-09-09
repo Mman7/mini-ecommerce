@@ -11,6 +11,8 @@ import {
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import type { ColumnDef } from "@tanstack/react-table";
+import { toast } from "@/components/ui/toast";
 import {
   exportAdminCustomers,
   getAdminCustomers,
@@ -22,6 +24,7 @@ import {
   PanelHeading,
   StatCard,
   StatusPill,
+  DataTable,
   TableAction,
 } from "../../../components/dashboard";
 
@@ -120,14 +123,97 @@ export default function DashboardCustomersPage() {
       anchor.download = "customers.csv";
       anchor.click();
       URL.revokeObjectURL(url);
+      toast.add({
+        title: "Export ready",
+        description: "Customer data was downloaded as customers.csv.",
+        type: "success",
+      });
     } catch {
       setError("Unable to export customers. Please try again.");
+      toast.add({
+        title: "Export failed",
+        description: "Unable to export customers. Please try again.",
+        type: "error",
+      });
     } finally {
       setExporting(false);
     }
   }
 
   const stats = data?.stats;
+  const columns: ColumnDef<CustomerListResponse["items"][number]>[] = [
+    {
+      id: "customer",
+      header: "Customer",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-3">
+          <span
+            aria-hidden="true"
+            className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
+          >
+            {initials(row.original.name)}
+          </span>
+          <Link
+            href={`/dashboard/customers/${row.original.userId}`}
+            className="text-foreground hover:text-primary-soft text-sm"
+          >
+            {row.original.name}
+          </Link>
+        </div>
+      ),
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">{row.original.email}</span>
+      ),
+    },
+    {
+      accessorKey: "orders",
+      header: "Orders",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">{row.original.orders}</span>
+      ),
+    },
+    {
+      accessorKey: "totalSpent",
+      header: "Total Spent",
+      cell: ({ row }) => (
+        <span className="text-text-muted text-xs">
+          {money.format(row.original.totalSpent)}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "lastOrder",
+      header: "Last Order",
+      cell: ({ row }) => (
+        <span className="text-xs text-(--outline)">
+          {row.original.lastOrder
+            ? new Date(row.original.lastOrder).toLocaleDateString()
+            : "No orders"}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <StatusPill status={row.original.status} />,
+    },
+    {
+      id: "actions",
+      header: () => <span className="block text-right">Action</span>,
+      cell: ({ row }) => (
+        <div className="flex justify-end">
+          <TableAction
+            label={`View customer ${row.original.name}`}
+            href={`/dashboard/customers/${row.original.userId}`}
+          />
+        </div>
+      ),
+    },
+  ];
   return (
     <>
       <DashboardHeading
@@ -260,71 +346,11 @@ export default function DashboardCustomersPage() {
             ) : null}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-190 text-left">
-              <thead className="meta-font bg-surface-2/60 text-xs tracking-[0.08em] text-(--outline) uppercase">
-                <tr>
-                  <th className="px-4 py-3 font-medium">Customer</th>
-                  <th className="py-3 font-medium">Email</th>
-                  <th className="py-3 font-medium">Orders</th>
-                  <th className="py-3 font-medium">Total Spent</th>
-                  <th className="py-3 font-medium">Last Order</th>
-                  <th className="py-3 font-medium">Status</th>
-                  <th className="py-3 pr-4 text-right font-medium">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.items.map((customer) => (
-                  <tr
-                    key={customer.userId}
-                    className="border-t border-(--glass-border)"
-                  >
-                    <td className="px-4 py-2.5">
-                      <div className="flex items-center gap-3">
-                        <span
-                          aria-hidden="true"
-                          className="bg-primary text-primary-foreground flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold"
-                        >
-                          {initials(customer.name)}
-                        </span>
-                        <Link
-                          href={`/dashboard/customers/${customer.userId}`}
-                          className="text-foreground hover:text-primary-soft text-sm"
-                        >
-                          {customer.name}
-                        </Link>
-                      </div>
-                    </td>
-                    <td className="meta-font py-2.5 text-xs text-(--outline)">
-                      {customer.email}
-                    </td>
-                    <td className="meta-font text-text-muted py-2.5 text-xs">
-                      {customer.orders}
-                    </td>
-                    <td className="meta-font text-text-muted py-2.5 text-xs">
-                      {money.format(customer.totalSpent)}
-                    </td>
-                    <td className="meta-font py-2.5 text-xs text-(--outline)">
-                      {customer.lastOrder
-                        ? new Date(customer.lastOrder).toLocaleDateString()
-                        : "No orders"}
-                    </td>
-                    <td className="py-2.5">
-                      <StatusPill status={customer.status} />
-                    </td>
-                    <td className="py-2.5 pr-4">
-                      <div className="flex justify-end">
-                        <TableAction
-                          label={`View customer ${customer.name}`}
-                          href={`/dashboard/customers/${customer.userId}`}
-                        />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={columns}
+            data={data.items}
+            className="min-w-190"
+          />
         )}
         <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
           <span>

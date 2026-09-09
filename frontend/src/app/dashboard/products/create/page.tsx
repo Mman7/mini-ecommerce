@@ -11,6 +11,8 @@ import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createAdminProduct } from "../../../../api/product.api";
+import { getCategories } from "../../../../api/category.api";
+import { toast } from "@/components/ui/toast";
 
 type ProductStatus = "Draft" | "Active" | "Archived";
 
@@ -24,12 +26,21 @@ export default function CreateProductPage() {
   const [stock, setStock] = useState("");
   const [threshold, setThreshold] = useState("5");
   const [category, setCategory] = useState("");
+  const [categories, setCategories] = useState<
+    Array<{ categoryId: number; name: string }>
+  >([]);
   const [status, setStatus] = useState<ProductStatus>("Draft");
   const [visible, setVisible] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    getCategories()
+      .then(setCategories)
+      .catch(() => setCategories([]));
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -88,6 +99,9 @@ export default function CreateProductPage() {
     formData.append("name", productName.trim());
     formData.append("description", description.trim());
     formData.append("price", price);
+    if (category) formData.append("categoryId", category);
+    formData.append("stock", stock || "0");
+    formData.append("reorderAt", threshold || "0");
     formData.append("thumbnail", imageFile);
     try {
       await createAdminProduct(formData);
@@ -96,10 +110,20 @@ export default function CreateProductPage() {
           ? "Product saved."
           : "Product created successfully.",
       );
+      toast.add({
+        title: nextStatus === "Draft" ? "Draft saved" : "Product created",
+        description: `${productName.trim()} was saved successfully.`,
+        type: "success",
+      });
     } catch (error) {
-      setMessage(
-        error instanceof Error ? error.message : "Unable to create product.",
-      );
+      const description =
+        error instanceof Error ? error.message : "Unable to create product.";
+      setMessage(description);
+      toast.add({
+        title: "Product creation failed",
+        description,
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -141,6 +165,12 @@ export default function CreateProductPage() {
               onClick={() => {
                 setStatus("Draft");
                 setMessage("Product saved as draft.");
+                toast.add({
+                  title: "Draft status selected",
+                  description:
+                    "Submit the form to save this product as a draft.",
+                  type: "info",
+                });
               }}
               className="meta-font border-primary/40 text-primary-soft hover:bg-primary/10 flex h-9 items-center gap-2 rounded-md border px-4 text-xs transition"
             >
@@ -328,11 +358,11 @@ export default function CreateProductPage() {
                   className="form-input appearance-none pr-10"
                 >
                   <option value="">Select category...</option>
-                  <option>Plushies</option>
-                  <option>Collectibles</option>
-                  <option>Accessories</option>
-                  <option>Stationery</option>
-                  <option>Home Decor</option>
+                  {categories.map((item) => (
+                    <option key={item.categoryId} value={item.categoryId}>
+                      {item.name}
+                    </option>
+                  ))}
                 </select>
                 <ChevronDown
                   className="text-text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"

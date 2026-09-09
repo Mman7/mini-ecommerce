@@ -14,6 +14,7 @@ import {
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
+import { toast } from "@/components/ui/toast";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -54,8 +55,18 @@ export default function CustomerDetailPage() {
       });
       setCustomer(result);
       setEditing(false);
+      toast.add({
+        title: "Customer updated",
+        description: "Customer information was saved.",
+        type: "success",
+      });
     } catch {
       setError("Unable to update customer.");
+      toast.add({
+        title: "Update failed",
+        description: "Unable to update customer.",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
@@ -70,8 +81,18 @@ export default function CustomerDetailPage() {
         customer.status !== "Inactive",
       );
       setCustomer(result);
+      toast.add({
+        title: "Customer status updated",
+        description: `Customer is now ${result.status}.`,
+        type: "success",
+      });
     } catch {
       setError("Unable to update customer status.");
+      toast.add({
+        title: "Status update failed",
+        description: "Unable to update customer status.",
+        type: "error",
+      });
     } finally {
       setSaving(false);
     }
