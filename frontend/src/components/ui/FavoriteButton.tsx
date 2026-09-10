@@ -7,6 +7,7 @@ import {
   removeFavourite,
 } from "@/src/api/favourite.api";
 import { useEffect, useState } from "react";
+import { toast } from "@/components/ui/toast";
 
 type FavoriteButtonProps = {
   productId: number | string;
@@ -59,11 +60,26 @@ export function FavoriteButton({
     try {
       if (nextValue) {
         await addFavourite(numericProductId);
+        toast.add({ title: "Added to wishlist", type: "success" });
       } else {
         await removeFavourite(numericProductId);
+        toast.add({ title: "Removed from wishlist", type: "success" });
       }
-    } catch {
+    } catch (error) {
       setIsFavorite(!nextValue);
+      if ((error as { status?: number }).status === 401) {
+        toast.add({
+          title: "Sign in required",
+          description: "Please sign in to manage your wishlist.",
+          type: "error",
+        });
+      } else {
+        toast.add({
+          title: "Wishlist update failed",
+          description: "Please try again.",
+          type: "error",
+        });
+      }
     } finally {
       setIsPending(false);
     }
@@ -78,7 +94,7 @@ export function FavoriteButton({
       data-product-id={productId}
       disabled={isPending}
       onClick={handleToggle}
-      className="bg-surface-2/80 text-on-surface hover:text-primary absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors"
+      className="bg-surface-2/80 text-on-surface hover:text-primary absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors hover:cursor-pointer"
     >
       <Heart fill={isFavorite ? "currentColor" : "none"} />
     </button>

@@ -81,6 +81,8 @@ export const getAdminProduct = async (req: Request, res: Response) => {
 
 interface createProductRequestBody {
   name: string;
+  slug?: string;
+  sku?: string;
   description: string;
   price: number;
   categoryId?: number;
@@ -92,6 +94,8 @@ interface createProductRequestBody {
 export const createProduct = async (req: Request, res: Response) => {
   const {
     name,
+    slug,
+    sku,
     description,
     price,
     categoryId,
@@ -155,6 +159,8 @@ export const createProduct = async (req: Request, res: Response) => {
       reorderAt?: number;
     } = {
       name,
+      ...(slug?.trim() ? { slug: slug.trim() } : {}),
+      ...(sku?.trim() ? { sku: sku.trim() } : {}),
       description,
       price: parsedPrice,
       isActive: true,
@@ -293,14 +299,22 @@ export const updateProduct = async (req: Request, res: Response) => {
   if (id === undefined) {
     return res.status(400).json({ error: "Product ID is required" });
   }
-  const { name, description, price, isActive, categoryId } =
-    req.body as ProductUpdateInput & {
+  const { name, slug, sku, description, price, isActive, categoryId } =
+    req.body as {
+      name?: string;
+      slug?: string | null;
+      sku?: string | null;
+      description?: string;
+      price?: number;
+      isActive?: boolean;
       categoryId?: number | null;
     };
 
   const updateData: ProductUpdateInput = {};
   // include only the fields that are provided in the request body
   if (name !== undefined) updateData.name = name;
+  if (slug !== undefined) updateData.slug = slug?.trim() || null;
+  if (sku !== undefined) updateData.sku = sku?.trim() || null;
   if (description !== undefined) updateData.description = description;
   if (price !== undefined) updateData.price = price;
   if (isActive !== undefined) updateData.isActive = isActive;

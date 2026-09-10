@@ -12,6 +12,8 @@ export type ProductImage = {
 export type Product = {
   productId?: number;
   name: string;
+  slug?: string | null;
+  sku?: string | null;
   description: string;
   price: number; // Decimal is typically represented as number in API responses
   createdAt: Date;
@@ -35,6 +37,8 @@ export type ProductSearchQuery = {
 export type ProductResponse = {
   productId: number;
   name: string;
+  slug: string | null;
+  sku: string | null;
   description: string;
   price: number;
   createdAt: string;

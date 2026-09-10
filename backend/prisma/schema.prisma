@@ -62,6 +62,8 @@ model RefreshToken {
 model Product {
   productId     Int            @id @default(autoincrement())
   name          String
+  slug          String?        @unique
+  sku           String?        @unique
   description   String
   price         Decimal        @db.Decimal(10, 2)
   createdAt     DateTime       @default(now())

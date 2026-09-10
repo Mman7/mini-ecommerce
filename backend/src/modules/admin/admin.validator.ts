@@ -80,10 +80,13 @@ export const validateAdminCustomerQuery = (
       .status(400)
       .json({ message: "Invalid customer query parameters" });
   }
+
+  const search = req.query.search ? req.query.search.toString() : "";
+
   res.locals.adminCustomerQuery = {
     page,
     limit,
-    search: req.query.search ? String(req.query.search) : undefined,
+    search: search,
     status: status as AdminCustomerQuery["status"],
     sort: sort as AdminCustomerQuery["sort"],
     order: order as AdminCustomerQuery["order"],

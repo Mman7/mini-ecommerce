@@ -30,7 +30,7 @@ export const createProduct = ({
       name,
       description,
       price,
-      categoryId,
+      ...(categoryId !== undefined ? { categoryId } : {}),
       productImages: {
         create: productImages.map(
           ({ url, altText, sortOrder, isThumbnail }) => ({
@@ -60,6 +60,8 @@ const productInclude = {
 type ProductWithRelations = {
   productId: number;
   name: string;
+  slug: string | null;
+  sku: string | null;
   description: string;
   price: { toString(): string } | number;
   createdAt: Date;
@@ -84,6 +86,8 @@ export const serializeProduct = (
 ): ProductResponse => ({
   productId: product.productId,
   name: product.name,
+  slug: product.slug,
+  sku: product.sku,
   description: product.description,
   price: Number(product.price),
   createdAt: product.createdAt.toISOString(),

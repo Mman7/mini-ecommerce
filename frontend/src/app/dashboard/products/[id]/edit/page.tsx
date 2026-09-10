@@ -77,6 +77,8 @@ export default function EditProductPage() {
     Promise.all([getAdminProduct(Number(id)), getCategories()])
       .then(([product, categoryList]) => {
         setName(product.name);
+        setSlug(product.slug ?? "");
+        setSku(product.sku ?? "");
         setDescription(product.description);
         setPrice(String(product.price));
         setVisible(product.isActive);
@@ -99,6 +101,8 @@ export default function EditProductPage() {
     try {
       await updateAdminProduct(Number(id), {
         name,
+        slug,
+        sku,
         description,
         price: Number(price),
         isActive: visible,

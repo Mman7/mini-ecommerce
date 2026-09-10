@@ -1,7 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
 import type { Category } from "../../api/category.api";
+import { toast } from "@/components/ui/toast";
 
 export default function FiltersSidebar({
   categories,
@@ -10,6 +12,17 @@ export default function FiltersSidebar({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [minPrice, setMinPrice] = useState(
+    () => searchParams.get("minPrice") ?? "",
+  );
+  const [maxPrice, setMaxPrice] = useState(
+    () => searchParams.get("maxPrice") ?? "",
+  );
+
+  useEffect(() => {
+    setMinPrice(searchParams.get("minPrice") ?? "");
+    setMaxPrice(searchParams.get("maxPrice") ?? "");
+  }, [searchParams]);
 
   function updateFilter(key: string, value: string) {
     const params = new URLSearchParams(searchParams.toString());
@@ -71,7 +84,8 @@ export default function FiltersSidebar({
                 type="number"
                 min="0"
                 placeholder="Min"
-                defaultValue={searchParams.get("minPrice") ?? ""}
+                value={minPrice}
+                onChange={(event) => setMinPrice(event.target.value)}
                 onBlur={(event) => updateFilter("minPrice", event.target.value)}
                 className="bg-surface-2 h-10 rounded-md border border-(--outline-strong) px-2"
               />
@@ -80,7 +94,8 @@ export default function FiltersSidebar({
                 type="number"
                 min="0"
                 placeholder="Max"
-                defaultValue={searchParams.get("maxPrice") ?? ""}
+                value={maxPrice}
+                onChange={(event) => setMaxPrice(event.target.value)}
                 onBlur={(event) => updateFilter("maxPrice", event.target.value)}
                 className="bg-surface-2 h-10 rounded-md border border-(--outline-strong) px-2"
               />
@@ -114,7 +129,17 @@ export default function FiltersSidebar({
         <p className="text-body-md mb-5 text-(--foreground)/92">
           Get a curated box of Tokyo surprises every month.
         </p>
-        <button className="meta-font bg-secondary w-full rounded-md py-2.5 text-lg font-semibold text-[#541a3f] transition-all hover:scale-[1.02] active:scale-95">
+        <button
+          type="button"
+          onClick={() =>
+            toast.add({
+              title: "Subscriptions are coming soon",
+              description: "We will let you know when the Monthly Crate opens.",
+              type: "info",
+            })
+          }
+          className="meta-font bg-secondary w-full rounded-md py-2.5 text-lg font-semibold text-[#541a3f] transition-all hover:scale-[1.02] active:scale-95"
+        >
           Subscribe Now
         </button>
       </div>

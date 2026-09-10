@@ -14,6 +14,8 @@ export type ProductImage = {
 export type Product = {
   productId: number;
   name: string;
+  slug: string | null;
+  sku: string | null;
   description: string;
   price: number;
   createdAt: string;
@@ -106,7 +108,10 @@ export function createAdminProduct(data: FormData) {
 export function updateAdminProduct(
   productId: number,
   data: Partial<
-    Pick<Product, "name" | "description" | "price" | "isActive"> & {
+    Pick<
+      Product,
+      "name" | "slug" | "sku" | "description" | "price" | "isActive"
+    > & {
       categoryId: number | null;
     }
   >,

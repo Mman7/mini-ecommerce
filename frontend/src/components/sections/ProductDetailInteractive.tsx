@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/accordion";
 import { FavoriteButton } from "../ui/FavoriteButton";
 import ProductCard from "../ui/ProductCard";
+import { toast } from "@/components/ui/toast";
 
 function imageUrl(url: string) {
   const normalized = url.replaceAll("\\", "/");
@@ -55,21 +56,53 @@ export default function ProductDetailInteractive({
 
   async function addToCart(buyNow = false) {
     setError("");
-    if (stock < 1) return;
+    if (stock < 1) {
+      toast.add({
+        title: "Product unavailable",
+        description: "This product is currently out of stock.",
+        type: "warning",
+      });
+      return;
+    }
+    if (quantity < 1 || quantity > stock) {
+      toast.add({
+        title: "Invalid quantity",
+        description: `Choose a quantity between 1 and ${stock}.`,
+        type: "error",
+      });
+      return;
+    }
     setStatus("adding");
     try {
       setCart(await addCartItem(product.productId, quantity));
       setStatus("added");
+      toast.add({
+        title: "Product added to cart",
+        description: product.name,
+        type: "success",
+      });
       if (buyNow) router.push("/payment");
     } catch (requestError) {
       if ((requestError as { status?: number }).status === 401) {
+        toast.add({
+          title: "Sign in required",
+          description: "Please sign in to add products to your cart.",
+          type: "error",
+        });
         router.push(`/login?redirect=/products/${product.productId}`);
         return;
       }
       setStatus("idle");
-      setError(
-        "We couldn&apos;t add this piece to your bag. Please try again.",
-      );
+      const message =
+        requestError instanceof Error
+          ? requestError.message
+          : "We couldn't add this piece to your bag. Please try again.";
+      setError(message);
+      toast.add({
+        title: "Unable to add product",
+        description: message,
+        type: "error",
+      });
     }
   }
 
@@ -174,7 +207,7 @@ export default function ProductDetailInteractive({
               type="button"
               disabled={stock === 0 || status === "adding"}
               onClick={() => addToCart()}
-              className="meta-font focus-amber bg-primary-soft text-primary-foreground inline-flex h-13 min-w-55 items-center justify-center gap-2 rounded-2xl px-8 text-[15px] font-bold shadow-[0_12px_32px_rgba(233,139,44,0.35)] transition hover:brightness-110 disabled:opacity-50"
+              className="meta-font focus-amber bg-primary-soft text-primary-foreground inline-flex h-13 min-w-55 cursor-pointer items-center justify-center gap-2 rounded-2xl px-8 text-[15px] font-bold shadow-[0_12px_32px_rgba(233,139,44,0.35)] transition hover:brightness-110 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
             >
               <ShoppingBag className="h-4 w-4" />
               {status === "adding"
@@ -182,17 +215,19 @@ export default function ProductDetailInteractive({
                 : status === "added"
                   ? "Added"
                   : stock === 0
-                    ? "Sold out"
+                    ? "Out of stock"
                     : "Add to Bag"}
             </button>
-            <button
-              type="button"
-              disabled={stock === 0 || status === "adding"}
-              onClick={() => addToCart(true)}
-              className="meta-font focus-amber text-foreground hover:bg-surface-3 inline-flex h-13 min-w-35 items-center justify-center rounded-2xl border border-(--outline-strong) px-8 text-[15px] font-bold transition disabled:opacity-50"
-            >
-              Buy Now
-            </button>
+            {stock !== 0 && (
+              <button
+                type="button"
+                disabled={stock === 0 || status === "adding"}
+                onClick={() => addToCart(true)}
+                className="meta-font focus-amber text-foreground hover:bg-surface-3 inline-flex h-13 min-w-35 cursor-pointer items-center justify-center rounded-2xl border border-(--outline-strong) px-8 text-[15px] font-bold transition disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Buy Now
+              </button>
+            )}
           </div>
           {error && (
             <p role="alert" className="text-secondary mt-3 text-sm">
@@ -250,6 +285,7 @@ export default function ProductDetailInteractive({
               <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
             </Link>
           </div>
+          {/* other recommended products */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {recommendations.map((item) => (
               <ProductCard key={item.productId} product={item} />

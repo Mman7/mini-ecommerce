@@ -12,9 +12,9 @@ const VIP_SPENDING = 500;
 export type AdminCustomerQuery = {
   page: number;
   limit: number;
-  search?: string | undefined;
-  status?: "regular" | "vip" | "inactive";
-  sort?:
+  search: string;
+  status: "regular" | "vip" | "inactive";
+  sort:
     | "newest"
     | "oldest"
     | "nameAsc"
@@ -22,7 +22,7 @@ export type AdminCustomerQuery = {
     | "orders"
     | "spending"
     | "latestOrder";
-  order?: "asc" | "desc";
+  order: "asc" | "desc";
 };
 
 type CustomerMetrics = {
