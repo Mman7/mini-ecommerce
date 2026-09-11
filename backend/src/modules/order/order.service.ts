@@ -133,11 +133,14 @@ export const createOrder = async (
       (sum, item) => sum + Number(item.price) * item.quantity,
       0,
     );
-
+    await transaction.cartItem.deleteMany({
+      where: { cart: { userId } },
+    });
     return transaction.order.create({
       data: {
         userId,
         total,
+        status: OrderStatus.PAID,
         deliveryAddressLine1: address.addressLine,
         deliveryCity: address.city,
         deliveryState: address.state,

@@ -27,6 +27,7 @@ import {
   type PaymentStepHandle,
 } from "@/src/components/payment/PaymentStep";
 import { PaymentLoadState } from "@/src/types/payment-load-state.enum";
+import { useCartStore } from "@/src/store/cart.store";
 import {
   Stepper,
   StepperContent,
@@ -61,6 +62,7 @@ function itemImage(item: CartItem) {
 
 export default function PaymentPage() {
   const router = useRouter();
+  const clearCart = useCartStore((state) => state.clearCart);
   const paymentFormRef = useRef<PaymentStepHandle>(null);
   const [loadState, setLoadState] = useState(PaymentLoadState.Loading);
   const [loadError, setLoadError] = useState("");
@@ -172,6 +174,7 @@ export default function PaymentPage() {
         items.map(({ productId, quantity }) => ({ productId, quantity })),
         address.id,
       );
+      clearCart();
       setAction("success");
       await new Promise((resolve) => setTimeout(resolve, 800));
       router.push(

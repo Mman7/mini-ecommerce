@@ -196,7 +196,7 @@ function CartSummary({
         href={canCheckout ? "/payment" : "#"}
         aria-disabled={!canCheckout}
         tabIndex={canCheckout ? undefined : -1}
-        className={`meta-font mt-6 flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${canCheckout ? "bg-primary-soft text-primary-ink hover:bg-primary" : "bg-surface-3 text-text-muted pointer-events-none opacity-50"}`}
+        className={`meta-font text-primary-foreground! mt-6 flex h-12 items-center justify-center gap-2 rounded-xl px-4 text-sm font-semibold transition ${canCheckout ? "bg-primary-soft text-primary-foreground hover:bg-primary" : "bg-surface-3 pointer-events-none text-black opacity-50"}`}
       >
         Proceed to Checkout
         <ArrowRight className="h-4 w-4" />

@@ -2,9 +2,25 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft, Check, Home, RotateCcw, Truck } from "lucide-react";
+import {
+  ArrowLeft,
+  Check,
+  CreditCard,
+  Home,
+  RotateCcw,
+  Truck,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { cancelOrder, getOrder, type Order } from "@/src/api/order.api";
+import {
+  Stepper,
+  StepperIndicator,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+} from "@/src/components/reui/stepper";
 
 export default function OrderDetailPage({
   params,
@@ -39,7 +55,7 @@ export default function OrderDetailPage({
       );
     }
   };
-  const steps = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED"];
+  const steps = ["PENDING", "PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
   const currentStep = order ? steps.indexOf(order.status) : -1;
 
   if (error)
@@ -80,27 +96,51 @@ export default function OrderDetailPage({
       </header>
       <section className="bg-surface-1 rounded-lg border border-(--glass-border) p-5 sm:p-7">
         <h2 className="heading-font mb-8 text-xl font-medium">Order Status</h2>
-        <div className="grid grid-cols-4 gap-2">
-          {steps.map((step, index) => (
-            <div
-              key={step}
-              className={`text-center text-xs ${index <= currentStep ? "text-primary" : "text-text-muted"}`}
-            >
-              <div className="bg-surface-4 mx-auto mb-2 flex h-8 w-8 items-center justify-center rounded-full">
-                {index === 0 ? (
-                  <Check size={14} />
-                ) : index === 2 ? (
-                  <Truck size={14} />
-                ) : index === 3 ? (
-                  <Home size={14} />
-                ) : (
-                  <RotateCcw size={14} />
-                )}
-              </div>
-              {step}
-            </div>
-          ))}
-        </div>
+        {order.status === "CANCELLED" ? (
+          <div className="text-error flex items-center gap-3 text-sm font-semibold">
+            <RotateCcw size={18} />
+            This order was cancelled.
+          </div>
+        ) : (
+          <Stepper
+            value={Math.max(currentStep + 1, 1)}
+            onValueChange={() => undefined}
+            className="w-full"
+          >
+            <StepperNav className="w-full gap-0">
+              {steps.map((step, index) => (
+                <StepperItem
+                  key={step}
+                  step={index + 1}
+                  completed={index < currentStep}
+                  className="relative min-w-0 flex-1 items-start"
+                >
+                  <StepperTrigger className="pointer-events-none flex min-h-11 flex-col gap-2.5">
+                    <StepperIndicator className="data-[state=completed]:bg-primary data-[state=active]:bg-primary data-[state=inactive]:bg-surface-4 size-8 border-2 border-(--glass-border) text-xs">
+                      {index === 0 ? (
+                        <Check size={14} />
+                      ) : index === 1 ? (
+                        <CreditCard size={14} />
+                      ) : index === 3 ? (
+                        <Truck size={14} />
+                      ) : index === 4 ? (
+                        <Home size={14} />
+                      ) : (
+                        <RotateCcw size={14} />
+                      )}
+                    </StepperIndicator>
+                    <StepperTitle className="text-center text-[10px] font-semibold uppercase sm:text-xs">
+                      {step}
+                    </StepperTitle>
+                  </StepperTrigger>
+                  {index < steps.length - 1 && (
+                    <StepperSeparator className="group-data-[state=completed]/step:bg-primary absolute top-4 right-[calc(-50%+1rem)] left-[calc(50%+1rem)] z-0 m-0 h-0.5" />
+                  )}
+                </StepperItem>
+              ))}
+            </StepperNav>
+          </Stepper>
+        )}
       </section>
       <section>
         <h2 className="heading-font mb-4 text-xl font-medium">
@@ -155,7 +195,7 @@ export default function OrderDetailPage({
         <button
           type="button"
           onClick={handleCancel}
-          className="meta-font border-error/30 text-error hover:bg-error/10 rounded-md border px-5 py-3 text-xs font-semibold"
+          className="meta-font border-error/30 hover:bg-accent text-error hover:bg-error/10 rounded-md border px-5 py-3 text-xs font-semibold hover:cursor-pointer"
         >
           Cancel Order
         </button>

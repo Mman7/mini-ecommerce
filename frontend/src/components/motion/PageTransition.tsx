@@ -48,10 +48,18 @@ export function PageTransition({ children }: PageTransitionProps) {
   if (pathname.startsWith("/dashboard")) {
     return <>{children}</>;
   }
+  // Profile layout owns the transition so its persistent sidebar stays mounted.
+  if (pathname.startsWith("/profile")) {
+    return <>{children}</>;
+  }
 
   return <TransitionContent>{children}</TransitionContent>;
 }
 
 export function DashboardPageTransition({ children }: PageTransitionProps) {
+  return <TransitionContent>{children}</TransitionContent>;
+}
+
+export function ProfilePageTransition({ children }: PageTransitionProps) {
   return <TransitionContent>{children}</TransitionContent>;
 }

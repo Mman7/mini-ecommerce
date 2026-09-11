@@ -3,7 +3,8 @@
 import { forwardRef, useEffect, useImperativeHandle } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useForm, type UseFormSetValue } from "react-hook-form";
-import { Check, CreditCard, MapPin, Wallet } from "lucide-react";
+import { Check, CreditCard, MapPin, Sparkles, Wallet } from "lucide-react";
+import { faker } from "@faker-js/faker";
 
 type PaymentMethod = "google" | "apple" | "card";
 
@@ -103,6 +104,29 @@ export const PaymentStep = forwardRef<PaymentStepHandle, PaymentStepProps>(
       });
     }
 
+    function fillFakeCard() {
+      const expiryMonth = String(
+        faker.number.int({ min: 1, max: 12 }),
+      ).padStart(2, "0");
+      const expiryYear = String(new Date().getFullYear() + 3).slice(-2);
+      const fakeCard: CardFields = {
+        name: faker.person.fullName(),
+        number: formatCardNumber(
+          faker.finance.creditCardNumber({ issuer: "visa" }),
+        ),
+        expiry: `${expiryMonth} / ${expiryYear}`,
+        cvc: faker.finance.creditCardCVV(),
+      };
+
+      Object.entries(fakeCard).forEach(([field, value]) => {
+        setValue(field as keyof CardFields, value, {
+          shouldDirty: true,
+          shouldValidate: true,
+        });
+      });
+      onCardChange(fakeCard);
+    }
+
     return (
       <>
         <section className="space-y-5">
@@ -163,6 +187,14 @@ export const PaymentStep = forwardRef<PaymentStepHandle, PaymentStepProps>(
                   {cardBrand(card.number)}
                 </span>
               </div>
+              <button
+                type="button"
+                onClick={fillFakeCard}
+                className="focus-amber text-primary-soft hover:text-primary mb-5 inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold transition"
+              >
+                <Sparkles className="size-3.5" />
+                Auto-fill test card
+              </button>
               <div className="grid gap-4">
                 <Field label="Cardholder Name" error={errors.name?.message}>
                   <input

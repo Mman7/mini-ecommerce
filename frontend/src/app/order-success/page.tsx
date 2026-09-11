@@ -148,7 +148,7 @@ export default function OrderSuccessPage() {
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <Link
             href={`/profile/orders/${order.id}`}
-            className="bg-primary-soft text-primary-foreground hover:bg-primary flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition"
+            className="bg-primary-soft hover:bg-primary text-primary-foreground! flex min-h-11 items-center justify-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition"
           >
             View Order
             <ArrowRight className="size-4" />

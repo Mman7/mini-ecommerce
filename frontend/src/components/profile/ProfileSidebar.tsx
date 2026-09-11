@@ -106,7 +106,7 @@ export function ProfileSidebar({
       <button
         type="button"
         onClick={handleLogout}
-        className="meta-font text-text-muted hover:border-error/40 hover:text-error border-error/20 bg-surface-1 flex items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs transition md:mt-auto"
+        className="meta-font text-text-muted hover:border-error/40 hover:bg-accent hover:text-error border-error/20 bg-surface-1 flex items-center justify-center gap-2 rounded-md border px-3 py-3 text-xs transition hover:cursor-pointer md:mt-auto"
       >
         <LogOut size={16} />
         Sign Out
