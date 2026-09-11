@@ -8,8 +8,8 @@ const refreshSecretKey = process.env.JWT_REFRESH_SECRET;
 export const accessTokenExpiresIn = 1000 * 60 * 15; // 15 minutes
 export const refreshTokenExpiresIn = 1000 * 60 * 60 * 24 * 7; // 7 days
 
-const ACCESS_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${accessTokenExpiresIn}m`;
-const REFRESH_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = `${refreshTokenExpiresIn}d`;
+const ACCESS_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = "15m";
+const REFRESH_TOKEN_EXPIRES_IN: SignOptions["expiresIn"] = "7d";
 
 if (!accessSecretKey || !refreshSecretKey) {
   throw new Error("JWT config is not defined in environment variables.");

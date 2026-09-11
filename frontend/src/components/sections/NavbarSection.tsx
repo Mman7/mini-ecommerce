@@ -9,7 +9,7 @@ import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
 import { useCartStore } from "@/src/store/cart.store";
 
-const NAVBAR_FIXED_SCROLL_Y = 800;
+const NAVBAR_FIXED_SCROLL_Y = 100;
 
 const navLinks = [
   { label: "About Us", link: "/about" },

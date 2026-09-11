@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -252,7 +253,7 @@ export default function PaymentPage() {
               }}
               className="w-full space-y-8"
             >
-              <StepperNav className="w-full gap-2 sm:gap-8">
+              <StepperNav className="w-full gap-0">
                 {checkoutSteps.map((title, index) => {
                   const step = index + 1;
                   const completed = completedSteps.includes(step);
@@ -265,7 +266,7 @@ export default function PaymentPage() {
                       className="relative min-w-0 flex-1 items-start"
                     >
                       <StepperTrigger className="flex min-h-11 flex-col gap-2.5 disabled:cursor-not-allowed">
-                        <StepperIndicator className="data-[state=completed]:border-primary-soft data-[state=completed]:bg-primary-soft data-[state=completed]:text-primary-foreground data-[state=active]:border-primary-soft data-[state=active]:bg-surface-3 data-[state=active]:text-primary-soft data-[state=inactive]:bg-surface-1 size-8 border-2 transition-transform duration-300 data-[state=inactive]:border-(--outline-strong) data-[state=inactive]:text-(--outline)">
+                        <StepperIndicator className="data-[state=completed]:border-primary-soft data-[state=completed]:bg-primary-soft data-[state=completed]:text-primary-foreground data-[state=active]:border-primary-soft data-[state=active]:bg-surface-3 data-[state=active]:text-primary-soft data-[state=inactive]:bg-surface-1 z-10 size-8 border-2 transition-transform duration-300 data-[state=inactive]:border-(--outline-strong) data-[state=inactive]:text-(--outline)">
                           {step}
                         </StepperIndicator>
                         <StepperTitle className="heading-font text-primary-soft text-sm font-semibold group-data-[state=inactive]/step:text-(--outline) sm:text-base">
@@ -273,7 +274,7 @@ export default function PaymentPage() {
                         </StepperTitle>
                       </StepperTrigger>
                       {step < 3 && (
-                        <StepperSeparator className="group-data-[state=completed]/step:bg-primary-soft absolute top-4 right-0 left-[calc(50%+1.25rem)] z-0 m-0 h-0.5 sm:left-[calc(50%+1.5rem)]" />
+                        <StepperSeparator className="group-data-[state=completed]/step:bg-primary-soft absolute top-4 right-[calc(-50%+1rem)] left-[calc(50%+1rem)] z-0 m-0 h-0.5" />
                       )}
                     </StepperItem>
                   );
@@ -455,9 +456,17 @@ function ShippingStep({
           ))}
         </div>
       ) : (
-        <p className="text-text-muted bg-surface-2 mt-6 rounded-lg p-4">
-          Add a saved address in your profile before continuing.
-        </p>
+        <div className="bg-surface-2 mt-6 rounded-lg p-4">
+          <p className="text-text-muted">
+            Add a saved address in your profile before continuing.
+          </p>
+          <Link
+            href="/profile/addresses"
+            className="bg-primary-soft text-primary-foreground focus-amber hover:bg-primary mt-4 inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition"
+          >
+            Add delivery address
+          </Link>
+        </div>
       )}
       <div className="mt-6 grid gap-5 border-t border-(--outline-strong)/50 pt-5 sm:grid-cols-2">
         <div>

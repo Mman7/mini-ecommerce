@@ -9,8 +9,12 @@ import {
   updateAddress,
   type SavedAddress,
 } from "@/src/api/user.api";
+import { toast } from "@/components/ui/toast";
 
-type AddressForm = Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">;
+type AddressForm = Omit<
+  SavedAddress,
+  "id" | "userId" | "createdAt" | "updatedAt"
+>;
 const emptyForm: AddressForm = {
   addressLine: "",
   city: "",
@@ -54,6 +58,7 @@ export default function AddressesPage() {
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
+    const isEditing = Boolean(editingId);
     try {
       const response = editingId
         ? await updateAddress(Number(editingId), form)
@@ -62,6 +67,13 @@ export default function AddressesPage() {
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
+      toast.add({
+        title: isEditing ? "Address updated" : "Address saved",
+        description: isEditing
+          ? "Your delivery address was updated successfully."
+          : "Your delivery address was saved successfully.",
+        type: "success",
+      });
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -118,11 +130,13 @@ export default function AddressesPage() {
 
       {showForm && (
         <form onSubmit={submit} className="glass-panel rounded-lg p-5">
-          <label className="meta-font text-foreground block text-xs font-semibold uppercase">
+          <label className="meta-font block text-xs font-semibold uppercase">
             Address line
             <textarea
               value={form.addressLine}
-              onChange={(event) => setForm({ ...form, addressLine: event.target.value })}
+              onChange={(event) =>
+                setForm({ ...form, addressLine: event.target.value })
+              }
               required
               rows={3}
               className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
@@ -130,17 +144,24 @@ export default function AddressesPage() {
             />
           </label>
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            {(["city", "state", "postalCode", "country"] as const).map((field) => (
-              <label key={field} className="meta-font text-foreground text-xs font-semibold uppercase">
-                {field === "postalCode" ? "Postal code" : field}
-                <input
-                  value={form[field] ?? ""}
-                  onChange={(event) => setForm({ ...form, [field]: event.target.value })}
-                  required={field !== "state"}
-                  className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
-                />
-              </label>
-            ))}
+            {(["city", "state", "postalCode", "country"] as const).map(
+              (field) => (
+                <label
+                  key={field}
+                  className="meta-font text-foreground text-xs font-semibold uppercase"
+                >
+                  {field === "postalCode" ? "Postal code" : field}
+                  <input
+                    value={form[field] ?? ""}
+                    onChange={(event) =>
+                      setForm({ ...form, [field]: event.target.value })
+                    }
+                    required={field !== "state"}
+                    className="border-border bg-background focus:border-primary mt-2 block w-full rounded-md border p-3 text-sm outline-none"
+                  />
+                </label>
+              ),
+            )}
           </div>
           <div className="mt-4 flex justify-end gap-3">
             <button
@@ -177,7 +198,8 @@ export default function AddressesPage() {
               <div className="flex gap-3">
                 <MapPin className="text-primary mt-0.5 shrink-0" size={18} />
                 <p className="text-foreground text-sm leading-6">
-                  {savedAddress.addressLine}, {savedAddress.city}, {savedAddress.postalCode}, {savedAddress.country}
+                  {savedAddress.addressLine}, {savedAddress.city},{" "}
+                  {savedAddress.postalCode}, {savedAddress.country}
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">
