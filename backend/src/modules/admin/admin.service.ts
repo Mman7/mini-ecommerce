@@ -309,6 +309,15 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
   }
 
   const revenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
+  const endDate = new Date(`${to.toISOString().slice(0, 10)}T00:00:00.000Z`);
+  const revenueTrend = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(endDate);
+    date.setUTCDate(endDate.getUTCDate() - (6 - index));
+    const dateKey = date.toISOString().slice(0, 10);
+
+    return { date: dateKey, amount: revenueByDate.get(dateKey) ?? 0 };
+  });
+
   return {
     summary: {
       revenue,
@@ -316,9 +325,7 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
       customers,
       averageOrderValue: orders.length ? revenue / orders.length : 0,
     },
-    revenueTrend: [...revenueByDate.entries()]
-      .sort(([left], [right]) => left.localeCompare(right))
-      .map(([date, amount]) => ({ date, amount })),
+    revenueTrend,
     topProducts: [...productSales.values()]
       .sort((left, right) => right.sold - left.sold)
       .slice(0, 5),

@@ -1,4 +1,4 @@
-import { request } from "./client.api";
+import { request, requestBlob } from "./client.api";
 
 export type CustomerStatus = "Regular" | "VIP" | "Inactive";
 
@@ -7,6 +7,7 @@ export type Customer = {
   name: string;
   email: string;
   phoneNumber: string | null;
+  isActive: boolean;
   createdAt: string;
   orders: number;
   totalSpent: number;
@@ -99,10 +100,5 @@ export function updateAdminCustomerStatus(id: string, isActive: boolean) {
 }
 
 export async function exportAdminCustomers(params: CustomerQuery = {}) {
-  const response = await fetch(
-    `/api/admin/customers/export?${queryString(params)}`,
-    { credentials: "include" },
-  );
-  if (!response.ok) throw new Error("Unable to export customers");
-  return response.blob();
+  return requestBlob(`/admin/customers/export?${queryString(params)}`);
 }

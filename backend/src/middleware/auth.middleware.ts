@@ -16,7 +16,6 @@ export function authMiddleware(
   next: NextFunction,
 ) {
   const { accessToken } = req.cookies ?? {};
-
   if (!accessToken) {
     return res.status(401).json({ message: "User is not login" });
   }

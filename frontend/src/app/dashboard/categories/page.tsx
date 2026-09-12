@@ -28,7 +28,7 @@ export default function CategoriesPage() {
         action={
           <Link
             href="/dashboard/categories/create"
-            className="meta-font bg-primary text-primary-foreground flex h-8 items-center gap-2 rounded-md px-3 text-xs font-semibold"
+            className="meta-font bg-primary text-primary-foreground flex h-8 items-center gap-2 rounded-md p-5 px-3 text-xs font-semibold"
           >
             <Plus size={14} /> Add Category
           </Link>

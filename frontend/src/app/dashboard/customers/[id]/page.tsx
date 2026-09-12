@@ -76,10 +76,7 @@ export default function CustomerDetailPage() {
     if (!customer) return;
     setSaving(true);
     try {
-      const result = await updateAdminCustomerStatus(
-        id,
-        customer.status !== "Inactive",
-      );
+      const result = await updateAdminCustomerStatus(id, !customer.isActive);
       setCustomer(result);
       toast.add({
         title: "Customer status updated",
@@ -232,17 +229,22 @@ export default function CustomerDetailPage() {
         <div className="space-y-3">
           <DashboardPanel>
             <PanelHeading title="Account Status" />
-            <div className="space-y-3 px-4 pb-4">
-              <StatusPill status={customer.status} />
+            <div className="space-y-3 px-4 py-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-text-muted text-xs">Current status</span>
+                <StatusPill
+                  status={customer.isActive ? "Active" : "Inactive"}
+                />
+              </div>
               <button
                 type="button"
                 disabled={saving}
                 onClick={toggleStatus}
                 className="meta-font border-secondary/50 text-secondary w-full rounded border px-3 py-2 text-xs disabled:opacity-50"
               >
-                {customer.status === "Inactive"
-                  ? "Activate Customer"
-                  : "Deactivate Customer"}
+                {customer.isActive
+                  ? "Deactivate Customer"
+                  : "Activate Customer"}
               </button>
             </div>
           </DashboardPanel>

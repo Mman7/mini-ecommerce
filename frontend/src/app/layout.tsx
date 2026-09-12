@@ -15,6 +15,7 @@ import { PageTransition } from "../components/motion/PageTransition";
 import { cn } from "@/lib/utils";
 import { SmoothScroll } from "../components/motion/SmoothScroll";
 import { Toaster } from "@/components/ui/toast";
+import { QueryProvider } from "../components/providers/QueryProvider";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -74,12 +75,14 @@ export default function RootLayout({
       )}
     >
       <body>
-        <SmoothScroll />
-        <AuthInitializer />
-        <NavbarSection />
-        <PageTransition>{children}</PageTransition>
-        <FooterSection />
-        <Toaster />
+        <QueryProvider>
+          <SmoothScroll />
+          <AuthInitializer />
+          <NavbarSection />
+          <PageTransition>{children}</PageTransition>
+          <FooterSection />
+          <Toaster />
+        </QueryProvider>
       </body>
     </html>
   );

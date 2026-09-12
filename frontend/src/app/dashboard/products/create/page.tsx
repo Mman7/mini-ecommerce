@@ -1,17 +1,18 @@
 "use client";
-// TODO a product can have thumbnail images and normal product images
-import {
-  ChevronDown,
-  CloudUpload,
-  Image as ImageIcon,
-  Save,
-} from "lucide-react";
+import { CloudUpload, Image as ImageIcon, Save } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createAdminProduct } from "../../../../api/product.api";
 import { getCategories } from "../../../../api/category.api";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
 
 type ProductStatus = "Draft" | "Active" | "Archived";
@@ -351,29 +352,32 @@ export default function CreateProductPage() {
 
             <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
               <AsideTitle title="Category" />
-              <div className="relative">
-                <select
-                  value={category}
-                  onChange={(event) => setCategory(event.target.value)}
-                  className="form-input appearance-none pr-10"
+              <Select
+                value={category || null}
+                onValueChange={(value) => setCategory(value ?? "")}
+              >
+                <SelectTrigger
+                  aria-label="Product category"
+                  className="form-input h-auto w-full"
                 >
-                  <option value="">Select category...</option>
+                  <SelectValue placeholder="Select category..." />
+                </SelectTrigger>
+                <SelectContent>
                   {categories.map((item) => (
-                    <option key={item.categoryId} value={item.categoryId}>
+                    <SelectItem
+                      key={item.categoryId}
+                      value={String(item.categoryId)}
+                    >
                       {item.name}
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-                <ChevronDown
-                  className="text-text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
-                  size={15}
-                />
-              </div>
+                </SelectContent>
+              </Select>
             </section>
 
             <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
               <AsideTitle title="Visibility" />
-              <label className="flex cursor-pointer items-center justify-between gap-4">
+              <label className="flex cursor-pointer items-center justify-between gap-4 rounded p-2 hover:bg-white/10">
                 <span className="text-foreground text-sm">
                   Visible in Store
                 </span>

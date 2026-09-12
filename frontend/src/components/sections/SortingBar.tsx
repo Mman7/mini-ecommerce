@@ -28,7 +28,8 @@ export default function SortingBar({ total }: { total: number }) {
   return (
     <div className="mb-3 flex items-center justify-between">
       <p className="text-on-surface/65 text-[15px]">
-        Showing <span className="text-on-surface font-semibold">{total}</span>
+        Showing
+        <span className="text-on-surface font-semibold">{` ${total} `}</span>
         products
       </p>
       <div className="meta-font flex items-center gap-3">

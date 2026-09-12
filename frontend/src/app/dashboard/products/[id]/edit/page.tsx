@@ -3,7 +3,6 @@
 import {
   Bold,
   CheckCircle2,
-  ChevronDown,
   Image as ImageIcon,
   Italic,
   List,
@@ -30,6 +29,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   deleteAdminProduct,
   getAdminProduct,
   updateAdminProductInventory,
@@ -40,6 +46,19 @@ import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 
 type ProductImage = { id: string; src: string; primary?: boolean };
+type ProductFormSnapshot = {
+  name: string;
+  slug: string;
+  sku: string;
+  description: string;
+  price: string;
+  compareAtPrice: string;
+  stock: string;
+  threshold: string;
+  category: string;
+  visible: boolean;
+  images: ProductImage[];
+};
 
 const initialImages: ProductImage[] = [
   {
@@ -70,8 +89,28 @@ export default function EditProductPage() {
   >([]);
   const [visible, setVisible] = useState(true);
   const [images, setImages] = useState(initialImages);
+  const [initialForm, setInitialForm] = useState<ProductFormSnapshot | null>(
+    null,
+  );
   const [message, setMessage] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const currentForm: ProductFormSnapshot = {
+    name,
+    slug,
+    sku,
+    description,
+    price,
+    compareAtPrice,
+    stock,
+    threshold,
+    category,
+    visible,
+    images,
+  };
+  const hasChanges =
+    initialForm !== null &&
+    JSON.stringify(currentForm) !== JSON.stringify(initialForm);
 
   useEffect(() => {
     Promise.all([getAdminProduct(Number(id)), getCategories()])
@@ -92,6 +131,23 @@ export default function EditProductPage() {
             primary: image.isThumbnail,
           })),
         );
+        setInitialForm({
+          name: product.name,
+          slug: product.slug ?? "",
+          sku: product.sku ?? "",
+          description: product.description,
+          price: String(product.price),
+          compareAtPrice,
+          stock: String(product.stock),
+          threshold,
+          category: String(product.category?.categoryId ?? ""),
+          visible: product.isActive,
+          images: product.productImages.map((image) => ({
+            id: String(image.id),
+            src: image.url,
+            primary: image.isThumbnail,
+          })),
+        });
       })
       .catch(() => setMessage("Unable to load this product."));
   }, [id]);
@@ -113,6 +169,7 @@ export default function EditProductPage() {
         Number(stock),
         Number(threshold),
       );
+      setInitialForm(currentForm);
       setMessage("Changes saved successfully.");
       toast.add({
         title: "Product updated",
@@ -202,20 +259,29 @@ export default function EditProductPage() {
               Update this product&apos;s information and availability.
             </p>
           </div>
-          <div className="flex gap-2">
+          {hasChanges ? (
+            <div className="flex gap-2">
+              <Link
+                href="/dashboard/products"
+                className="meta-font text-foreground hover:bg-surface-3 flex h-9 items-center rounded-md border border-(--outline) px-4 text-xs transition"
+              >
+                Discard
+              </Link>
+              <button
+                type="submit"
+                className="meta-font bg-primary hover:bg-primary-soft text-primary-foreground flex h-9 items-center gap-2 rounded-md px-5 text-xs font-semibold shadow-(--glow) transition"
+              >
+                <Save size={13} /> Save Changes
+              </button>
+            </div>
+          ) : (
             <Link
               href="/dashboard/products"
               className="meta-font text-foreground hover:bg-surface-3 flex h-9 items-center rounded-md border border-(--outline) px-4 text-xs transition"
             >
-              Discard
+              Back to Product List
             </Link>
-            <button
-              type="submit"
-              className="meta-font bg-primary hover:bg-primary-soft text-primary-foreground flex h-9 items-center gap-2 rounded-md px-5 text-xs font-semibold shadow-(--glow) transition"
-            >
-              <Save size={13} /> Save Changes
-            </button>
-          </div>
+          )}
         </header>
 
         {message ? (
@@ -401,11 +467,21 @@ export default function EditProductPage() {
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
             <section className="glass-panel rounded-lg p-5">
               <AsideTitle title="Status" />
-              <div className="bg-surface-2 flex items-center gap-2 rounded-md border border-(--glass-border) px-3 py-3">
-                <span className="bg-primary h-2.5 w-2.5 rounded-full shadow-[0_0_8px_rgba(255,183,122,0.8)]" />
-                <span className="text-foreground text-sm">Active</span>
-                <ChevronDown className="text-text-muted ml-auto" size={15} />
-              </div>
+              <Select
+                value={visible ? "Active" : "Inactive"}
+                onValueChange={(value) => setVisible(value === "Active")}
+              >
+                <SelectTrigger
+                  aria-label="Product status"
+                  className="bg-surface-1 text-foreground h-10 w-full rounded-md border-(--glass-border) px-3 text-sm"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
               <div className="my-5 border-t border-(--glass-border)" />
               <div className="flex items-center justify-between">
                 <div>
@@ -428,24 +504,27 @@ export default function EditProductPage() {
               </div>
               <div className="my-5 border-t border-(--glass-border)" />
               <Field label="Category">
-                <div className="relative">
-                  <select
-                    value={category}
-                    onChange={(event) => setCategory(event.target.value)}
-                    className="form-input appearance-none pr-9"
+                <Select
+                  value={category || null}
+                  onValueChange={(value) => setCategory(value ?? "")}
+                >
+                  <SelectTrigger
+                    aria-label="Product category"
+                    className="form-input h-auto w-full"
                   >
-                    <option value="">Uncategorized</option>
+                    <SelectValue placeholder="Uncategorized" />
+                  </SelectTrigger>
+                  <SelectContent>
                     {categories.map((item) => (
-                      <option key={item.categoryId} value={item.categoryId}>
+                      <SelectItem
+                        key={item.categoryId}
+                        value={String(item.categoryId)}
+                      >
                         {item.name}
-                      </option>
+                      </SelectItem>
                     ))}
-                  </select>
-                  <ChevronDown
-                    className="text-text-muted pointer-events-none absolute top-1/2 right-3 -translate-y-1/2"
-                    size={15}
-                  />
-                </div>
+                  </SelectContent>
+                </Select>
               </Field>
             </section>
             <section className="glass-panel rounded-lg p-5">

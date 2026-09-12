@@ -2,7 +2,8 @@
 
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   getAdminOrders,
   type AdminOrderListResponse,
@@ -31,34 +32,23 @@ export function AdminOrderList({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [data, setData] = useState<AdminOrderListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
   const query = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
   const page = Number(searchParams.get("page") ?? 1);
 
+  const orderQuery = useQuery({
+    queryKey: ["admin-orders", { page, query, status }],
+    queryFn: () => getAdminOrders({ page, limit: 20, search: query, status }),
+  });
+  const data = orderQuery.data;
+  const loading = orderQuery.isPending;
+  const error = orderQuery.error
+    ? "Unable to load orders. Please try again."
+    : "";
+
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    getAdminOrders({ page, limit: 20, search: query, status })
-      .then((result) => {
-        if (active) {
-          setData(result);
-          onStatisticsChange(result.statistics);
-          setError("");
-        }
-      })
-      .catch(() => {
-        if (active) setError("Unable to load orders. Please try again.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [page, query, status, onStatisticsChange]);
+    if (data) onStatisticsChange(data.statistics);
+  }, [data, onStatisticsChange]);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());

@@ -145,13 +145,13 @@ export function DashboardShell({
                   <Bell size={14} />
                   <span className="bg-primary absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full" />
                 </button>
-                <button
-                  type="button"
+                <Link
+                  href="/"
                   aria-label="Store settings"
                   className="text-text-muted hover:border-primary hover:text-primary-soft flex h-8 w-8 items-center justify-center rounded-md border border-(--glass-border) transition"
                 >
                   <Store size={14} />
-                </button>
+                </Link>
               </div>
             </div>
 

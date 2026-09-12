@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/components/ui/toast";
 import {
@@ -58,44 +59,38 @@ export default function DashboardCustomersPage() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [data, setData] = useState<CustomerListResponse | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
   const search = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
   const sort = searchParams.get("sort") ?? "newest";
   const page = Number(searchParams.get("page") ?? 1);
 
-  useEffect(() => {
-    let active = true;
-    getAdminCustomers({
-      page,
-      limit: 20,
-      search,
-      status: statusValues.includes(status as StatusValue)
-        ? (status as StatusValue)
-        : undefined,
-      sort: sortValues.includes(sort as SortValue)
-        ? (sort as SortValue)
-        : "newest",
-    })
-      .then((result) => {
-        if (active) {
-          setData(result);
-          setError("");
-        }
-      })
-      .catch(() => {
-        if (active) setError("Unable to load customers. Please try again.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [page, search, status, sort]);
+  const customerQuery = useQuery({
+    queryKey: ["admin-customers", { page, search, status, sort }],
+    queryFn: () =>
+      getAdminCustomers({
+        page,
+        limit: 20,
+        search,
+        status: statusValues.includes(status as StatusValue)
+          ? (status as StatusValue)
+          : undefined,
+        sort: sortValues.includes(sort as SortValue)
+          ? (sort as SortValue)
+          : "newest",
+      }),
+  });
+
+  const data = customerQuery.data;
+  const loading = customerQuery.isPending;
+  const error =
+    exportError ||
+    (customerQuery.error instanceof Error
+      ? customerQuery.error.message
+      : customerQuery.error
+        ? "Unable to load customers. Please try again."
+        : "");
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -107,6 +102,7 @@ export default function DashboardCustomersPage() {
 
   async function exportCustomers() {
     setExporting(true);
+    setExportError("");
     try {
       const blob = await exportAdminCustomers({
         search,
@@ -129,7 +125,7 @@ export default function DashboardCustomersPage() {
         type: "success",
       });
     } catch {
-      setError("Unable to export customers. Please try again.");
+      setExportError("Unable to export customers. Please try again.");
       toast.add({
         title: "Export failed",
         description: "Unable to export customers. Please try again.",

@@ -190,7 +190,7 @@ export const PaymentStep = forwardRef<PaymentStepHandle, PaymentStepProps>(
               <button
                 type="button"
                 onClick={fillFakeCard}
-                className="focus-amber text-primary-soft hover:text-primary mb-5 inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold transition"
+                className="focus-amber text-primary-soft hover:text-primary mb-5 inline-flex min-h-9 items-center gap-2 rounded-md text-xs font-semibold transition hover:cursor-pointer"
               >
                 <Sparkles className="size-3.5" />
                 Auto-fill test card

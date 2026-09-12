@@ -1,5 +1,4 @@
 import { request, type ApiError } from "./client.api";
-import { refreshSession } from "./auth.api";
 
 export type User = {
   userId: string;
@@ -21,7 +20,6 @@ export async function getCurrentUser() {
       throw error;
     }
 
-    await refreshSession();
     return request<{ message: string; user: User }>("/users/me");
   }
 }
@@ -53,7 +51,9 @@ export function getAddresses() {
   return request<{ addresses: SavedAddress[] }>("/users/me/addresses");
 }
 
-export function createAddress(address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">) {
+export function createAddress(
+  address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
+) {
   return request<{ addresses: SavedAddress[] }>("/users/me/addresses", {
     method: "POST",
     body: JSON.stringify(address),

@@ -1,11 +1,17 @@
 import { prisma } from "../../utils/prisma.ts";
+import { OrderStatus } from "../../enums/order_status.ts";
 import type { UserUpdateInput } from "../../generated/prisma/models.ts";
 import type {
   AuthUserData,
   SavedAddress,
 } from "../../interfaces/user.interface.ts";
 
-const customerOrderStatuses = ["PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
+const customerOrderStatuses = [
+  OrderStatus.PAID,
+  OrderStatus.PROCESSING,
+  OrderStatus.SHIPPED,
+  OrderStatus.DELIVERED,
+];
 const VIP_ORDER_COUNT = 5;
 const VIP_SPENDING = 500;
 
@@ -64,6 +70,7 @@ const serializeCustomer = (user: {
     name: user.name,
     email: user.email,
     phoneNumber: user.phoneNumber,
+    isActive: user.isActive,
     createdAt: user.createdAt.toISOString(),
     ...metrics,
     status: getCustomerStatus(user.isActive, metrics),

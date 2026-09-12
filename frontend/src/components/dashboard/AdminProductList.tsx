@@ -3,13 +3,14 @@
 import { Search } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   getAdminProducts,
-  type Product,
   type AdminProductListResponse,
+  type Product,
 } from "../../api/product.api";
-import { getCategories, type Category } from "../../api/category.api";
+import { getCategories } from "../../api/category.api";
 import {
   DashboardPanel,
   DataTable,
@@ -49,20 +50,15 @@ export function AdminProductList({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [data, setData] = useState<AdminProductListResponse | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(true);
   const query = searchParams.get("search") ?? "";
   const categoryId = searchParams.get("categoryId") ?? "";
   const status = searchParams.get("status") ?? "";
   const stock = searchParams.get("stock") ?? "";
   const page = Number(searchParams.get("page") ?? 1);
 
-  useEffect(() => {
-    let active = true;
-    setLoading(true);
-    Promise.all([
+  const productQuery = useQuery({
+    queryKey: ["admin-products", { page, query, categoryId, status, stock }],
+    queryFn: () =>
       getAdminProducts({
         page,
         limit: 20,
@@ -77,26 +73,23 @@ export function AdminProductList({
         sortBy: "createdAt",
         sortOrder: "desc",
       }),
-      getCategories(),
-    ])
-      .then(([products, categoryList]) => {
-        if (active) {
-          setData(products);
-          onStatisticsChange(products.statistics);
-          setCategories(categoryList);
-          setError("");
-        }
-      })
-      .catch(() => {
-        if (active) setError("Unable to load products. Please try again.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [page, query, categoryId, status, stock, onStatisticsChange]);
+  });
+  const categoryQuery = useQuery({
+    queryKey: ["categories"],
+    queryFn: getCategories,
+  });
+
+  const data = productQuery.data;
+  const categories = categoryQuery.data ?? [];
+  const loading = productQuery.isPending || categoryQuery.isPending;
+  const error =
+    productQuery.error || categoryQuery.error
+      ? "Unable to load products. Please try again."
+      : "";
+
+  useEffect(() => {
+    if (data) onStatisticsChange(data.statistics);
+  }, [data, onStatisticsChange]);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());

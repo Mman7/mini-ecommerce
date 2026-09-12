@@ -176,7 +176,6 @@ export const createProduct = async (req: Request, res: Response) => {
 
     return res.status(201).json(product);
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to create product" });
   }
 };
@@ -338,7 +337,6 @@ export const updateProduct = async (req: Request, res: Response) => {
       .status(200)
       .json({ message: "Product updated successfully", item: updatedProduct });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to update product" });
   }
 };
@@ -401,7 +399,6 @@ export const updateProductImage = async (req: Request, res: Response) => {
       item: updatedImage,
     });
   } catch (error) {
-    console.log(error);
     return res.status(500).json({ error: "Failed to update product image" });
   }
 };

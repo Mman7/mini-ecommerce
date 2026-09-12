@@ -2,7 +2,8 @@
 
 import { Search, Tags } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import {
   getAdminCategories,
   type AdminCategory,
@@ -30,47 +31,41 @@ export function AdminCategoryList({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [items, setItems] = useState<AdminCategory[]>([]);
-  const [pagination, setPagination] = useState({ total: 0, totalPages: 0 });
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const queryClient = useQueryClient();
   const query = searchParams.get("search") ?? "";
   const status = searchParams.get("status") ?? "";
   const page = Number(searchParams.get("page") ?? 1);
 
+  const categoryQuery = useQuery({
+    queryKey: ["admin-categories", { page, query, status }],
+    queryFn: () =>
+      getAdminCategories({
+        page,
+        limit: 20,
+        search: query,
+        status:
+          status === "active" || status === "inactive" ? status : undefined,
+      }),
+  });
+  const data = categoryQuery.data;
+  const items = data?.items ?? [];
+  const pagination = data?.pagination ?? { total: 0, totalPages: 0 };
+  const loading = categoryQuery.isPending;
+  const error = categoryQuery.error
+    ? "Unable to load categories. Please try again."
+    : "";
+
   useEffect(() => {
-    let active = true;
-    setLoading(true);
-    getAdminCategories({
-      page,
-      limit: 20,
-      search: query,
-      status: status === "active" || status === "inactive" ? status : undefined,
-    })
-      .then((result) => {
-        if (active) {
-          setItems(result.items);
-          onStatisticsChange({
-            ...result.statistics,
-            products: result.items.reduce(
-              (sum, category) => sum + category.productCount,
-              0,
-            ),
-          });
-          setPagination(result.pagination);
-          setError("");
-        }
-      })
-      .catch(() => {
-        if (active) setError("Unable to load categories. Please try again.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
+    if (data) {
+      onStatisticsChange({
+        ...data.statistics,
+        products: data.items.reduce(
+          (sum, category) => sum + category.productCount,
+          0,
+        ),
       });
-    return () => {
-      active = false;
-    };
-  }, [page, query, status, onStatisticsChange]);
+    }
+  }, [data, onStatisticsChange]);
 
   function updateParam(key: string, value: string) {
     const next = new URLSearchParams(searchParams.toString());
@@ -85,20 +80,13 @@ export function AdminCategoryList({
       const updated = await updateAdminCategory(category.categoryId, {
         isActive: !category.isActive,
       });
-      setItems((current) =>
-        current.map((item) =>
-          item.categoryId === updated.categoryId
-            ? { ...item, ...updated }
-            : item,
-        ),
-      );
+      await queryClient.invalidateQueries({ queryKey: ["admin-categories"] });
       toast.add({
         title: "Category updated",
         description: `${category.name} is now ${updated.isActive ? "active" : "inactive"}.`,
         type: "success",
       });
     } catch {
-      setError("Unable to update category status.");
       toast.add({
         title: "Update failed",
         description: "Unable to update category status.",
