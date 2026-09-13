@@ -75,8 +75,8 @@ export default function RootLayout({
       )}
     >
       <body>
+        <SmoothScroll />
         <QueryProvider>
-          <SmoothScroll />
           <AuthInitializer />
           <NavbarSection />
           <PageTransition>{children}</PageTransition>

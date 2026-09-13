@@ -130,8 +130,9 @@ export function AdminOrderList({
     <DashboardPanel className="mt-3">
       <PanelHeading
         title="All Orders"
+        titleClassName="text-lg hidden sm:block"
         action={
-          <div className="flex gap-2">
+          <div className="flex w-full justify-between gap-2 sm:w-auto">
             <div className="relative">
               <Search
                 className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--outline)"

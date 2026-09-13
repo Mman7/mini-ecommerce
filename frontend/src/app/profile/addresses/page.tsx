@@ -1,7 +1,8 @@
 "use client";
 
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
-import { useEffect, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createAddress,
   deleteAddress,
@@ -24,11 +25,16 @@ const emptyForm: AddressForm = {
 };
 
 export default function AddressesPage() {
-  const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [form, setForm] = useState<AddressForm>(emptyForm);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [error, setError] = useState("");
+  const queryClient = useQueryClient();
+  const addressesQuery = useQuery({
+    queryKey: ["my-addresses"],
+    queryFn: async () => (await getAddresses()).addresses,
+  });
+  const addresses: SavedAddress[] = addressesQuery.data ?? [];
 
   const startEditing = (savedAddress: SavedAddress) => {
     setEditingId(String(savedAddress.id));
@@ -43,18 +49,6 @@ export default function AddressesPage() {
     setError("");
   };
 
-  useEffect(() => {
-    getAddresses()
-      .then((response) => setAddresses(response.addresses))
-      .catch((requestError) =>
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "Unable to load addresses.",
-        ),
-      );
-  }, []);
-
   const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -63,7 +57,7 @@ export default function AddressesPage() {
       const response = editingId
         ? await updateAddress(Number(editingId), form)
         : await createAddress(form);
-      setAddresses(response.addresses);
+      queryClient.setQueryData(["my-addresses"], response.addresses);
       setForm(emptyForm);
       setEditingId(null);
       setShowForm(false);
@@ -85,7 +79,10 @@ export default function AddressesPage() {
 
   const remove = async (id: number) => {
     try {
-      setAddresses((await deleteAddress(id)).addresses);
+      queryClient.setQueryData(
+        ["my-addresses"],
+        (await deleteAddress(id)).addresses,
+      );
     } catch (requestError) {
       setError(
         requestError instanceof Error
@@ -122,13 +119,18 @@ export default function AddressesPage() {
         </button>
       </header>
 
-      {error && (
+      {(error || addressesQuery.error) && (
         <p className="text-destructive rounded-md border border-red-200 bg-red-50 p-3 text-sm">
-          {error}
+          {error ||
+            (addressesQuery.error instanceof Error
+              ? addressesQuery.error.message
+              : "Unable to load addresses.")}
         </p>
       )}
 
-      {showForm && (
+      {addressesQuery.isPending ? (
+        <p className="text-text-muted text-sm">Loading addresses...</p>
+      ) : showForm ? (
         <form onSubmit={submit} className="glass-panel rounded-lg p-5">
           <label className="meta-font block text-xs font-semibold uppercase">
             Address line
@@ -179,9 +181,7 @@ export default function AddressesPage() {
             </button>
           </div>
         </form>
-      )}
-
-      {addresses.length === 0 ? (
+      ) : addresses.length === 0 ? (
         <div className="glass-panel rounded-lg p-8 text-center">
           <MapPin className="text-primary mx-auto" size={24} />
           <p className="text-text-muted mt-3 text-sm">

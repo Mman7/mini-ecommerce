@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "motion/react";
 import { Heart, RefreshCw, ShoppingCart } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getFavourites, removeFavourite } from "@/src/api/favourite.api";
 import { addCartItem } from "@/src/api/cart.api";
 import { getProduct, type Product } from "@/src/api/product.api";
@@ -30,16 +31,13 @@ export default function WishlistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setCart = useCartStore((state) => state.setCart);
-  const [items, setItems] = useState<WishlistItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
   const [message, setMessage] = useState("");
+  const queryClient = useQueryClient();
   const sort = (searchParams.get("sort") as SortKey) || "recent";
 
-  async function loadWishlist() {
-    setLoading(true);
-    setError(false);
-    try {
+  const wishlistQuery = useQuery({
+    queryKey: ["wishlist"],
+    queryFn: async () => {
       const { favourites } = await getFavourites();
       const products = await Promise.all(
         favourites.map(async (favourite) => {
@@ -54,26 +52,18 @@ export default function WishlistPage() {
           }
         }),
       );
-      setItems(
-        products.filter(
-          (item): item is WishlistItem =>
-            item !== null && item.product !== null,
-        ),
+      return products.filter(
+        (item): item is WishlistItem => item !== null && item.product !== null,
       );
-    } catch {
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  useEffect(() => {
-    void loadWishlist();
-  }, []);
+    },
+  });
+  const items = wishlistQuery.data ?? [];
+  const loading = wishlistQuery.isPending;
+  const error = Boolean(wishlistQuery.error);
 
   async function handleRemove(productId: number) {
     await removeFavourite(productId);
-    setItems((current) =>
+    queryClient.setQueryData<WishlistItem[]>(["wishlist"], (current = []) =>
       current.filter((item) => item.product.productId !== productId),
     );
   }
@@ -150,7 +140,7 @@ export default function WishlistPage() {
       {loading ? (
         <WishlistSkeleton />
       ) : error ? (
-        <ErrorState onRetry={() => void loadWishlist()} />
+        <ErrorState onRetry={() => void wishlistQuery.refetch()} />
       ) : sortedItems.length === 0 ? (
         <EmptyState />
       ) : (

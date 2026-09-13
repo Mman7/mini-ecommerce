@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { getMyOrders, type Order } from "@/src/api/order.api";
 
 const getImage = (order: Order) =>
@@ -11,20 +11,16 @@ const getImage = (order: Order) =>
     ?.url || order.orderItems[0]?.product.productImages[0]?.url;
 
 export default function MyOrdersPage() {
-  const [orders, setOrders] = useState<Order[]>([]);
-  const [error, setError] = useState("");
-
-  useEffect(() => {
-    getMyOrders()
-      .then((response) => setOrders(response.orders))
-      .catch((requestError) =>
-        setError(
-          requestError instanceof Error
-            ? requestError.message
-            : "Unable to load your orders.",
-        ),
-      );
-  }, []);
+  const ordersQuery = useQuery({
+    queryKey: ["my-orders"],
+    queryFn: async () => (await getMyOrders()).orders,
+  });
+  const orders: Order[] = ordersQuery.data ?? [];
+  const error = ordersQuery.error
+    ? ordersQuery.error instanceof Error
+      ? ordersQuery.error.message
+      : "Unable to load your orders."
+    : "";
 
   return (
     <div className="space-y-8">
@@ -37,7 +33,9 @@ export default function MyOrdersPage() {
         </p>
       </header>
       {error && <p className="text-error text-sm">{error}</p>}
-      {!error && orders.length === 0 ? (
+      {ordersQuery.isPending ? (
+        <p className="text-text-muted text-sm">Loading your orders...</p>
+      ) : error ? null : orders.length === 0 ? (
         <p className="text-text-muted text-sm">
           You have not placed any orders yet.
         </p>

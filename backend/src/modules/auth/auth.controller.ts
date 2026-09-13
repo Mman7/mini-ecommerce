@@ -144,6 +144,6 @@ export const handleRefreshToken = async (req: Request, res: Response) => {
       })
       .json({ message: "Token refreshed successfully!" });
   } catch (error: any) {
-    return res.status(400).json({ message: error.message });
+    return res.status(401).json({ message: error.message });
   }
 };

@@ -79,17 +79,24 @@ export async function requestBlob(
     credentials: "include",
     headers: options.headers,
   });
+  const body = (await response
+    .clone()
+    .json()
+    .catch(() => null)) as {
+    message?: string;
+    error?: string;
+  } | null;
 
-  if (response.status === 401 && canRefresh && path !== "/auth/refresh") {
+  if (
+    response.status === 401 &&
+    body?.message === "Invalid token" &&
+    canRefresh
+  ) {
     const refreshed = await refreshAccessToken();
     if (refreshed) return requestBlob(path, options, false);
   }
 
   if (!response.ok) {
-    const body = (await response.json().catch(() => null)) as {
-      message?: string;
-      error?: string;
-    } | null;
     const error = new Error(
       body?.message || body?.error || "Something went wrong. Please try again.",
     ) as ApiError;
