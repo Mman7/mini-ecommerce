@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getAdminProduct, type Product } from "../../../../api/product.api";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import {
   DashboardHeading,
   DashboardPanel,
@@ -35,19 +36,36 @@ export default function ProductDetailPage() {
             title={product.name}
             description="Product details and inventory."
             action={
-              <Link
-                href={`/dashboard/products/${product.productId}/edit`}
-                className="meta-font bg-primary text-primary-foreground rounded px-3 py-2 text-xs"
-              >
-                Edit Product
-              </Link>
+              <>
+                <Link
+                  href={`/dashboard/products`}
+                  className="meta-font border-primary rounded border bg-transparent px-3 py-2 text-xs"
+                >
+                  Back to Products
+                </Link>
+                <Link
+                  href={`/dashboard/products/${product.productId}/edit`}
+                  className="meta-font bg-primary text-primary-foreground rounded px-3 py-2 text-xs"
+                >
+                  Edit Product
+                </Link>
+              </>
             }
           />
           <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
             <DashboardPanel>
               <PanelHeading title="Product Images" />
               <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-4">
-                {product.productImages.map((image) => (
+                {(product.productImages.length > 0
+                  ? product.productImages
+                  : [
+                      {
+                        id: "default",
+                        url: DEFAULT_PRODUCT_IMAGE,
+                        altText: null,
+                      },
+                    ]
+                ).map((image) => (
                   <div
                     key={image.id ?? image.url}
                     className="bg-surface-2 relative aspect-square overflow-hidden rounded"
@@ -66,7 +84,7 @@ export default function ProductDetailPage() {
             </DashboardPanel>
             <DashboardPanel>
               <PanelHeading title="Overview" />
-              <dl className="space-y-3 px-4 pb-4 text-sm">
+              <dl className="space-y-3 px-4 py-4 pb-4 text-sm">
                 <div>
                   <dt className="text-text-muted">Price</dt>
                   <dd className="text-foreground">

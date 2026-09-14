@@ -11,6 +11,7 @@ import {
   DisplayProduct,
   fallbackProducts2,
 } from "@/src/path/fallback_image_path";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const fallbackProducts: DisplayProduct[] = [
   {
@@ -18,7 +19,7 @@ const fallbackProducts: DisplayProduct[] = [
     name: "Velvet Bunny Companion",
     category: "Luxury Plush",
     price: "RM 68.00",
-    image: "/homepage/white-plush-rabbit-on-shelf.png",
+    image: DEFAULT_PRODUCT_IMAGE,
     label: "New",
     isFallback: true,
   },
@@ -65,7 +66,7 @@ function toDisplayProduct(
     name: product.name,
     category: "From the atelier",
     price: `RM ${product.price.toFixed(2)}`,
-    image: imageUrl || fallbackProducts[index % fallbackProducts.length].image,
+    image: imageUrl || DEFAULT_PRODUCT_IMAGE,
     label: index === 0 ? "Recommended" : "Curated",
     isFallback: !imageUrl,
   };
@@ -109,6 +110,7 @@ function ProductTile({
       <div className="bg-surface-2 relative aspect-square overflow-hidden rounded-sm">
         <ImageWithFallback
           src={product.image}
+          fallbackSrc={DEFAULT_PRODUCT_IMAGE}
           alt={product.name}
           sizes={
             large

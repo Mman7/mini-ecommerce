@@ -1,17 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
 
-export const validateProductId = (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
-  const productId = Number(req.params.id);
-  if (!Number.isInteger(productId) || productId < 1) {
-    return res.status(400).json({ message: "Invalid product ID" });
-  }
-  next();
-};
-
 export const validateProductListQuery = (
   req: Request,
   res: Response,

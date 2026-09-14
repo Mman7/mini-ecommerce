@@ -2,6 +2,7 @@
 
 import { Search } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -19,6 +20,7 @@ import {
   TableAction,
 } from "./index";
 import type { ColumnDef } from "@tanstack/react-table";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -108,21 +110,24 @@ export function AdminProductList({
         const image =
           product.productImages.find((item) => item.isThumbnail) ??
           product.productImages[0];
-        const imageSrc = getImageSrc(image?.url);
+        const imageSrc = getImageSrc(image?.url) ?? DEFAULT_PRODUCT_IMAGE;
         return (
           <div className="flex items-center gap-3">
             <div className="bg-surface-3 relative h-9 w-9 shrink-0 overflow-hidden rounded">
-              {imageSrc ? (
-                <Image
-                  src={imageSrc}
-                  alt={image.altText ?? product.name}
-                  fill
-                  sizes="36px"
-                  className="object-cover"
-                />
-              ) : null}
+              <Image
+                src={imageSrc}
+                alt={image?.altText ?? product.name}
+                fill
+                sizes="36px"
+                className="object-cover"
+              />
             </div>
-            <span className="text-foreground text-sm">{product.name}</span>
+            <Link
+              href={`/dashboard/products/${product.productId}`}
+              className="text-foreground hover:text-primary-soft! text-sm transition-colors"
+            >
+              {product.name}
+            </Link>
           </div>
         );
       },

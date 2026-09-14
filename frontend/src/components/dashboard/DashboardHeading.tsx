@@ -27,7 +27,7 @@ export function DashboardHeading({
         </TextInView>
         <p className="text-text-muted mt-1 text-sm">{description}</p>
       </div>
-      {action}
+      <div className="flex gap-2">{action}</div>
     </div>
   );
 }

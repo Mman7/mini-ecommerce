@@ -44,7 +44,8 @@ export default function WishlistPage() {
           try {
             return {
               product:
-                favourite.product ?? (await getProduct(favourite.productId)),
+                favourite.product ??
+                (await getProduct(String(favourite.productId))),
               createdAt: favourite.createdAt,
             };
           } catch {

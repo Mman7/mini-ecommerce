@@ -1,5 +1,6 @@
 import { prisma } from "../../utils/prisma.ts";
 import { deleteFileByPath } from "../file/file.service.ts";
+import slugify from "slugify";
 import type {
   Product,
   ProductResponse,
@@ -7,12 +8,29 @@ import type {
 } from "../../types/product.js";
 import type { ProductUpdateInput } from "../../generated/prisma/models.ts";
 
+const createSlug = (name: string) =>
+  slugify(name, { lower: true, strict: true, trim: true }) || "product";
+
+const getUniqueSlug = async (name: string) => {
+  const baseSlug = createSlug(name);
+  const matches = await prisma.product.findMany({
+    where: { slug: { startsWith: baseSlug } },
+    select: { slug: true },
+  });
+  const usedSlugs = new Set(matches.map(({ slug }) => slug));
+  if (!usedSlugs.has(baseSlug)) return baseSlug;
+
+  let suffix = 2;
+  while (usedSlugs.has(`${baseSlug}-${suffix}`)) suffix += 1;
+  return `${baseSlug}-${suffix}`;
+};
+
 export const getTotalProducts = async () => {
   const totalProducts = await prisma.product.count();
   return totalProducts;
 };
 
-export const createProduct = ({
+export const createProduct = async ({
   name,
   description,
   price,
@@ -25,30 +43,37 @@ export const createProduct = ({
   stock?: number;
   reorderAt?: number;
 }) => {
-  return prisma.product.create({
-    data: {
-      name,
-      description,
-      price,
-      ...(categoryId !== undefined ? { categoryId } : {}),
-      productImages: {
-        create: productImages.map(
-          ({ url, altText, sortOrder, isThumbnail }) => ({
-            url,
-            altText,
-            sortOrder,
-            isThumbnail,
-          }),
-        ),
-      },
-      inventory: {
-        create: { stock, reorderAt: reorderAt ?? null },
-      },
-    },
-    include: {
-      productImages: true,
-    },
-  });
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const slug = await getUniqueSlug(name);
+    try {
+      return await prisma.product.create({
+        data: {
+          name,
+          slug,
+          description,
+          price,
+          ...(categoryId !== undefined ? { categoryId } : {}),
+          productImages: {
+            create: productImages.map(
+              ({ url, altText, sortOrder, isThumbnail }) => ({
+                url,
+                altText,
+                sortOrder,
+                isThumbnail,
+              }),
+            ),
+          },
+          inventory: {
+            create: { stock, reorderAt: reorderAt ?? null },
+          },
+        },
+        include: { productImages: true },
+      });
+    } catch (error) {
+      if ((error as { code?: string }).code !== "P2002") throw error;
+    }
+  }
+  throw new Error("Unable to create a unique product slug");
 };
 
 const productInclude = {
@@ -60,7 +85,7 @@ const productInclude = {
 type ProductWithRelations = {
   productId: number;
   name: string;
-  slug: string | null;
+  slug: string;
   sku: string | null;
   description: string;
   price: { toString(): string } | number;
@@ -108,6 +133,12 @@ export const getProductById = (id: number) => {
     include: productInclude,
   });
 };
+
+export const getProductBySlug = (slug: string) =>
+  prisma.product.findUnique({
+    where: { slug },
+    include: productInclude,
+  });
 
 export const getProductStock = async (id: number) => {
   const inventory = await prisma.inventory.findUnique({
@@ -180,14 +211,20 @@ export const getProductsForAdmin = async ({
   sortBy,
   sortOrder,
 }: AdminProductQuery) => {
-  const inventoryFilter =
-    stock === "out"
-      ? { stock: { equals: 0 } }
-      : stock === "in"
-        ? { stock: { gt: 0 } }
-        : stock === "low"
-          ? { stock: { gt: 0, lte: 10 } }
-          : undefined;
+  let inventoryFilter:
+    | { stock: { equals: number } }
+    | { stock: { gt: number } }
+    | { stock: { gt: number; lte: number } }
+    | undefined;
+
+  if (stock === "out") {
+    inventoryFilter = { stock: { equals: 0 } };
+  } else if (stock === "in") {
+    inventoryFilter = { stock: { gt: 0 } };
+  } else if (stock === "low") {
+    inventoryFilter = { stock: { gt: 0, lte: 10 } };
+  }
+
   const where = {
     ...(search
       ? { name: { contains: search, mode: "insensitive" as const } }

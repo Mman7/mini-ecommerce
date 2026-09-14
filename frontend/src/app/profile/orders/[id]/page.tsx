@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { cancelOrder, getOrder, type Order } from "@/src/api/order.api";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import {
   Stepper,
   StepperIndicator,
@@ -150,7 +151,9 @@ export default function OrderDetailPage({
           {order.orderItems.map((item) => {
             const image =
               item.product.productImages.find((entry) => entry.isThumbnail)
-                ?.url || item.product.productImages[0]?.url;
+                ?.url ||
+              item.product.productImages[0]?.url ||
+              DEFAULT_PRODUCT_IMAGE;
             return (
               <article
                 key={item.id}

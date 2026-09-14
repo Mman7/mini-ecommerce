@@ -5,10 +5,13 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { getMyOrders, type Order } from "@/src/api/order.api";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const getImage = (order: Order) =>
   order.orderItems[0]?.product.productImages.find((image) => image.isThumbnail)
-    ?.url || order.orderItems[0]?.product.productImages[0]?.url;
+    ?.url ||
+  order.orderItems[0]?.product.productImages[0]?.url ||
+  DEFAULT_PRODUCT_IMAGE;
 
 export default function MyOrdersPage() {
   const ordersQuery = useQuery({

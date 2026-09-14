@@ -148,3 +148,4 @@ backend/src/generated/prisma/
 
 # uploads directory
 uploads/
+*.bat

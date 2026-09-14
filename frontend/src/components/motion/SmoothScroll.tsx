@@ -26,12 +26,15 @@ export function SmoothScroll() {
 
     let target = window.scrollY;
     let velocity = 0;
+    let isScrollbarDragging = false;
 
     const WHEEL_POWER = 0.06;
     const FRICTION = 0.96;
     const MAX_VELOCITY = 100;
 
     const onWheel = (event: WheelEvent) => {
+      if (isScrollbarDragging) return;
+
       event.preventDefault();
 
       velocity += event.deltaY * WHEEL_POWER;
@@ -39,7 +42,30 @@ export function SmoothScroll() {
       velocity = Math.max(-MAX_VELOCITY, Math.min(MAX_VELOCITY, velocity));
     };
 
+    const isScrollbarPointer = (event: MouseEvent) =>
+      event.clientX >= document.documentElement.clientWidth;
+
+    const onMouseDown = (event: MouseEvent) => {
+      if (!isScrollbarPointer(event)) return;
+
+      isScrollbarDragging = true;
+      velocity = 0;
+    };
+
+    const onMouseUp = () => {
+      if (!isScrollbarDragging) return;
+
+      isScrollbarDragging = false;
+      target = window.scrollY;
+    };
+
     const update = () => {
+      if (isScrollbarDragging) {
+        target = window.scrollY;
+        requestAnimationFrame(update);
+        return;
+      }
+
       // momentum
       target += velocity;
 
@@ -64,11 +90,15 @@ export function SmoothScroll() {
     window.addEventListener("wheel", onWheel, {
       passive: false,
     });
+    window.addEventListener("mousedown", onMouseDown);
+    window.addEventListener("mouseup", onMouseUp);
 
     const raf = requestAnimationFrame(update);
 
     return () => {
       window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("mousedown", onMouseDown);
+      window.removeEventListener("mouseup", onMouseUp);
       cancelAnimationFrame(raf);
       lenis.destroy();
     };

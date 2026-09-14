@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import type { Product } from "@/src/api/product.api";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 type WishlistProductCardProps = {
   product: Product;
@@ -23,7 +24,7 @@ export function WishlistProductCard({
   const image =
     product.productImages.find((item) => item.isThumbnail)?.url ??
     product.productImages[0]?.url ??
-    "/homepage/white-plush-rabbit-on-shelf.png";
+    DEFAULT_PRODUCT_IMAGE;
   const isOutOfStock = !product.isActive || product.stock < 1;
   const isLowStock = product.stock > 0 && product.stock <= 3;
 
@@ -86,7 +87,7 @@ export function WishlistProductCard({
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="min-w-0">
           <Link
-            href={`/products/${product.productId}`}
+            href={`/products/${product.slug}`}
             className="heading-font hover:text-primary focus-visible:outline-primary block truncate text-lg font-medium transition focus-visible:outline-2"
           >
             {product.name}

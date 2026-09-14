@@ -15,12 +15,9 @@ type ProductPageProps = { params: Promise<{ id: string }> };
 
 export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = await params;
-  const productId = Number(id);
-  if (!Number.isInteger(productId) || productId < 1) notFound();
-
   let product;
   try {
-    product = await getProduct(productId);
+    product = await getProduct(id);
   } catch (error) {
     if ((error as { status?: number }).status === 404) notFound();
     throw error;

@@ -17,6 +17,7 @@ import {
 import { FavoriteButton } from "../ui/FavoriteButton";
 import ProductCard from "../ui/ProductCard";
 import { toast } from "@/components/ui/toast";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 function imageUrl(url: string) {
   const normalized = url.replaceAll("\\", "/");
@@ -39,7 +40,7 @@ export default function ProductDetailInteractive({
           {
             id: 0,
             productId: product.productId,
-            url: "/homepage/white-plush-rabbit-on-shelf.png",
+            url: DEFAULT_PRODUCT_IMAGE,
             altText: product.name,
             sortOrder: 0,
             createdAt: "",
@@ -89,7 +90,7 @@ export default function ProductDetailInteractive({
           description: "Please sign in to add products to your cart.",
           type: "error",
         });
-        router.push(`/login?redirect=/products/${product.productId}`);
+        router.push(`/login?redirect=/products/${product.slug}`);
         return;
       }
       setStatus("idle");

@@ -10,6 +10,7 @@ import { Button } from "./Button";
 import { FavoriteButton } from "./FavoriteButton";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function ProductCard({ product }: { product: Product }) {
           description: "Please sign in to add products to your cart.",
           type: "error",
         });
-        router.push(`/login?redirect=/products/${product.productId}`);
+        router.push(`/login?redirect=/products/${product.slug}`);
       } else {
         toast.add({
           title: "Unable to add product",
@@ -50,14 +51,14 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <article className="group hover:border-primary/30 bg-surface-2 relative flex flex-col overflow-hidden rounded-md border border-white/6 shadow-[0_10px_28px_rgba(0,0,0,0.26)] transition-all duration-500">
       <Link
-        href={`/products/${product.productId}`}
+        href={`/products/${product.slug}`}
         className="bg-surface-container-high relative aspect-square overflow-hidden rounded-t-lg"
       >
         <img
           src={
             product.productImages.find((image) => image.isThumbnail)?.url ??
             product.productImages[0]?.url ??
-            "/homepage/white-plush-rabbit-on-shelf.png"
+            DEFAULT_PRODUCT_IMAGE
           }
           alt={product.productImages[0]?.altText ?? product.name}
           className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
@@ -75,7 +76,7 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="space-y-2 p-4">
         <div className="flex items-start justify-between">
           <Link
-            href={`/products/${product.productId}`}
+            href={`/products/${product.slug}`}
             className="text-headline-md font-headline-md text-on-surface group-hover:text-primary leading-tight transition-colors"
           >
             {product.name}

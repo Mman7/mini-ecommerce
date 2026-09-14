@@ -13,8 +13,9 @@ import {
 import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
-const fallbackImage = "/homepage/white-plush-rabbit-on-shelf.png";
+const fallbackImage = DEFAULT_PRODUCT_IMAGE;
 
 type LoadState = "loading" | "ready" | "unauthorized" | "error";
 

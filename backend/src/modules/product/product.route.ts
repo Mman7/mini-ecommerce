@@ -1,7 +1,6 @@
 import { Router } from "express";
 import * as productController from "./product.controller.ts";
 import {
-  validateProductId,
   validateProductListQuery,
   validateRecommendedLimit,
 } from "./product.validator.ts";
@@ -15,6 +14,6 @@ productRoutes.get(
   validateRecommendedLimit,
   productController.getRecommendedProducts,
 );
-productRoutes.get("/:id", validateProductId, productController.getProduct);
+productRoutes.get("/:id", productController.getProduct);
 
 export default productRoutes;

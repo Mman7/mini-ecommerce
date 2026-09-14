@@ -6,8 +6,9 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Package } from "lucide-react";
 import { getOrder, type Order } from "@/src/api/order.api";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
-const fallbackImage = "/homepage/white-plush-rabbit-on-shelf.png";
+const fallbackImage = DEFAULT_PRODUCT_IMAGE;
 
 function formatYen(value: string | number) {
   return `¥${Number(value).toLocaleString("ja-JP")}`;

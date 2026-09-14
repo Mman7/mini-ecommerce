@@ -9,7 +9,7 @@ import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
 import { useCartStore } from "@/src/store/cart.store";
 
-const NAVBAR_FIXED_SCROLL_Y = 100;
+const NAVBAR_FIXED_SCROLL_Y = 300;
 const NAVBAR_BLOCK_SCROLL_Y = 40;
 
 const navLinks = [
@@ -72,12 +72,12 @@ export function NavbarSection() {
 
   return (
     <>
-      {isScrolled && (
-        <div aria-hidden="true" style={{ height: navbarHeight }} />
-      )}
+      <div
+        aria-hidden="true"
+        style={{ height: isScrolled ? navbarHeight : 0 }}
+      />
       <motion.header
         ref={navbarRef}
-        key={isScrolled ? "fixed" : "block"}
         initial={isScrolled ? { y: "-100%" } : { y: 0 }}
         animate={{ y: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}

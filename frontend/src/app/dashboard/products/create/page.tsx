@@ -19,7 +19,6 @@ type ProductStatus = "Draft" | "Active" | "Archived";
 
 export default function CreateProductPage() {
   const [productName, setProductName] = useState("");
-  const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
@@ -48,16 +47,6 @@ export default function CreateProductPage() {
       if (imagePreview?.startsWith("blob:")) URL.revokeObjectURL(imagePreview);
     };
   }, [imagePreview]);
-
-  function generateSlug() {
-    setSlug(
-      productName
-        .trim()
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, "-")
-        .replace(/(^-|-$)/g, ""),
-    );
-  }
 
   function setImage(file?: File) {
     if (!file || !file.type.startsWith("image/")) return;
@@ -207,24 +196,21 @@ export default function CreateProductPage() {
                     className="form-input"
                   />
                 </Field>
+                <Field label="Public URL" className="md:col-span-2">
+                  <div className="flex items-center">
+                    <span className="bg-surface-2 text-text-muted rounded-l-md border border-r-0 border-(--glass-border) px-3 py-2 text-sm">
+                      /products/
+                    </span>
+                    <input
+                      value=""
+                      readOnly
+                      placeholder="Generated after creation"
+                      aria-label="Generated product slug"
+                      className="form-input rounded-l-none text-sm"
+                    />
+                  </div>
+                </Field>
                 <div className="grid gap-4 md:grid-cols-2">
-                  <Field label="Slug">
-                    <div className="flex gap-2">
-                      <input
-                        value={slug}
-                        onChange={(event) => setSlug(event.target.value)}
-                        placeholder="midnight-sakurajima-plush"
-                        className="form-input min-w-0 flex-1"
-                      />
-                      <button
-                        type="button"
-                        onClick={generateSlug}
-                        className="meta-font bg-surface-4 text-foreground hover:bg-surface-3 shrink-0 rounded-md px-3 text-xs transition"
-                      >
-                        Generate
-                      </button>
-                    </div>
-                  </Field>
                   <Field label="SKU">
                     <input
                       value={sku}
@@ -444,9 +430,17 @@ function AsideTitle({ title }: { title: string }) {
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Field({
+  label,
+  children,
+  className = "",
+}: {
+  label: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <label className="block space-y-2">
+    <label className={`block space-y-2 ${className}`}>
       <span className="meta-font text-text-muted block text-xs">{label}</span>
       {children}
     </label>

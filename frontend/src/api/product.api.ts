@@ -14,7 +14,7 @@ export type ProductImage = {
 export type Product = {
   productId: number;
   name: string;
-  slug: string | null;
+  slug: string;
   sku: string | null;
   description: string;
   price: number;
@@ -58,8 +58,8 @@ export function getProducts(params: ProductSearchParams) {
   return request<ProductListResponse>(`/products?${searchParams.toString()}`);
 }
 
-export function getProduct(productId: number) {
-  return request<Product>(`/products/${productId}`);
+export function getProduct(slug: string) {
+  return request<Product>(`/products/${encodeURIComponent(slug)}`);
 }
 
 export function getProductsCount() {
@@ -108,10 +108,7 @@ export function createAdminProduct(data: FormData) {
 export function updateAdminProduct(
   productId: number,
   data: Partial<
-    Pick<
-      Product,
-      "name" | "slug" | "sku" | "description" | "price" | "isActive"
-    > & {
+    Pick<Product, "name" | "sku" | "description" | "price" | "isActive"> & {
       categoryId: number | null;
     }
   >,

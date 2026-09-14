@@ -28,6 +28,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import {
   Select,
   SelectContent,
@@ -63,7 +64,7 @@ type ProductFormSnapshot = {
 const initialImages: ProductImage[] = [
   {
     id: "hero",
-    src: "/homepage/white-plush-rabbit-on-shelf.png",
+    src: DEFAULT_PRODUCT_IMAGE,
     primary: true,
   },
   { id: "detail", src: "/homepage/plush-toys-on-wooden-shelf.png" },
@@ -74,7 +75,7 @@ export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const [name, setName] = useState("Sakura Fox Plush");
-  const [slug, setSlug] = useState("sakura-fox-plush");
+  const [slug, setSlug] = useState("");
   const [sku, setSku] = useState("PLUSH-SAK-001");
   const [description, setDescription] = useState(
     "A soft and adorable bunny plush inspired by Japanese kawaii gift culture. Made with premium minky fabric and filled with hypoallergenic stuffing. Features delicate embroidered sakura blossoms on the ears and tail. Perfect as a comforting companion or a collector's display piece.",
@@ -116,7 +117,7 @@ export default function EditProductPage() {
     Promise.all([getAdminProduct(Number(id)), getCategories()])
       .then(([product, categoryList]) => {
         setName(product.name);
-        setSlug(product.slug ?? "");
+        setSlug(product.slug);
         setSku(product.sku ?? "");
         setDescription(product.description);
         setPrice(String(product.price));
@@ -133,7 +134,7 @@ export default function EditProductPage() {
         );
         setInitialForm({
           name: product.name,
-          slug: product.slug ?? "",
+          slug: product.slug,
           sku: product.sku ?? "",
           description: product.description,
           price: String(product.price),
@@ -157,7 +158,6 @@ export default function EditProductPage() {
     try {
       await updateAdminProduct(Number(id), {
         name,
-        slug,
         sku,
         description,
         price: Number(price),
@@ -248,7 +248,7 @@ export default function EditProductPage() {
                 Products
               </Link>
               <span>/</span>
-              <span>Sakura Fox Plush</span>
+              <span>{name || "Product"}</span>
               <span>/</span>
               <span className="text-foreground">Edit</span>
             </nav>
@@ -306,15 +306,16 @@ export default function EditProductPage() {
                     className="form-input"
                   />
                 </Field>
-                <Field label="Slug">
-                  <div className="relative">
-                    <span className="meta-font text-text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
+                <Field label="Public URL" className="md:col-span-2">
+                  <div className="flex items-center">
+                    <span className="bg-surface-2 text-text-muted rounded-l-md border border-r-0 border-(--glass-border) px-3 py-2.5 text-sm">
                       /products/
                     </span>
                     <input
                       value={slug}
-                      onChange={(event) => setSlug(event.target.value)}
-                      className="form-input pl-20"
+                      readOnly
+                      aria-label="Product slug"
+                      className="form-input rounded-l-none text-sm"
                     />
                   </div>
                 </Field>
@@ -535,7 +536,7 @@ export default function EditProductPage() {
                     src={
                       images.find((image) => image.primary)?.src ??
                       images[0]?.src ??
-                      "/homepage/white-plush-rabbit-on-shelf.png"
+                      DEFAULT_PRODUCT_IMAGE
                     }
                     alt="Sakura Fox Plush preview"
                     fill

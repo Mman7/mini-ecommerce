@@ -30,6 +30,7 @@ import {
   StatCard,
   StatusPill,
 } from "../../components/dashboard";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const chartConfig = {
   amount: { label: "Revenue", color: "#ffb77a" },
@@ -57,16 +58,11 @@ function ImageThumb({
   alt: string;
   size: string;
 }) {
-  return src ? (
+  return (
     <img
-      src={src}
+      src={src || DEFAULT_PRODUCT_IMAGE}
       alt={alt}
       className={`${size} shrink-0 rounded object-cover`}
-    />
-  ) : (
-    <div
-      className={`bg-surface-3 ${size} shrink-0 rounded`}
-      aria-hidden="true"
     />
   );
 }
