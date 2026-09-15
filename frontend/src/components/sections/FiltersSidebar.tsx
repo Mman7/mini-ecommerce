@@ -1,9 +1,34 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Category } from "../../api/category.api";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+  FieldLegend,
+  FieldSet,
+} from "@/components/ui/field";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "@/components/ui/toast";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Toggle } from "@/components/ui/toggle";
+
+const PRICE_MAX = 5000;
+const PRICE_STEP = 100;
+const PRICE_UPDATE_DELAY = 300;
+
+function normalizePrice(value: string | null, fallback: number) {
+  // Normalize the price value from the URL search params, ensuring it falls within the allowed range.
+  if (value === null) return fallback;
+  const price = Number(value);
+  if (!Number.isFinite(price)) return fallback;
+  return Math.min(
+    PRICE_MAX,
+    Math.max(0, Math.round(price / PRICE_STEP) * PRICE_STEP),
+  );
+}
 
 export default function FiltersSidebar({
   categories,
@@ -12,19 +37,53 @@ export default function FiltersSidebar({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [minPrice, setMinPrice] = useState(
-    () => searchParams.get("minPrice") ?? "",
-  );
-  const [maxPrice, setMaxPrice] = useState(
-    () => searchParams.get("maxPrice") ?? "",
-  );
+  const priceUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [priceRange, setPriceRange] = useState<[number, number]>(() => [
+    normalizePrice(searchParams.get("minPrice"), 0),
+    normalizePrice(searchParams.get("maxPrice"), PRICE_MAX),
+  ]);
+
+  function getPriceRange(): [number, number] {
+    return [
+      normalizePrice(searchParams.get("minPrice"), 0),
+      normalizePrice(searchParams.get("maxPrice"), PRICE_MAX),
+    ];
+  }
 
   useEffect(() => {
-    setMinPrice(searchParams.get("minPrice") ?? "");
-    setMaxPrice(searchParams.get("maxPrice") ?? "");
+    setPriceRange(getPriceRange());
   }, [searchParams]);
 
+  useEffect(() => {
+    return () => {
+      cancelPriceUpdate();
+    };
+  }, []);
+
+  function cancelPriceUpdate() {
+    if (!priceUpdateTimeout.current) return;
+    clearTimeout(priceUpdateTimeout.current);
+    priceUpdateTimeout.current = null;
+  }
+
+  function updatePriceRange(value: number | readonly number[]) {
+    if (!Array.isArray(value)) return;
+    const [minPrice, maxPrice] = value;
+    setPriceRange([minPrice, maxPrice]);
+
+    cancelPriceUpdate();
+    priceUpdateTimeout.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      params.set("minPrice", String(minPrice));
+      params.set("maxPrice", String(maxPrice));
+      params.delete("page");
+      router.push(`/products?${params.toString()}`);
+      priceUpdateTimeout.current = null;
+    }, PRICE_UPDATE_DELAY);
+  }
+
   function updateFilter(key: string, value: string) {
+    cancelPriceUpdate();
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
@@ -38,84 +97,92 @@ export default function FiltersSidebar({
         <h3 className="heading-font text-foreground mb-6 text-4xl leading-none font-semibold">
           Filters
         </h3>
-        <div className="mb-lg">
-          <h4 className="meta-font text-text-muted mb-4 text-[12px] font-semibold tracking-[0.12em] uppercase">
+        <FieldSet className="mb-lg gap-0">
+          <FieldLegend
+            variant="label"
+            className="meta-font text-text-muted mb-4 text-[12px] font-semibold tracking-[0.12em] uppercase"
+          >
             Category
-          </h4>
-          <div className="space-y-3">
-            <label className="group flex cursor-pointer items-center gap-3">
-              <input
-                type="radio"
-                name="category"
-                checked={!searchParams.has("categoryId")}
-                onChange={() => updateFilter("categoryId", "")}
-              />
+          </FieldLegend>
+          <FieldGroup className="gap-3">
+            <Toggle
+              type="button"
+              variant="outline"
+              pressed={!searchParams.has("categoryId")}
+              onPressedChange={(pressed) => {
+                if (pressed) updateFilter("categoryId", "");
+              }}
+              className="w-full justify-start"
+            >
               All collectibles
-            </label>
+            </Toggle>
             {categories.map((category) => (
-              <label
+              <Toggle
                 key={category.categoryId}
-                className="group flex cursor-pointer items-center gap-3"
+                type="button"
+                variant="outline"
+                pressed={
+                  searchParams.get("categoryId") === String(category.categoryId)
+                }
+                onPressedChange={(pressed) => {
+                  if (pressed) {
+                    updateFilter("categoryId", String(category.categoryId));
+                  }
+                }}
+                className="w-full justify-start"
               >
-                <input
-                  type="radio"
-                  name="category"
-                  checked={
-                    searchParams.get("categoryId") ===
-                    String(category.categoryId)
-                  }
-                  onChange={() =>
-                    updateFilter("categoryId", String(category.categoryId))
-                  }
-                />
-                <span>{category.name}</span>
-              </label>
+                {category.name}
+              </Toggle>
             ))}
-          </div>
-        </div>
-        <div className="mt-7 mb-7">
-          <h4 className="meta-font text-text-muted mb-4 text-[12px] font-semibold tracking-[0.12em] uppercase">
+          </FieldGroup>
+        </FieldSet>
+        <FieldSet className="mt-7 mb-7 gap-0">
+          <FieldLegend
+            variant="label"
+            className="meta-font text-text-muted mb-4 text-[12px] font-semibold tracking-[0.12em] uppercase"
+          >
             Price Range
-          </h4>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                aria-label="Minimum price"
-                type="number"
-                min="0"
-                placeholder="Min"
-                value={minPrice}
-                onChange={(event) => setMinPrice(event.target.value)}
-                onBlur={(event) => updateFilter("minPrice", event.target.value)}
-                className="bg-surface-2 h-10 rounded-md border border-(--outline-strong) px-2"
-              />
-              <input
-                aria-label="Maximum price"
-                type="number"
-                min="0"
-                placeholder="Max"
-                value={maxPrice}
-                onChange={(event) => setMaxPrice(event.target.value)}
-                onBlur={(event) => updateFilter("maxPrice", event.target.value)}
-                className="bg-surface-2 h-10 rounded-md border border-(--outline-strong) px-2"
-              />
+          </FieldLegend>
+          <FieldGroup className="gap-3">
+            <FieldLabel className="sr-only" htmlFor="price-range">
+              Price range
+            </FieldLabel>
+            <Slider
+              id="price-range"
+              aria-label="Price range"
+              min={0}
+              max={PRICE_MAX}
+              step={PRICE_STEP}
+              value={priceRange}
+              onValueChange={updatePriceRange}
+              className="py-2"
+            />
+            <div className="text-text-muted flex justify-between text-xs">
+              <span>RM {priceRange[0].toLocaleString()}</span>
+              <span>RM {priceRange[1].toLocaleString()}</span>
             </div>
-          </div>
-        </div>
-        <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
+          </FieldGroup>
+        </FieldSet>
+        <Field orientation="horizontal" className="items-center gap-3">
+          <Checkbox
+            id="in-stock"
             checked={searchParams.get("inStock") === "true"}
-            onChange={(event) =>
-              updateFilter("inStock", event.target.checked ? "true" : "")
+            onCheckedChange={(checked) =>
+              updateFilter("inStock", checked ? "true" : "")
             }
           />
-          In stock only
-        </label>
+          <FieldLabel htmlFor="in-stock" className="cursor-pointer">
+            In stock only
+          </FieldLabel>
+        </Field>
         <button
           type="button"
-          onClick={() => router.push("/products")}
-          className="meta-font text-primary-soft text-sm font-semibold"
+          onClick={() => {
+            cancelPriceUpdate();
+            setPriceRange([0, PRICE_MAX]);
+            router.push("/products");
+          }}
+          className="meta-font hover:bg-primary-soft text-primary-soft border-primary-soft mt-3 w-full rounded border bg-transparent px-3 py-2 text-sm font-semibold transition hover:cursor-pointer hover:text-white"
         >
           Clear filters
         </button>

@@ -10,6 +10,7 @@ const options = [
   ["price:desc", "Price: High to Low"],
   ["name:asc", "Name: A to Z"],
 ] as const;
+// TODO add mobile filter with drawer
 
 export default function SortingBar({ total }: { total: number }) {
   const router = useRouter();
@@ -27,29 +28,32 @@ export default function SortingBar({ total }: { total: number }) {
 
   return (
     <div className="mb-3 flex items-center justify-between">
-      <p className="text-on-surface/65 text-[15px]">
+      <p className="text-on-surface/65 mx-auto text-sm">
         Showing
         <span className="text-on-surface font-semibold">{` ${total} `}</span>
         products
       </p>
       <div className="meta-font flex items-center gap-3">
-        <span className="text-on-surface/50 hidden text-[12px] md:block">
+        <span className="text-on-surface/50 hidden text-sm md:block">
           Sort by:
         </span>
-        <select
-          value={selected}
-          onChange={(event) => updateSort(event.target.value)}
-          className="text-primary bg-surface-2 inline-flex items-center gap-1.5 rounded-md border border-(--outline-strong) px-3 py-2 text-[14px] font-semibold"
-        >
-          {options.map(([value, label]) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </select>
-        <span className="hidden">
-          <ChevronDown className="text-on-surface/60 h-3.5 w-3.5 stroke-current" />
-        </span>
+        <div className="relative">
+          <select
+            value={selected}
+            onChange={(event) => updateSort(event.target.value)}
+            className="text-primary bg-surface-2 appearance-none rounded-md border border-(--outline-strong) px-3 py-2 pr-10 text-sm font-semibold"
+          >
+            {options.map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown
+            aria-hidden="true"
+            className="text-on-surface/60 pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
+          />
+        </div>
       </div>
     </div>
   );

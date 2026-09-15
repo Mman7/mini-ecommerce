@@ -70,6 +70,7 @@ export default function ProductsCatalog() {
   const productsQuery = useQuery({
     queryKey: ["products", productQuery],
     queryFn: () => getProducts(productQuery),
+    placeholderData: (previousData) => previousData,
   });
   const categoriesQuery = useQuery({
     queryKey: ["categories"],
@@ -81,37 +82,13 @@ export default function ProductsCatalog() {
     (category) => category.categoryId === categoryId,
   );
   const heading = selectedCategory?.name ?? "Collectibles";
-  const isLoading = productsQuery.isPending || categoriesQuery.isPending;
-  const error = productsQuery.error ?? categoriesQuery.error;
-
-  if (isLoading) {
-    return (
-      <main className="padding-inline py-40 text-center">
-        <p className="text-text-muted">Loading the collection...</p>
-      </main>
-    );
-  }
-
-  if (error || !productsQuery.data) {
-    return (
-      <main className="padding-inline py-40 text-center">
-        <h1 className="heading-font text-4xl font-semibold">
-          The Atelier is taking a moment
-        </h1>
-        <p className="text-text-muted mt-3">
-          We couldn&apos;t load the collection right now.
-        </p>
-        <Link
-          href="/products"
-          className="meta-font text-primary-soft mt-6 inline-block font-semibold"
-        >
-          Try again
-        </Link>
-      </main>
-    );
-  }
-
   const result = productsQuery.data;
+
+  const skeletons = (
+    <div className="padding-inline py-40 text-center">
+      <p className="text-text-muted">Loading the collection...</p>
+    </div>
+  );
 
   return (
     <main className="pb-15">
@@ -160,8 +137,25 @@ export default function ProductsCatalog() {
           <FiltersSidebar categories={categories} />
         </aside>
         <div id="catalog" className="md:col-span-9">
-          <SortingBar total={result.pagination.total} />
-          {result.items.length > 0 ? (
+          <SortingBar total={result?.pagination.total ?? 0} />
+          {productsQuery.error ? (
+            <div className="padding-inline py-40 text-center">
+              <h2 className="heading-font text-3xl font-semibold">
+                The Atelier is taking a moment
+              </h2>
+              <p className="text-text-muted mt-3">
+                We couldn&apos;t load the collection right now.
+              </p>
+              <Link
+                href="/products"
+                className="meta-font text-primary-soft mt-6 inline-block font-semibold"
+              >
+                Try again
+              </Link>
+            </div>
+          ) : !result ? (
+            skeletons
+          ) : result.items.length > 0 ? (
             <ProductGrid products={result.items} />
           ) : (
             <div className="bg-surface-2 rounded-md border border-(--outline-strong) px-6 py-20 text-center">
@@ -180,12 +174,14 @@ export default function ProductsCatalog() {
               </Link>
             </div>
           )}
-          <Pagination
-            page={result.pagination.page}
-            totalPages={result.pagination.totalPages}
-            total={result.pagination.total}
-            query={queryStringFrom(params)}
-          />
+          {result && (
+            <Pagination
+              page={result.pagination.page}
+              totalPages={result.pagination.totalPages}
+              total={result.pagination.total}
+              query={queryStringFrom(params)}
+            />
+          )}
         </div>
       </div>
     </main>
