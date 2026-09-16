@@ -77,7 +77,7 @@ export default function ProductCard({ product }: { product: Product }) {
         <div className="flex items-start justify-between">
           <Link
             href={`/products/${product.slug}`}
-            className="text-headline-md font-headline-md text-on-surface group-hover:text-primary leading-tight transition-colors"
+            className="text-headline-md font-headline-md text-on-surface group-hover:text-primary truncate leading-tight transition-colors"
           >
             {product.name}
           </Link>

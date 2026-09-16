@@ -39,7 +39,8 @@ export async function request<T>(
       ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...options.headers,
     },
-  });
+  }).then((res) => res);
+
   const body = (await response
     .clone()
     .json()

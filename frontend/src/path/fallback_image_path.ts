@@ -6,6 +6,7 @@ export type DisplayProduct = {
   image: string;
   label: string;
   isFallback: boolean;
+  slug: string;
 };
 export const fallbackProducts2: DisplayProduct[] = [
   {
@@ -16,6 +17,7 @@ export const fallbackProducts2: DisplayProduct[] = [
     image: "/homepage/kappa-plush-toy-holding-cucumber.png",
     label: "New",
     isFallback: true,
+    slug: "atelier-plush-2",
   },
   {
     id: "atelier-journal-2",
@@ -24,8 +26,9 @@ export const fallbackProducts2: DisplayProduct[] = [
     price: "RM 42.00",
     image:
       "/homepage/blue-and-gold-mythical-creature-plush-toy-wooden-shelf.png",
-    label: "Curated",
     isFallback: true,
+    slug: "atelier-journal-2",
+    label: "Curated",
   },
   {
     id: "atelier-charm-2",
@@ -33,8 +36,9 @@ export const fallbackProducts2: DisplayProduct[] = [
     category: "Designer Trinkets",
     price: "RM 36.00",
     image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    label: "Limited",
     isFallback: true,
+    slug: "atelier-charm-2",
+    label: "Limited",
   },
   {
     id: "atelier-gift-2",
@@ -44,5 +48,6 @@ export const fallbackProducts2: DisplayProduct[] = [
     image: "/homepage/black-two-tailed-cat-plush-display-case.png",
     label: "Gift Set",
     isFallback: true,
+    slug: "atelier-gift-2",
   },
 ];

@@ -13,45 +13,6 @@ import {
 } from "@/src/path/fallback_image_path";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
-const fallbackProducts: DisplayProduct[] = [
-  {
-    id: "atelier-plush",
-    name: "Velvet Bunny Companion",
-    category: "Luxury Plush",
-    price: "RM 68.00",
-    image: DEFAULT_PRODUCT_IMAGE,
-    label: "New",
-    isFallback: true,
-  },
-  {
-    id: "atelier-journal",
-    name: "Floral Daybook",
-    category: "Stationery Stories",
-    price: "RM 42.00",
-    image: "/homepage/komorebi-stationery-fountain-pen.png",
-    label: "Curated",
-    isFallback: true,
-  },
-  {
-    id: "atelier-charm",
-    name: "Lucky Cat Trinket",
-    category: "Designer Trinkets",
-    price: "RM 36.00",
-    image: "/homepage/blue-maneki-neko-figurine-display-case.png",
-    label: "Limited",
-    isFallback: true,
-  },
-  {
-    id: "atelier-gift",
-    name: "A Quiet Celebration",
-    category: "Atelier Gift Sets",
-    price: "RM 118.00",
-    image: "/homepage/komorebi-gift-atelier-wrapped-boxes.png",
-    label: "Gift Set",
-    isFallback: true,
-  },
-];
-
 function toDisplayProduct(
   product: Product,
   index: number,
@@ -62,6 +23,7 @@ function toDisplayProduct(
     product.productImages[0];
   const imageUrl = normalizeImageUrl(image?.url);
   return {
+    slug: product.slug ?? `product-${index}`,
     id: String(product.productId ?? `product-${index}`),
     name: product.name,
     category: "From the atelier",
@@ -81,7 +43,7 @@ function normalizeImageUrl(url?: string) {
 
 async function loadProducts(
   loader: () => Promise<Product[]>,
-  fallbackSet = fallbackProducts,
+  fallbackSet = fallbackProducts2,
 ) {
   try {
     const products = await loader();
@@ -105,6 +67,7 @@ function ProductTile({
   index: number;
   large?: boolean;
 }) {
+  console.log(product.id);
   return (
     <article className={`group relative ${large ? "md:row-span-2" : ""}`}>
       <div className="bg-surface-2 relative aspect-square overflow-hidden rounded-sm">
@@ -132,7 +95,9 @@ function ProductTile({
       </div>
       <div className="space-y-1 pt-4">
         <div className="flex items-start justify-between gap-3">
-          <h3 className="heading-font text-base font-medium">{product.name}</h3>
+          <h3 className="heading-font truncate text-base font-medium">
+            {product.name}
+          </h3>
           {!product.isFallback && (
             <span className="meta-font text-primary-soft shrink-0 text-sm">
               {product.price}
@@ -151,7 +116,7 @@ export async function KomorebiEditSection() {
   // TODO get recommended products from API or context if needed
   const products = await loadProducts(
     () => getRecommendedProducts(4),
-    fallbackProducts,
+    fallbackProducts2,
   );
   return (
     <section className="padding-inline mt-28 md:mt-36">

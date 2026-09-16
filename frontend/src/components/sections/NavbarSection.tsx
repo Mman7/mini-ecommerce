@@ -81,7 +81,6 @@ export function NavbarSection() {
           ref={navbarRef}
           initial={{ y: isScrolled ? "-100%" : 0 }}
           animate={{ y: 0 }}
-          exit={{ y: isScrolled ? "-100%" : 0 }}
           transition={{ duration: 0.35, ease: "easeOut" }}
           className={`${isScrolled ? "fixed top-0" : "block"} z-100 w-full`}
         >

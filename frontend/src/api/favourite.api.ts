@@ -10,7 +10,9 @@ export type Favourite = {
 };
 
 export function getFavourites() {
-  return request<{ favourites: Favourite[] }>("/favourites");
+  return request<{ favourites: Favourite[] }>("/favourites").catch((e) => {
+    return { favourites: [] };
+  });
 }
 
 export function addFavourite(productId: number) {

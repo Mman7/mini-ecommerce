@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type ReactNode } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useGlobalStore } from "@/src/store/global.store";
 import { ProfileSidebar } from "../../components/profile/ProfileSidebar";
 import { AuthStatus } from "@/src/types/user";
@@ -9,13 +9,19 @@ import { ProfilePageTransition } from "@/src/components/motion/PageTransition";
 
 export default function ProfileLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
   const authStatus = useGlobalStore((state) => state.authStatus);
+  const isWishlist = pathname === "/profile/wishlist";
 
   useEffect(() => {
-    if (authStatus === AuthStatus.Unauthenticated) {
+    if (authStatus === AuthStatus.Unauthenticated && !isWishlist) {
       router.replace("/login");
     }
-  }, [authStatus, router]);
+  }, [authStatus, isWishlist, router]);
+
+  if (isWishlist && authStatus !== AuthStatus.Authenticated) {
+    return <>{children}</>;
+  }
 
   if (authStatus !== AuthStatus.Authenticated) return null;
 

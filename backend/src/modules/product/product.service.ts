@@ -83,9 +83,9 @@ const productInclude = {
 };
 
 type ProductWithRelations = {
+  slug: string;
   productId: number;
   name: string;
-  slug: string;
   sku: string | null;
   description: string;
   price: { toString(): string } | number;

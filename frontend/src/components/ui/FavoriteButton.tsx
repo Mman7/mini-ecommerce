@@ -8,6 +8,8 @@ import {
 } from "@/src/api/favourite.api";
 import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/toast";
+import { useGlobalStore } from "@/src/store/global.store";
+import { AuthStatus } from "@/src/types/user";
 
 type FavoriteButtonProps = {
   productId: number | string;
@@ -21,8 +23,11 @@ export function FavoriteButton({
   const numericProductId = Number(productId);
   const [isFavorite, setIsFavorite] = useState(false);
   const [isPending, setIsPending] = useState(false);
+  const authStatus = useGlobalStore((state) => state.authStatus);
 
   useEffect(() => {
+    if (authStatus !== AuthStatus.Authenticated) return;
+
     let isMounted = true;
 
     getFavourites()
@@ -42,7 +47,7 @@ export function FavoriteButton({
     return () => {
       isMounted = false;
     };
-  }, [numericProductId]);
+  }, [authStatus, numericProductId]);
 
   async function handleToggle() {
     if (
@@ -50,6 +55,15 @@ export function FavoriteButton({
       !Number.isInteger(numericProductId) ||
       numericProductId < 1
     ) {
+      return;
+    }
+
+    if (authStatus !== AuthStatus.Authenticated) {
+      toast.add({
+        title: "Sign in required",
+        description: "Please sign in to manage your wishlist.",
+        type: "error",
+      });
       return;
     }
 

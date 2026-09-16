@@ -10,6 +10,8 @@ import { getFavourites, removeFavourite } from "@/src/api/favourite.api";
 import { addCartItem } from "@/src/api/cart.api";
 import { getProduct, type Product } from "@/src/api/product.api";
 import { useCartStore } from "@/src/store/cart.store";
+import { useGlobalStore } from "@/src/store/global.store";
+import { AuthStatus } from "@/src/types/user";
 import { WishlistProductCard } from "@/src/components/profile/WishlistProductCard";
 
 type SortKey = "recent" | "price-asc" | "price-desc" | "name";
@@ -31,12 +33,14 @@ export default function WishlistPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setCart = useCartStore((state) => state.setCart);
+  const authStatus = useGlobalStore((state) => state.authStatus);
   const [message, setMessage] = useState("");
   const queryClient = useQueryClient();
   const sort = (searchParams.get("sort") as SortKey) || "recent";
 
   const wishlistQuery = useQuery({
     queryKey: ["wishlist"],
+    enabled: authStatus === AuthStatus.Authenticated,
     queryFn: async () => {
       const { favourites } = await getFavourites();
       const products = await Promise.all(
@@ -84,6 +88,35 @@ export default function WishlistPage() {
   }
 
   const sortedItems = sortProducts(items, sort);
+
+  if (authStatus === AuthStatus.Loading) {
+    return (
+      <main className="padding-inline min-h-dvh py-24">
+        <WishlistSkeleton />
+      </main>
+    );
+  }
+
+  if (authStatus === AuthStatus.Unauthenticated) {
+    return (
+      <main className="padding-inline min-h-dvh py-24">
+        <section className="bg-surface-2 border-surface-3 rounded-2xl border px-6 py-20 text-center">
+          <h1 className="heading-font text-foreground text-3xl font-semibold">
+            Sign in to view your wishlist
+          </h1>
+          <p className="text-text-muted mx-auto mt-4 max-w-md text-sm leading-7">
+            Your saved pieces are waiting securely with your account.
+          </p>
+          <Link
+            href="/login?redirect=/profile/wishlist"
+            className="meta-font bg-primary-soft text-primary-ink mt-8 inline-flex h-12 items-center rounded-xl px-6 text-sm font-semibold"
+          >
+            Sign in
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   return (
     <motion.div
