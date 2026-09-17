@@ -1,21 +1,12 @@
 "use client";
-import { CloudUpload, Image as ImageIcon, Save } from "lucide-react";
+import { CloudUpload, Image as ImageIcon } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { createAdminProduct } from "../../../../api/product.api";
 import { getCategories } from "../../../../api/category.api";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { toast } from "@/components/ui/toast";
-
-type ProductStatus = "Draft" | "Active" | "Archived";
 
 export default function CreateProductPage() {
   const [productName, setProductName] = useState("");
@@ -29,7 +20,6 @@ export default function CreateProductPage() {
   const [categories, setCategories] = useState<
     Array<{ categoryId: number; name: string }>
   >([]);
-  const [status, setStatus] = useState<ProductStatus>("Draft");
   const [visible, setVisible] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -66,12 +56,8 @@ export default function CreateProductPage() {
     setImage(event.dataTransfer.files?.[0]);
   }
 
-  async function handleSubmit(
-    event: FormEvent<HTMLFormElement>,
-    nextStatus = status,
-  ) {
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setStatus(nextStatus);
     if (
       !productName.trim() ||
       !description.trim() ||
@@ -95,13 +81,9 @@ export default function CreateProductPage() {
     formData.append("thumbnail", imageFile);
     try {
       await createAdminProduct(formData);
-      setMessage(
-        nextStatus === "Draft"
-          ? "Product saved."
-          : "Product created successfully.",
-      );
+      setMessage("Product created successfully.");
       toast.add({
-        title: nextStatus === "Draft" ? "Draft saved" : "Product created",
+        title: "Product created",
         description: `${productName.trim()} was saved successfully.`,
         type: "success",
       });
@@ -151,22 +133,6 @@ export default function CreateProductPage() {
               Cancel
             </Link>
             <button
-              type="button"
-              onClick={() => {
-                setStatus("Draft");
-                setMessage("Product saved as draft.");
-                toast.add({
-                  title: "Draft status selected",
-                  description:
-                    "Submit the form to save this product as a draft.",
-                  type: "info",
-                });
-              }}
-              className="meta-font border-primary/40 text-primary-soft hover:bg-primary/10 flex h-9 items-center gap-2 rounded-md border px-4 text-xs transition"
-            >
-              <Save size={13} /> Save as Draft
-            </button>
-            <button
               type="submit"
               disabled={saving}
               className="meta-font bg-primary hover:bg-primary-soft text-primary-foreground flex h-9 items-center rounded-md px-5 text-xs font-semibold shadow-(--glow) transition"
@@ -198,7 +164,7 @@ export default function CreateProductPage() {
                 </Field>
                 <Field label="Public URL" className="md:col-span-2">
                   <div className="flex items-center">
-                    <span className="bg-surface-2 text-text-muted rounded-l-md border border-r-0 border-(--glass-border) px-3 py-2 text-sm">
+                    <span className="bg-surface-2 text-text-muted rounded-l-md border border-r-0 border-(--glass-border) px-3 py-2.5 text-sm">
                       /products/
                     </span>
                     <input
@@ -232,9 +198,6 @@ export default function CreateProductPage() {
                 rows={6}
                 className="form-input resize-y"
               />
-              <p className="meta-font text-text-muted mt-2 text-right text-[11px]">
-                Markdown supported
-              </p>
             </section>
 
             <section className="glass-panel rounded-lg p-5 sm:p-6">
@@ -319,46 +282,20 @@ export default function CreateProductPage() {
 
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
             <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
-              <AsideTitle title="Status" />
-              <div className="bg-surface-1 flex gap-1 rounded-md border border-(--glass-border) p-1">
-                {(["Draft", "Active", "Archived"] as ProductStatus[]).map(
-                  (item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      onClick={() => setStatus(item)}
-                      className={`meta-font flex-1 rounded px-2 py-2 text-[11px] transition ${status === item ? "bg-surface-4 text-foreground shadow-sm" : "text-text-muted hover:text-foreground"}`}
-                    >
-                      {item}
-                    </button>
-                  ),
-                )}
-              </div>
-            </section>
-
-            <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
               <AsideTitle title="Category" />
-              <Select
-                value={category || null}
-                onValueChange={(value) => setCategory(value ?? "")}
+              <select
+                value={category}
+                onChange={(event) => setCategory(event.target.value)}
+                aria-label="Product category"
+                className="form-input h-auto w-full"
               >
-                <SelectTrigger
-                  aria-label="Product category"
-                  className="form-input h-auto w-full"
-                >
-                  <SelectValue placeholder="Select category..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {categories.map((item) => (
-                    <SelectItem
-                      key={item.categoryId}
-                      value={String(item.categoryId)}
-                    >
-                      {item.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <option value="">Select category...</option>
+                {categories.map((item) => (
+                  <option key={item.categoryId} value={String(item.categoryId)}>
+                    {item.name}
+                  </option>
+                ))}
+              </select>
             </section>
 
             <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
