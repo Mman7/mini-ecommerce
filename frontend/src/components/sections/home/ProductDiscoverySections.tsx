@@ -67,7 +67,6 @@ function ProductTile({
   index: number;
   large?: boolean;
 }) {
-  console.log(product.id);
   return (
     <article className={`group relative ${large ? "md:row-span-2" : ""}`}>
       <div className="bg-surface-2 relative aspect-square overflow-hidden rounded-sm">

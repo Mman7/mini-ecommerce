@@ -29,6 +29,7 @@ type PaymentStepProps = {
   onValid: () => void;
 };
 
+// Utility functions for handling and formatting credit card information
 function cardBrand(number: string) {
   const digits = number.replace(/\D/g, "");
   if (digits.startsWith("4")) return "VISA";
@@ -36,6 +37,7 @@ function cardBrand(number: string) {
   return "CARD";
 }
 
+// Formats a credit card number into groups of four digits for readability
 function formatCardNumber(value: string) {
   return value
     .replace(/\D/g, "")
@@ -44,6 +46,7 @@ function formatCardNumber(value: string) {
     .trim();
 }
 
+// Formats the expiry date as MM / YY for readability
 function formatExpiry(value: string) {
   return value
     .replace(/\D/g, "")
