@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Package } from "lucide-react";
-import { getOrder, type Order } from "@/src/api/order.api";
+import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
@@ -25,7 +25,8 @@ export default function OrderSuccessPage() {
       setError("This confirmation link is missing an order number.");
       return;
     }
-    getOrder(orderId)
+    orderApi
+      .get(orderId)
       .then((response) => setOrder(response.order))
       .catch((requestError: unknown) => {
         setError(

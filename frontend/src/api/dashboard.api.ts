@@ -31,9 +31,11 @@ export type DashboardOverview = {
   }[];
 };
 
-export function getDashboardOverview(from?: string, to?: string) {
-  const params = new URLSearchParams();
-  if (from) params.set("from", from);
-  if (to) params.set("to", to);
-  return request<DashboardOverview>(`/admin/overview?${params.toString()}`);
-}
+export const dashboardApi = {
+  overview: (from?: string, to?: string) => {
+    const params = new URLSearchParams();
+    if (from) params.set("from", from);
+    if (to) params.set("to", to);
+    return request<DashboardOverview>(`/admin/overview?${params.toString()}`);
+  },
+};

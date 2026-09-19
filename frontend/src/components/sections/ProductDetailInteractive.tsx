@@ -6,7 +6,7 @@ import { useState } from "react";
 import { motion } from "motion/react";
 import { ArrowRight, Minus, Plus, ShoppingBag } from "lucide-react";
 import type { Product } from "../../api/product.api";
-import { addCartItem } from "../../api/cart.api";
+import { cartApi } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
 import {
   Accordion,
@@ -75,7 +75,7 @@ export default function ProductDetailInteractive({
     }
     setStatus("adding");
     try {
-      setCart(await addCartItem(product.productId, quantity));
+      setCart(await cartApi.addItem(product.productId, quantity));
       setStatus("added");
       toast.add({
         title: "Product added to cart",

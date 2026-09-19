@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { getCategories } from "../../api/category.api";
-import { getProducts, type ProductSearchParams } from "../../api/product.api";
+import { categoryApi } from "../../api/category.api";
+import { productApi, type ProductSearchParams } from "../../api/product.api";
 import ProductGrid from "./ProductGrid";
 import FiltersSidebar from "./FiltersSidebar";
 import SortingBar from "./SortingBar";
@@ -69,12 +69,12 @@ export default function ProductsCatalog() {
 
   const productsQuery = useQuery({
     queryKey: ["products", productQuery],
-    queryFn: () => getProducts(productQuery),
+    queryFn: () => productApi.list(productQuery),
     placeholderData: (previousData) => previousData,
   });
   const categoriesQuery = useQuery({
     queryKey: ["categories"],
-    queryFn: getCategories,
+    queryFn: categoryApi.list,
   });
 
   const categories = categoriesQuery.data ?? [];

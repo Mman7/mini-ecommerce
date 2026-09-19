@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAdminCategory } from "../../../../api/category.api";
+import { categoryApi } from "../../../../api/category.api";
 import {
   DashboardHeading,
   DashboardPanel,
@@ -14,11 +14,12 @@ import {
 export default function CategoryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [category, setCategory] = useState<Awaited<
-    ReturnType<typeof getAdminCategory>
+    ReturnType<typeof categoryApi.admin.get>
   > | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    getAdminCategory(Number(id))
+    categoryApi.admin
+      .get(Number(id))
       .then(setCategory)
       .catch(() => setError("Unable to load this category."));
   }, [id]);

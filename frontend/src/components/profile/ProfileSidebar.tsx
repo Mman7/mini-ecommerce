@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { logout as logoutRequest } from "@/src/api/auth.api";
+import { authApi } from "@/src/api/auth.api";
 import { useGlobalStore } from "@/src/store/global.store";
 
 export type ProfileSection =
@@ -62,7 +62,7 @@ export function ProfileSidebar({
 
   const handleLogout = async () => {
     try {
-      await logoutRequest();
+      await authApi.logout();
     } finally {
       logout();
       router.push("/login");

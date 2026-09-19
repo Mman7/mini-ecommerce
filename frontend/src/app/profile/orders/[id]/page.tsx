@@ -11,7 +11,7 @@ import {
   Truck,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { cancelOrder, getOrder, type Order } from "@/src/api/order.api";
+import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import {
   Stepper,
@@ -33,7 +33,7 @@ export default function OrderDetailPage({
 
   useEffect(() => {
     params
-      .then(({ id }) => getOrder(id))
+      .then(({ id }) => orderApi.get(id))
       .then((response) => setOrder(response.order))
       .catch((requestError) =>
         setError(
@@ -47,7 +47,7 @@ export default function OrderDetailPage({
   const handleCancel = async () => {
     if (!order) return;
     try {
-      setOrder((await cancelOrder(order.id)).order);
+      setOrder((await orderApi.cancel(order.id)).order);
     } catch (requestError) {
       setError(
         requestError instanceof Error

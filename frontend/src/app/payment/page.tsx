@@ -14,14 +14,9 @@ import {
   Lock,
   Truck,
 } from "lucide-react";
-import { getCart, type Cart, type CartItem } from "@/src/api/cart.api";
-import { createOrder } from "@/src/api/order.api";
-import {
-  getAddresses,
-  getCurrentUser,
-  type SavedAddress,
-  type User,
-} from "@/src/api/user.api";
+import { cartApi, type Cart, type CartItem } from "@/src/api/cart.api";
+import { orderApi } from "@/src/api/order.api";
+import { userApi, type SavedAddress, type User } from "@/src/api/user.api";
 import {
   PaymentStep,
   type PaymentStepHandle,
@@ -91,7 +86,7 @@ export default function PaymentPage() {
 
   useEffect(() => {
     let mounted = true;
-    Promise.all([getCurrentUser(), getAddresses(), getCart()])
+    Promise.all([userApi.me(), userApi.addresses.list(), cartApi.get()])
       .then(([userResponse, addressResponse, cartResponse]) => {
         if (!mounted) return;
         setUser(userResponse.user);
@@ -171,7 +166,7 @@ export default function PaymentPage() {
     setActionError("");
     setAction("processing");
     try {
-      const response = await createOrder(
+      const response = await orderApi.create(
         items.map(({ productId, quantity }) => ({ productId, quantity })),
         address.id,
       );

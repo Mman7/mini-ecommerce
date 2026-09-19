@@ -23,62 +23,54 @@ export type AdminCategoryListResponse = {
   };
 };
 
-export function getCategories() {
-  return request<Category[]>("/categories");
-}
-
-export function getAdminCategories(
-  params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: "active" | "inactive";
-    sortBy?: "name" | "createdAt" | "updatedAt";
-    sortOrder?: "asc" | "desc";
-  } = {},
-) {
-  const searchParams = new URLSearchParams();
-  Object.entries({ page: 1, limit: 20, ...params }).forEach(([key, value]) => {
-    if (value !== undefined && value !== "")
-      searchParams.set(key, String(value));
-  });
-  return request<AdminCategoryListResponse>(
-    `/admin/categories?${searchParams.toString()}`,
-  );
-}
-
-export function getAdminCategory(categoryId: number) {
-  return request<
-    AdminCategory & {
-      products: Array<{
-        productId: number;
-        name: string;
-        price: number;
-        stock: number;
-      }>;
-    }
-  >(`/admin/categories/${categoryId}`);
-}
-
-export function createAdminCategory(data: { name: string }) {
-  return request<AdminCategory>("/admin/categories", {
-    method: "POST",
-    body: JSON.stringify(data),
-  });
-}
-
-export function updateAdminCategory(
-  categoryId: number,
-  data: { name?: string; isActive?: boolean },
-) {
-  return request<AdminCategory>(`/admin/categories/${categoryId}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
-export function deleteAdminCategory(categoryId: number) {
-  return request<{ message: string }>(`/admin/categories/${categoryId}`, {
-    method: "DELETE",
-  });
-}
+export const categoryApi = {
+  list: () => request<Category[]>("/categories"),
+  admin: {
+    list: (
+      params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        status?: "active" | "inactive";
+        sortBy?: "name" | "createdAt" | "updatedAt";
+        sortOrder?: "asc" | "desc";
+      } = {},
+    ) => {
+      const searchParams = new URLSearchParams();
+      Object.entries({ page: 1, limit: 20, ...params }).forEach(
+        ([key, value]) => {
+          if (value !== undefined && value !== "")
+            searchParams.set(key, String(value));
+        },
+      );
+      return request<AdminCategoryListResponse>(
+        `/admin/categories?${searchParams.toString()}`,
+      );
+    },
+    get: (categoryId: number) =>
+      request<
+        AdminCategory & {
+          products: Array<{
+            productId: number;
+            name: string;
+            price: number;
+            stock: number;
+          }>;
+        }
+      >(`/admin/categories/${categoryId}`),
+    create: (data: { name: string }) =>
+      request<AdminCategory>("/admin/categories", {
+        method: "POST",
+        body: JSON.stringify(data),
+      }),
+    update: (categoryId: number, data: { name?: string; isActive?: boolean }) =>
+      request<AdminCategory>(`/admin/categories/${categoryId}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    delete: (categoryId: number) =>
+      request<{ message: string }>(`/admin/categories/${categoryId}`, {
+        method: "DELETE",
+      }),
+  },
+};

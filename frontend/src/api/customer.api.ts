@@ -72,33 +72,25 @@ function queryString(params: CustomerQuery) {
   return searchParams.toString();
 }
 
-export function getAdminCustomers(params: CustomerQuery = {}) {
-  return request<CustomerListResponse>(
-    `/admin/customers?${queryString(params)}`,
-  );
-}
-
-export function getAdminCustomer(id: string) {
-  return request<CustomerDetail>(`/admin/customers/${id}`);
-}
-
-export function updateAdminCustomer(
-  id: string,
-  updates: { name: string; email: string; phoneNumber: string | null },
-) {
-  return request<CustomerDetail>(`/admin/customers/${id}`, {
-    method: "PATCH",
-    body: JSON.stringify(updates),
-  });
-}
-
-export function updateAdminCustomerStatus(id: string, isActive: boolean) {
-  return request<CustomerDetail>(`/admin/customers/${id}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ isActive }),
-  });
-}
-
-export async function exportAdminCustomers(params: CustomerQuery = {}) {
-  return requestBlob(`/admin/customers/export?${queryString(params)}`);
-}
+export const customerApi = {
+  admin: {
+    list: (params: CustomerQuery = {}) =>
+      request<CustomerListResponse>(`/admin/customers?${queryString(params)}`),
+    get: (id: string) => request<CustomerDetail>(`/admin/customers/${id}`),
+    update: (
+      id: string,
+      updates: { name: string; email: string; phoneNumber: string | null },
+    ) =>
+      request<CustomerDetail>(`/admin/customers/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify(updates),
+      }),
+    updateStatus: (id: string, isActive: boolean) =>
+      request<CustomerDetail>(`/admin/customers/${id}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ isActive }),
+      }),
+    export: (params: CustomerQuery = {}) =>
+      requestBlob(`/admin/customers/export?${queryString(params)}`),
+  },
+};

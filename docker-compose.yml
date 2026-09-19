@@ -3,21 +3,13 @@ services:
     build:
       context: ./postgres
       dockerfile: Dockerfile
-
     container_name: postgres_db
-    restart: unless-stopped
-
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-
-    ports:
-      - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
-
     command:
       - postgres
       - -c
@@ -32,78 +24,24 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: backend_api
-    restart: unless-stopped
     depends_on:
       - postgres
     env_file:
       - ./backend/.env
     environment:
-      UPLOAD_DIR: /app/uploads
-    ports:
-      - "5000:5000"
+      - UPLOAD_DIR=/app/uploads
     volumes:
-      - /app/node_modules
       - ./uploads:/app/uploads
-    command: npm run dev
-
-    develop:
-      watch:
-        - action: sync
-          path: ./backend
-          target: /app
-          ignore:
-            - node_modules/
-            - dist/
-            - .git/
-
-        - action: rebuild
-          path: ./backend/package.json
-
-        - action: rebuild
-          path: ./backend/package-lock.json
-
-        - action: rebuild
-          path: ./backend/Dockerfile
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     container_name: frontend_app
-    restart: unless-stopped
     depends_on:
       - backend
-    ports:
-      - "3000:3000"
-
     environment:
-      WATCHPACK_POLLING: "true"
-      CHOKIDAR_USEPOLLING: "true"
-      BACKEND_URL: http://backend:5000
-
-    volumes:
-      - /app/node_modules
-
-    command: npm run dev
-
-    develop:
-      watch:
-        - action: sync
-          path: ./frontend
-          target: /app
-          ignore:
-            - node_modules/
-            - .next/
-            - .git/
-
-        - action: rebuild
-          path: ./frontend/package.json
-
-        - action: rebuild
-          path: ./frontend/package-lock.json
-
-        - action: rebuild
-          path: ./frontend/Dockerfile
+      - BACKEND_URL=http://backend:5000
 
 volumes:
   postgres_data:

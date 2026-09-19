@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getCurrentUser } from "@/src/api/user.api";
+import { userApi } from "@/src/api/user.api";
 import { useGlobalStore } from "@/src/store/global.store";
 import { useCartStore } from "@/src/store/cart.store";
 import { AuthStatus } from "@/src/types/user";
@@ -18,7 +18,8 @@ export function AuthInitializer() {
   useEffect(() => {
     let cancelled = false;
 
-    getCurrentUser()
+    userApi
+      .me()
       .then(({ user }) => {
         if (!cancelled) {
           setUser(user);

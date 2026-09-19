@@ -18,10 +18,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import {
-  getDashboardOverview,
-  type DashboardOverview,
-} from "@/src/api/dashboard.api";
+import { dashboardApi, type DashboardOverview } from "@/src/api/dashboard.api";
 import { useGlobalStore } from "@/src/store/global.store";
 import {
   DashboardHeading,
@@ -77,7 +74,7 @@ export default function DashboardPage() {
     setLoading(true);
     setError(false);
     try {
-      setOverview(await getDashboardOverview());
+      setOverview(await dashboardApi.overview());
     } catch {
       setError(true);
     } finally {

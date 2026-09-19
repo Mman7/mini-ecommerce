@@ -4,11 +4,7 @@ import { Search, Tags } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import {
-  getAdminCategories,
-  type AdminCategory,
-  updateAdminCategory,
-} from "../../api/category.api";
+import { categoryApi, type AdminCategory } from "../../api/category.api";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/components/ui/toast";
 import {
@@ -39,7 +35,7 @@ export function AdminCategoryList({
   const categoryQuery = useQuery({
     queryKey: ["admin-categories", { page, query, status }],
     queryFn: () =>
-      getAdminCategories({
+      categoryApi.admin.list({
         page,
         limit: 20,
         search: query,
@@ -77,7 +73,7 @@ export function AdminCategoryList({
 
   async function toggle(category: AdminCategory) {
     try {
-      const updated = await updateAdminCategory(category.categoryId, {
+      const updated = await categoryApi.admin.update(category.categoryId, {
         isActive: !category.isActive,
       });
       await queryClient.invalidateQueries({ queryKey: ["admin-categories"] });

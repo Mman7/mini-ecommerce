@@ -7,11 +7,11 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import {
-  getAdminProducts,
+  productApi,
   type AdminProductListResponse,
   type Product,
 } from "../../api/product.api";
-import { getCategories } from "../../api/category.api";
+import { categoryApi } from "../../api/category.api";
 import {
   DashboardPanel,
   DataTable,
@@ -61,7 +61,7 @@ export function AdminProductList({
   const productQuery = useQuery({
     queryKey: ["admin-products", { page, query, categoryId, status, stock }],
     queryFn: () =>
-      getAdminProducts({
+      productApi.admin.list({
         page,
         limit: 20,
         search: query,
@@ -78,7 +78,7 @@ export function AdminProductList({
   });
   const categoryQuery = useQuery({
     queryKey: ["categories"],
-    queryFn: getCategories,
+    queryFn: categoryApi.list,
   });
 
   const data = productQuery.data;

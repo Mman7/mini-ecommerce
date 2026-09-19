@@ -15,8 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/components/ui/toast";
 import {
-  exportAdminCustomers,
-  getAdminCustomers,
+  customerApi,
   type CustomerListResponse,
 } from "../../../api/customer.api";
 import {
@@ -69,7 +68,7 @@ export default function DashboardCustomersPage() {
   const customerQuery = useQuery({
     queryKey: ["admin-customers", { page, search, status, sort }],
     queryFn: () =>
-      getAdminCustomers({
+      customerApi.admin.list({
         page,
         limit: 20,
         search,
@@ -104,7 +103,7 @@ export default function DashboardCustomersPage() {
     setExporting(true);
     setExportError("");
     try {
-      const blob = await exportAdminCustomers({
+      const blob = await customerApi.admin.export({
         search,
         status: statusValues.includes(status as StatusValue)
           ? (status as StatusValue)

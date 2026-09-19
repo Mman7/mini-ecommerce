@@ -4,13 +4,14 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ChangeEvent, DragEvent, FormEvent, ReactNode } from "react";
 import { useEffect, useState } from "react";
-import { createAdminProduct } from "../../../../api/product.api";
-import { getCategories } from "../../../../api/category.api";
+import { productApi } from "../../../../api/product.api";
+import { categoryApi } from "../../../../api/category.api";
 import { toast } from "@/components/ui/toast";
 
 export default function CreateProductPage() {
   const [productName, setProductName] = useState("");
   const [sku, setSku] = useState("");
+  const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
@@ -27,7 +28,8 @@ export default function CreateProductPage() {
   const [message, setMessage] = useState("");
 
   useEffect(() => {
-    getCategories()
+    categoryApi
+      .list()
       .then(setCategories)
       .catch(() => setCategories([]));
   }, []);
@@ -73,6 +75,7 @@ export default function CreateProductPage() {
     setSaving(true);
     const formData = new FormData();
     formData.append("name", productName.trim());
+    if (slug.trim()) formData.append("slug", slug.trim());
     formData.append("description", description.trim());
     formData.append("price", price);
     if (category) formData.append("categoryId", category);
@@ -80,7 +83,7 @@ export default function CreateProductPage() {
     formData.append("reorderAt", threshold || "0");
     formData.append("thumbnail", imageFile);
     try {
-      await createAdminProduct(formData);
+      await productApi.admin.create(formData);
       setMessage("Product created successfully.");
       toast.add({
         title: "Product created",
@@ -168,8 +171,8 @@ export default function CreateProductPage() {
                       /products/
                     </span>
                     <input
-                      value=""
-                      readOnly
+                      value={slug}
+                      onChange={(event) => setSlug(event.target.value)}
                       placeholder="Generated after creation"
                       aria-label="Generated product slug"
                       className="form-input rounded-l-none text-sm"

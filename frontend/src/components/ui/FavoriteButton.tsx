@@ -1,11 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import {
-  addFavourite,
-  getFavourites,
-  removeFavourite,
-} from "@/src/api/favourite.api";
+import { favouriteApi } from "@/src/api/favourite.api";
 import { useEffect, useState } from "react";
 import { toast } from "@/components/ui/toast";
 import { useGlobalStore } from "@/src/store/global.store";
@@ -30,7 +26,8 @@ export function FavoriteButton({
 
     let isMounted = true;
 
-    getFavourites()
+    favouriteApi
+      .list()
       .then(({ favourites }) => {
         if (isMounted) {
           setIsFavorite(
@@ -73,10 +70,10 @@ export function FavoriteButton({
 
     try {
       if (nextValue) {
-        await addFavourite(numericProductId);
+        await favouriteApi.add(numericProductId);
         toast.add({ title: "Added to wishlist", type: "success" });
       } else {
-        await removeFavourite(numericProductId);
+        await favouriteApi.remove(numericProductId);
         toast.add({ title: "Removed from wishlist", type: "success" });
       }
     } catch (error) {

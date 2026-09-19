@@ -17,7 +17,7 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
-import { logout as logoutRequest } from "@/src/api/auth.api";
+import { authApi } from "@/src/api/auth.api";
 import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
 
@@ -92,7 +92,7 @@ export function DashboardShell({
 
   async function handleLogout() {
     try {
-      await logoutRequest();
+      await authApi.logout();
     } finally {
       logout();
       clearCart();

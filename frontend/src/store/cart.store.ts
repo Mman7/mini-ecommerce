@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import {
-  getCart,
+  cartApi,
   normalizeCart,
   type Cart,
   type CartItem,
@@ -42,7 +42,7 @@ export const useCartStore = create<CartStore>((set) => ({
     set({ isLoading: true, error: "" });
     cartRequest = (async () => {
       try {
-        const cart = normalizeCart(await getCart());
+        const cart = normalizeCart(await cartApi.get());
         set({
           userId: cart.userId,
           items: cart.items,

@@ -3,12 +3,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import {
-  getAddresses,
-  updateCurrentUser,
-  type SavedAddress,
-  type User,
-} from "@/src/api/user.api";
+import { userApi, type SavedAddress, type User } from "@/src/api/user.api";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AddressPreviewCard } from "@/src/components/profile/AddressPreviewCard";
 import { ProfileHeader } from "@/src/components/profile/ProfileHeader";
@@ -40,7 +35,8 @@ export default function ProfilePage() {
       phoneNumber: authenticatedUser.phoneNumber ?? "",
     });
 
-    getAddresses()
+    userApi.addresses
+      .list()
       .then((response) => {
         setAddresses(response.addresses);
       })
@@ -58,7 +54,7 @@ export default function ProfilePage() {
     setMessage("");
     setError("");
     try {
-      const response = await updateCurrentUser(form);
+      const response = await userApi.update(form);
       setUser(response.user);
       setGlobalUser(response.user);
       setMessage("Profile updated successfully.");

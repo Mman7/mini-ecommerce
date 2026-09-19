@@ -4,10 +4,7 @@ import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
-import {
-  getAdminOrders,
-  type AdminOrderListResponse,
-} from "../../api/order.api";
+import { orderApi, type AdminOrderListResponse } from "../../api/order.api";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
   DashboardPanel,
@@ -38,7 +35,8 @@ export function AdminOrderList({
 
   const orderQuery = useQuery({
     queryKey: ["admin-orders", { page, query, status }],
-    queryFn: () => getAdminOrders({ page, limit: 20, search: query, status }),
+    queryFn: () =>
+      orderApi.admin.list({ page, limit: 20, search: query, status }),
   });
   const data = orderQuery.data;
   const loading = orderQuery.isPending;

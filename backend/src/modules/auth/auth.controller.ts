@@ -44,6 +44,7 @@ export const handleLogin = async (req: Request, res: Response) => {
     if (error.message === "Invalid email or password") {
       return res.status(401).json({ message: "Invalid email or password" });
     }
+    console.log(error);
     // Fallback for other errors (e.g., missing credentials, database errors)
     return res.status(400).json({ message: "Bad request" });
   }

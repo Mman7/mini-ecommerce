@@ -3,11 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  getAdminCustomer,
-  updateAdminCustomer,
-  updateAdminCustomerStatus,
-} from "../../../../api/customer.api";
+import { customerApi } from "../../../../api/customer.api";
 import {
   DashboardHeading,
   DashboardPanel,
@@ -21,7 +17,7 @@ const money = new Intl.NumberFormat("en-MY", {
   currency: "MYR",
 });
 
-type CustomerDetail = Awaited<ReturnType<typeof getAdminCustomer>>;
+type CustomerDetail = Awaited<ReturnType<typeof customerApi.admin.get>>;
 
 export default function CustomerDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -33,7 +29,8 @@ export default function CustomerDetailPage() {
   const [form, setForm] = useState({ name: "", email: "", phoneNumber: "" });
 
   useEffect(() => {
-    getAdminCustomer(id)
+    customerApi.admin
+      .get(id)
       .then((result) => {
         setCustomer(result);
         setForm({
@@ -49,7 +46,7 @@ export default function CustomerDetailPage() {
   async function save() {
     setSaving(true);
     try {
-      const result = await updateAdminCustomer(id, {
+      const result = await customerApi.admin.update(id, {
         ...form,
         phoneNumber: form.phoneNumber || null,
       });
@@ -76,7 +73,10 @@ export default function CustomerDetailPage() {
     if (!customer) return;
     setSaving(true);
     try {
-      const result = await updateAdminCustomerStatus(id, !customer.isActive);
+      const result = await customerApi.admin.updateStatus(
+        id,
+        !customer.isActive,
+      );
       setCustomer(result);
       toast.add({
         title: "Customer status updated",

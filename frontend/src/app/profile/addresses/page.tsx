@@ -3,13 +3,7 @@
 import { MapPin, Pencil, Plus, Trash2 } from "lucide-react";
 import { useState, type FormEvent } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import {
-  createAddress,
-  deleteAddress,
-  getAddresses,
-  updateAddress,
-  type SavedAddress,
-} from "@/src/api/user.api";
+import { userApi, type SavedAddress } from "@/src/api/user.api";
 import { toast } from "@/components/ui/toast";
 
 type AddressForm = Omit<
@@ -32,7 +26,7 @@ export default function AddressesPage() {
   const queryClient = useQueryClient();
   const addressesQuery = useQuery({
     queryKey: ["my-addresses"],
-    queryFn: async () => (await getAddresses()).addresses,
+    queryFn: async () => (await userApi.addresses.list()).addresses,
   });
   const addresses: SavedAddress[] = addressesQuery.data ?? [];
 
@@ -55,8 +49,8 @@ export default function AddressesPage() {
     const isEditing = Boolean(editingId);
     try {
       const response = editingId
-        ? await updateAddress(Number(editingId), form)
-        : await createAddress(form);
+        ? await userApi.addresses.update(Number(editingId), form)
+        : await userApi.addresses.create(form);
       queryClient.setQueryData(["my-addresses"], response.addresses);
       setForm(emptyForm);
       setEditingId(null);
@@ -81,7 +75,7 @@ export default function AddressesPage() {
     try {
       queryClient.setQueryData(
         ["my-addresses"],
-        (await deleteAddress(id)).addresses,
+        (await userApi.addresses.delete(id)).addresses,
       );
     } catch (requestError) {
       setError(

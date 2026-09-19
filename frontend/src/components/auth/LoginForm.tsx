@@ -5,7 +5,7 @@ import { ArrowRight, Eye, EyeOff, LockKeyhole, Mail } from "lucide-react";
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { login } from "@/src/api/auth.api";
+import { authApi } from "@/src/api/auth.api";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
 import { useCartStore } from "@/src/store/cart.store";
@@ -35,7 +35,7 @@ export default function LoginForm() {
     setIsSubmitting(true);
 
     try {
-      const res = await login(values.email, values.password);
+      const res = await authApi.login(values.email, values.password);
       // Update the global store with the logged-in user and redirect to the home page
       const user = res.user;
       setUser(user);

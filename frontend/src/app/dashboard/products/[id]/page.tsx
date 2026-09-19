@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { getAdminProduct, type Product } from "../../../../api/product.api";
+import { productApi, type Product } from "../../../../api/product.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import {
   DashboardHeading,
@@ -23,7 +23,8 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
-    getAdminProduct(Number(id))
+    productApi.admin
+      .get(Number(id))
       .then(setProduct)
       .catch(() => setError("Unable to load this product."));
   }, [id]);

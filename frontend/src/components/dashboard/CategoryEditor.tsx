@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import {
-  createAdminCategory,
-  deleteAdminCategory,
-  getAdminCategory,
-  updateAdminCategory,
-} from "../../api/category.api";
+import { categoryApi } from "../../api/category.api";
 import { DashboardPanel, PanelHeading, StatusPill } from "./index";
 import { toast } from "@/components/ui/toast";
 
@@ -25,7 +20,8 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
   const [saving, setSaving] = useState(false);
   useEffect(() => {
     if (mode === "edit" && categoryId)
-      getAdminCategory(categoryId)
+      categoryApi.admin
+        .get(categoryId)
         .then((category) => {
           setName(category.name);
           setActive(category.isActive);
@@ -42,7 +38,7 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
     setSaving(true);
     try {
       if (mode === "create") {
-        await createAdminCategory({ name: name.trim() });
+        await categoryApi.admin.create({ name: name.trim() });
         toast.add({
           title: "Category created",
           description: `${name.trim()} was added successfully.`,
@@ -50,7 +46,7 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
         });
         router.push("/dashboard/categories");
       } else if (categoryId) {
-        await updateAdminCategory(categoryId, {
+        await categoryApi.admin.update(categoryId, {
           name: name.trim(),
           isActive: active,
         });
@@ -79,7 +75,7 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
     )
       return;
     try {
-      await deleteAdminCategory(categoryId);
+      await categoryApi.admin.delete(categoryId);
       toast.add({
         title: "Category deleted",
         description: "The category was removed successfully.",

@@ -32,6 +32,7 @@ export const getTotalProducts = async () => {
 
 export const createProduct = async ({
   name,
+  slug: requestedSlug,
   description,
   price,
   productImages,
@@ -44,7 +45,7 @@ export const createProduct = async ({
   reorderAt?: number;
 }) => {
   for (let attempt = 0; attempt < 5; attempt += 1) {
-    const slug = await getUniqueSlug(name);
+    const slug = await getUniqueSlug(requestedSlug ?? name);
     try {
       return await prisma.product.create({
         data: {

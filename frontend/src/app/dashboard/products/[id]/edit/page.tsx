@@ -36,13 +36,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  deleteAdminProduct,
-  getAdminProduct,
-  updateAdminProductInventory,
-  updateAdminProduct,
-} from "../../../../../api/product.api";
-import { getCategories } from "../../../../../api/category.api";
+import { productApi } from "../../../../../api/product.api";
+import { categoryApi } from "../../../../../api/category.api";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
 
@@ -114,7 +109,7 @@ export default function EditProductPage() {
     JSON.stringify(currentForm) !== JSON.stringify(initialForm);
 
   useEffect(() => {
-    Promise.all([getAdminProduct(Number(id)), getCategories()])
+    Promise.all([productApi.admin.get(Number(id)), categoryApi.list()])
       .then(([product, categoryList]) => {
         setName(product.name);
         setSlug(product.slug);
@@ -156,15 +151,16 @@ export default function EditProductPage() {
   async function handleSave(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     try {
-      await updateAdminProduct(Number(id), {
+      await productApi.admin.update(Number(id), {
         name,
+        slug,
         sku,
         description,
         price: Number(price),
         isActive: visible,
         categoryId: category ? Number(category) : null,
       });
-      await updateAdminProductInventory(
+      await productApi.admin.updateInventory(
         Number(id),
         Number(stock),
         Number(threshold),
@@ -215,7 +211,7 @@ export default function EditProductPage() {
 
   async function deleteProduct() {
     try {
-      await deleteAdminProduct(Number(id));
+      await productApi.admin.delete(Number(id));
       toast.add({
         title: "Product deleted",
         description: "The product was removed successfully.",
@@ -313,7 +309,7 @@ export default function EditProductPage() {
                     </span>
                     <input
                       value={slug}
-                      readOnly
+                      onChange={(event) => setSlug(event.target.value)}
                       aria-label="Product slug"
                       className="form-input rounded-l-none text-sm"
                     />

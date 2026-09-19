@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct, getRecommendedProducts } from "../../../api/product.api";
+import { productApi } from "../../../api/product.api";
 import ProductDetailInteractive from "../../../components/sections/ProductDetailInteractive";
 import {
   Breadcrumb,
@@ -17,13 +17,13 @@ export default async function ProductDetailPage({ params }: ProductPageProps) {
   const { id } = await params;
   let product;
   try {
-    product = await getProduct(id);
+    product = await productApi.get(id);
   } catch (error) {
     if ((error as { status?: number }).status === 404) notFound();
     throw error;
   }
 
-  const recommendations = (await getRecommendedProducts(5))
+  const recommendations = (await productApi.recommended(5))
     .filter((item) => item.productId !== product.productId)
     .slice(0, 4);
   const category = product.category?.name ?? "Collectibles";

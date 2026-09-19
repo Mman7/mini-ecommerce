@@ -50,22 +50,6 @@ export type ProductSearchParams = {
   sortOrder?: "asc" | "desc";
 };
 
-export function getProducts(params: ProductSearchParams) {
-  const searchParams = new URLSearchParams();
-  Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined) searchParams.set(key, String(value));
-  });
-  return request<ProductListResponse>(`/products?${searchParams.toString()}`);
-}
-
-export function getProduct(slug: string) {
-  return request<Product>(`/products/${encodeURIComponent(slug)}`);
-}
-
-export function getProductsCount() {
-  return request<{ count: number }>("/products/count");
-}
-
 export type AdminProductListParams = {
   page?: number;
   limit?: number;
@@ -86,69 +70,62 @@ export type AdminProductListResponse = ProductListResponse & {
   };
 };
 
-export function getAdminProducts(params: AdminProductListParams = {}) {
-  const searchParams = new URLSearchParams();
-  Object.entries({ page: 1, limit: 20, ...params }).forEach(([key, value]) => {
-    if (value !== undefined && value !== "")
-      searchParams.set(key, String(value));
-  });
-  return request<AdminProductListResponse>(
-    `/admin/products?${searchParams.toString()}`,
-  );
-}
-
-export function getAdminProduct(productId: number) {
-  return request<Product>(`/admin/products/${productId}`);
-}
-
-export function createAdminProduct(data: FormData) {
-  return request<Product>("/admin/products", { method: "POST", body: data });
-}
-
-export function updateAdminProduct(
-  productId: number,
-  data: Partial<
-    Pick<Product, "name" | "sku" | "description" | "price" | "isActive"> & {
-      categoryId: number | null;
-    }
-  >,
-) {
-  return request<{ item: Product }>(`/admin/products/${productId}`, {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
-export function updateAdminProductInventory(
-  productId: number,
-  stock: number,
-  reorderAt: number,
-) {
-  return request<{ stock: number }>(`/admin/inventory/${productId}`, {
-    method: "PATCH",
-    body: JSON.stringify({ stock, reorderAt }),
-  });
-}
-
-export function deleteAdminProduct(productId: number) {
-  return request<{ message: string }>(`/admin/products/${productId}`, {
-    method: "DELETE",
-  });
-}
-
-export function updateAdminProductImage(
-  productId: number,
-  imageId: number,
-  data: FormData,
-) {
-  return request<ProductImage>(
-    `/admin/products/${productId}/images/${imageId}`,
-    { method: "PATCH", body: data },
-  );
-}
-
-export async function getRecommendedProducts(
-  limit: number = 4,
-): Promise<Product[]> {
-  return request<Product[]>(`/products/recommended?limit=${limit}`);
-}
+export const productApi = {
+  list: (params: ProductSearchParams) => {
+    const searchParams = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) searchParams.set(key, String(value));
+    });
+    return request<ProductListResponse>(`/products?${searchParams.toString()}`);
+  },
+  get: (slug: string) =>
+    request<Product>(`/products/${encodeURIComponent(slug)}`),
+  count: () => request<{ count: number }>("/products/count"),
+  recommended: (limit: number = 4) =>
+    request<Product[]>(`/products/recommended?limit=${limit}`),
+  admin: {
+    list: (params: AdminProductListParams = {}) => {
+      const searchParams = new URLSearchParams();
+      Object.entries({ page: 1, limit: 20, ...params }).forEach(
+        ([key, value]) => {
+          if (value !== undefined && value !== "")
+            searchParams.set(key, String(value));
+        },
+      );
+      return request<AdminProductListResponse>(
+        `/admin/products?${searchParams.toString()}`,
+      );
+    },
+    get: (productId: number) =>
+      request<Product>(`/admin/products/${productId}`),
+    create: (data: FormData) =>
+      request<Product>("/admin/products", { method: "POST", body: data }),
+    update: (
+      productId: number,
+      data: Partial<
+        Pick<
+          Product,
+          "name" | "slug" | "sku" | "description" | "price" | "isActive"
+        > & { categoryId: number | null }
+      >,
+    ) =>
+      request<{ item: Product }>(`/admin/products/${productId}`, {
+        method: "PATCH",
+        body: JSON.stringify(data),
+      }),
+    updateInventory: (productId: number, stock: number, reorderAt: number) =>
+      request<{ stock: number }>(`/admin/inventory/${productId}`, {
+        method: "PATCH",
+        body: JSON.stringify({ stock, reorderAt }),
+      }),
+    delete: (productId: number) =>
+      request<{ message: string }>(`/admin/products/${productId}`, {
+        method: "DELETE",
+      }),
+    updateImage: (productId: number, imageId: number, data: FormData) =>
+      request<ProductImage>(`/admin/products/${productId}/images/${imageId}`, {
+        method: "PATCH",
+        body: data,
+      }),
+  },
+};

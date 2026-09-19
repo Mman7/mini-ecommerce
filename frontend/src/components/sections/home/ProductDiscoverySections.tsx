@@ -1,9 +1,5 @@
 import { ArrowRight, Heart } from "lucide-react";
-import {
-  getProducts,
-  getRecommendedProducts,
-  type Product,
-} from "@/src/api/product.api";
+import { productApi, type Product } from "@/src/api/product.api";
 import { FavoriteButton } from "@/src/components/ui/FavoriteButton";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { TextInView } from "@/src/components/motion/TextInView";
@@ -114,7 +110,7 @@ function ProductTile({
 export async function KomorebiEditSection() {
   // TODO get recommended products from API or context if needed
   const products = await loadProducts(
-    () => getRecommendedProducts(4),
+    () => productApi.recommended(4),
     fallbackProducts2,
   );
   return (
@@ -148,7 +144,7 @@ export async function KomorebiEditSection() {
 
 export async function NewArrivalsSection() {
   const products = await loadProducts(async () => {
-    const response = await getProducts({
+    const response = await productApi.list({
       page: 1,
       limit: 4,
       sortBy: "createdAt",

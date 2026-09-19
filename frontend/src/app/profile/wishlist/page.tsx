@@ -6,9 +6,9 @@ import { AnimatePresence, motion } from "motion/react";
 import { Heart, RefreshCw, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getFavourites, removeFavourite } from "@/src/api/favourite.api";
-import { addCartItem } from "@/src/api/cart.api";
-import { getProduct, type Product } from "@/src/api/product.api";
+import { favouriteApi } from "@/src/api/favourite.api";
+import { cartApi } from "@/src/api/cart.api";
+import { productApi, type Product } from "@/src/api/product.api";
 import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
@@ -42,14 +42,14 @@ export default function WishlistPage() {
     queryKey: ["wishlist"],
     enabled: authStatus === AuthStatus.Authenticated,
     queryFn: async () => {
-      const { favourites } = await getFavourites();
+      const { favourites } = await favouriteApi.list();
       const products = await Promise.all(
         favourites.map(async (favourite) => {
           try {
             return {
               product:
                 favourite.product ??
-                (await getProduct(String(favourite.productId))),
+                (await productApi.get(String(favourite.productId))),
               createdAt: favourite.createdAt,
             };
           } catch {
@@ -67,7 +67,7 @@ export default function WishlistPage() {
   const error = Boolean(wishlistQuery.error);
 
   async function handleRemove(productId: number) {
-    await removeFavourite(productId);
+    await favouriteApi.remove(productId);
     queryClient.setQueryData<WishlistItem[]>(["wishlist"], (current = []) =>
       current.filter((item) => item.product.productId !== productId),
     );
@@ -75,7 +75,7 @@ export default function WishlistPage() {
 
   async function handleAddToCart(productId: number) {
     try {
-      setCart(await addCartItem(productId, 1));
+      setCart(await cartApi.addItem(productId, 1));
       setMessage("Added to your cart.");
       window.setTimeout(() => setMessage(""), 2400);
     } catch (requestError) {

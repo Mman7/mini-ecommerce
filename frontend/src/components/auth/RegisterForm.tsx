@@ -12,7 +12,7 @@ import {
 import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
-import { register } from "@/src/api/auth.api";
+import { authApi } from "@/src/api/auth.api";
 
 type RegisterFormValues = {
   name: string;
@@ -36,7 +36,7 @@ export default function RegisterForm() {
     setIsSubmitting(true);
 
     try {
-      await register(values.name, values.email, values.password);
+      await authApi.register(values.name, values.email, values.password);
       router.push("/");
     } catch (requestError) {
       setError(

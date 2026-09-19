@@ -4,3 +4,7 @@ export * from "./user.api";
 export * from "./product.api";
 export * from "./order.api";
 export * from "./favourite.api";
+export * from "./category.api";
+export * from "./cart.api";
+export * from "./customer.api";
+export * from "./dashboard.api";

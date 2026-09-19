@@ -9,21 +9,18 @@ export type Favourite = {
   product: Product | null;
 };
 
-export function getFavourites() {
-  return request<{ favourites: Favourite[] }>("/favourites").catch((e) => {
-    return { favourites: [] };
-  });
-}
-
-export function addFavourite(productId: number) {
-  return request<{ favourite: Favourite }>("/favourites", {
-    method: "POST",
-    body: JSON.stringify({ productId }),
-  });
-}
-
-export function removeFavourite(productId: number) {
-  return request<{ message: string }>(`/favourites/${productId}`, {
-    method: "DELETE",
-  });
-}
+export const favouriteApi = {
+  list: () =>
+    request<{ favourites: Favourite[] }>("/favourites").catch(() => ({
+      favourites: [],
+    })),
+  add: (productId: number) =>
+    request<{ favourite: Favourite }>("/favourites", {
+      method: "POST",
+      body: JSON.stringify({ productId }),
+    }),
+  remove: (productId: number) =>
+    request<{ message: string }>(`/favourites/${productId}`, {
+      method: "DELETE",
+    }),
+};

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import type { Product } from "../../types/product";
-import { addCartItem } from "../../api/cart.api";
+import { cartApi } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
 import { Button } from "./Button";
 import { FavoriteButton } from "./FavoriteButton";
@@ -21,7 +21,7 @@ export default function ProductCard({ product }: { product: Product }) {
     if (isAdding || product.stock === 0) return;
     setIsAdding(true);
     try {
-      setCart(await addCartItem(product.productId, 1));
+      setCart(await cartApi.addItem(product.productId, 1));
       toast.add({
         title: "Product added to cart",
         description: product.name,

@@ -4,12 +4,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import {
-  removeCartItem,
-  updateCartItem,
-  type Cart,
-  type CartItem,
-} from "@/src/api/cart.api";
+import { cartApi, type Cart, type CartItem } from "@/src/api/cart.api";
 import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
@@ -290,7 +285,7 @@ export default function ShoppingCartPage() {
     setPending(item.id);
     setError("");
     try {
-      setCart(await updateCartItem(item.id, quantity));
+      setCart(await cartApi.updateItem(item.id, quantity));
     } catch {
       setError(
         "That quantity is no longer available. Your bag was not changed.",
@@ -305,7 +300,7 @@ export default function ShoppingCartPage() {
     setPending(item.id);
     setError("");
     try {
-      setCart(await removeCartItem(item.id));
+      setCart(await cartApi.removeItem(item.id));
     } catch {
       setError("We could not remove that item. Please try again.");
       await loadCart();

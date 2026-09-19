@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
-import { getMyOrders, type Order } from "@/src/api/order.api";
+import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const getImage = (order: Order) =>
@@ -16,7 +16,7 @@ const getImage = (order: Order) =>
 export default function MyOrdersPage() {
   const ordersQuery = useQuery({
     queryKey: ["my-orders"],
-    queryFn: async () => (await getMyOrders()).orders,
+    queryFn: async () => (await orderApi.listMine()).orders,
   });
   const orders: Order[] = ordersQuery.data ?? [];
   const error = ordersQuery.error

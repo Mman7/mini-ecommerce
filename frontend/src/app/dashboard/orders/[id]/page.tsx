@@ -3,12 +3,7 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  cancelAdminOrder,
-  getAdminOrder,
-  updateAdminOrderStatus,
-  type Order,
-} from "../../../../api/order.api";
+import { orderApi, type Order } from "../../../../api/order.api";
 import {
   DashboardHeading,
   DashboardPanel,
@@ -49,7 +44,8 @@ export default function AdminOrderDetailPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   useEffect(() => {
-    getAdminOrder(params.id)
+    orderApi.admin
+      .get(params.id)
       .then((result) => {
         setOrder(result);
         setStatus(result.status);
@@ -61,7 +57,7 @@ export default function AdminOrderDetailPage() {
     if (!order || status === order.status) return;
     setSaving(true);
     try {
-      const updated = await updateAdminOrderStatus(order.id, status);
+      const updated = await orderApi.admin.updateStatus(order.id, status);
       setOrder({ ...order, status: updated.status });
       toast.add({
         title: "Order status updated",
@@ -91,7 +87,7 @@ export default function AdminOrderDetailPage() {
       return;
     setSaving(true);
     try {
-      const updated = await cancelAdminOrder(order.id);
+      const updated = await orderApi.admin.cancel(order.id);
       setOrder({ ...order, status: updated.status });
       setStatus(updated.status);
       toast.add({

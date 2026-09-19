@@ -14,18 +14,6 @@ export type User = {
 
 let currentUserRequest: Promise<{ message: string; user: User }> | null = null;
 
-export function getCurrentUser() {
-  if (!currentUserRequest) {
-    currentUserRequest = request<{ message: string; user: User }>(
-      "/users/me",
-    ).finally(() => {
-      currentUserRequest = null;
-    });
-  }
-
-  return currentUserRequest;
-}
-
 export type SavedAddress = {
   id: number;
   userId: string;
@@ -38,43 +26,43 @@ export type SavedAddress = {
   updatedAt: string;
 };
 
-export function updateCurrentUser(data: {
-  name?: string;
-  email?: string;
-  phoneNumber?: string;
-}) {
-  return request<{ message: string; user: User }>("/users/me", {
-    method: "PATCH",
-    body: JSON.stringify(data),
-  });
-}
-
-export function getAddresses() {
-  return request<{ addresses: SavedAddress[] }>("/users/me/addresses");
-}
-
-export function createAddress(
-  address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
-) {
-  return request<{ addresses: SavedAddress[] }>("/users/me/addresses", {
-    method: "POST",
-    body: JSON.stringify(address),
-  });
-}
-
-export function updateAddress(
-  addressId: number,
-  address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
-) {
-  return request<{ addresses: SavedAddress[] }>(
-    `/users/me/addresses/${addressId}`,
-    { method: "PATCH", body: JSON.stringify(address) },
-  );
-}
-
-export function deleteAddress(addressId: number) {
-  return request<{ addresses: SavedAddress[] }>(
-    `/users/me/addresses/${addressId}`,
-    { method: "DELETE" },
-  );
-}
+export const userApi = {
+  me: () => {
+    if (!currentUserRequest) {
+      currentUserRequest = request<{ message: string; user: User }>(
+        "/users/me",
+      ).finally(() => {
+        currentUserRequest = null;
+      });
+    }
+    return currentUserRequest;
+  },
+  update: (data: { name?: string; email?: string; phoneNumber?: string }) =>
+    request<{ message: string; user: User }>("/users/me", {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    }),
+  addresses: {
+    list: () => request<{ addresses: SavedAddress[] }>("/users/me/addresses"),
+    create: (
+      address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
+    ) =>
+      request<{ addresses: SavedAddress[] }>("/users/me/addresses", {
+        method: "POST",
+        body: JSON.stringify(address),
+      }),
+    update: (
+      addressId: number,
+      address: Omit<SavedAddress, "id" | "userId" | "createdAt" | "updatedAt">,
+    ) =>
+      request<{ addresses: SavedAddress[] }>(
+        `/users/me/addresses/${addressId}`,
+        { method: "PATCH", body: JSON.stringify(address) },
+      ),
+    delete: (addressId: number) =>
+      request<{ addresses: SavedAddress[] }>(
+        `/users/me/addresses/${addressId}`,
+        { method: "DELETE" },
+      ),
+  },
+};

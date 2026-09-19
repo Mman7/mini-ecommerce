@@ -48,75 +48,66 @@ export type OrderItem = {
   };
 };
 
-export function createOrder(orderProduct: OrderItemInput[], addressId: number) {
-  return request<{ msg: string; order: Order }>("/orders", {
-    method: "POST",
-    body: JSON.stringify({ orderProduct, addressId }),
-  });
-}
-
-export function getOrder(orderId: string) {
-  return request<{ msg: string; order: Order }>(`/orders/${orderId}`);
-}
-
-export function getMyOrders() {
-  return request<{ msg: string; orders: Order[] }>("/orders/mine");
-}
-
-export function cancelOrder(orderId: string) {
-  return request<{ msg: string; order: Order }>(`/orders/${orderId}/cancel`, {
-    method: "POST",
-  });
-}
-
-export function getAdminOrders(
-  params: {
-    page?: number;
-    limit?: number;
-    search?: string;
-    status?: string;
-    from?: string;
-    to?: string;
-    sortBy?: "createdAt" | "total";
-    sortOrder?: "asc" | "desc";
-  } = {},
-) {
-  const searchParams = new URLSearchParams();
-  Object.entries({ page: 1, limit: 20, ...params }).forEach(([key, value]) => {
-    if (value !== undefined && value !== "")
-      searchParams.set(key, String(value));
-  });
-  return request<AdminOrderListResponse>(
-    `/admin/orders?${searchParams.toString()}`,
-  );
-}
-
-export function getAdminOrder(orderId: string) {
-  return request<
-    Order & {
-      user: {
-        userId: string;
-        name: string;
-        email: string;
-        phoneNumber: string | null;
-      };
-      deliveryAddressLine1: string;
-      deliveryAddressLine2: string | null;
-      deliveryCity: string;
-      deliveryState: string | null;
-      deliveryPostcode: string;
-      deliveryCountry: string;
-    }
-  >(`/admin/orders/${orderId}`);
-}
-
-export function updateAdminOrderStatus(orderId: string, status: string) {
-  return request<Order>(`/admin/orders/${orderId}/status`, {
-    method: "PATCH",
-    body: JSON.stringify({ status }),
-  });
-}
-
-export function cancelAdminOrder(orderId: string) {
-  return request<Order>(`/admin/orders/${orderId}/cancel`, { method: "PATCH" });
-}
+export const orderApi = {
+  create: (orderProduct: OrderItemInput[], addressId: number) =>
+    request<{ msg: string; order: Order }>("/orders", {
+      method: "POST",
+      body: JSON.stringify({ orderProduct, addressId }),
+    }),
+  get: (orderId: string) =>
+    request<{ msg: string; order: Order }>(`/orders/${orderId}`),
+  listMine: () => request<{ msg: string; orders: Order[] }>("/orders/mine"),
+  cancel: (orderId: string) =>
+    request<{ msg: string; order: Order }>(`/orders/${orderId}/cancel`, {
+      method: "POST",
+    }),
+  admin: {
+    list: (
+      params: {
+        page?: number;
+        limit?: number;
+        search?: string;
+        status?: string;
+        from?: string;
+        to?: string;
+        sortBy?: "createdAt" | "total";
+        sortOrder?: "asc" | "desc";
+      } = {},
+    ) => {
+      const searchParams = new URLSearchParams();
+      Object.entries({ page: 1, limit: 20, ...params }).forEach(
+        ([key, value]) => {
+          if (value !== undefined && value !== "")
+            searchParams.set(key, String(value));
+        },
+      );
+      return request<AdminOrderListResponse>(
+        `/admin/orders?${searchParams.toString()}`,
+      );
+    },
+    get: (orderId: string) =>
+      request<
+        Order & {
+          user: {
+            userId: string;
+            name: string;
+            email: string;
+            phoneNumber: string | null;
+          };
+          deliveryAddressLine1: string;
+          deliveryAddressLine2: string | null;
+          deliveryCity: string;
+          deliveryState: string | null;
+          deliveryPostcode: string;
+          deliveryCountry: string;
+        }
+      >(`/admin/orders/${orderId}`),
+    updateStatus: (orderId: string, status: string) =>
+      request<Order>(`/admin/orders/${orderId}/status`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
+      }),
+    cancel: (orderId: string) =>
+      request<Order>(`/admin/orders/${orderId}/cancel`, { method: "PATCH" }),
+  },
+};
