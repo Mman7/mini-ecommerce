@@ -7,6 +7,8 @@ services:
     ports:
       - "5000:5000"
     command: npm run dev
+    environment:
+      - ENV_FILE=docker
     volumes:
       - /app/node_modules
     develop:

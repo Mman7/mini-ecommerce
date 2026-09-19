@@ -1,8 +1,8 @@
-import "dotenv/config";
 import express, { type Express } from "express";
 import mainRouter from "./routes.js";
 import cookieParser from "cookie-parser";
 import path from "node:path";
+import "./configs/configs.js";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;

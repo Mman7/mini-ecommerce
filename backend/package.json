@@ -29,6 +29,7 @@
     "@types/multer": "^2.2.0",
     "@types/node": "^25.9.4",
     "dotenv": "^17.4.2",
+    "dotenv-expand": "^1000.0.0",
     "prisma": "^7.10.0",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3"

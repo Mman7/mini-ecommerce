@@ -5,6 +5,8 @@ services:
 
   backend:
     restart: unless-stopped
+    environment:
+      - ENV_FILE=docker
     ports:
       - "5000:5000"
     command: npm start # Switch to your production start script

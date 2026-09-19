@@ -27,7 +27,7 @@ services:
     depends_on:
       - postgres
     env_file:
-      - ./backend/.env
+      - ./backend/.env.docker
     environment:
       - UPLOAD_DIR=/app/uploads
     volumes:

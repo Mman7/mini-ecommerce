@@ -118,7 +118,7 @@ model Order {
   id                   String      @id @unique @default(uuid())
   userId               String
   total                Decimal     @db.Decimal(10, 2)
-  status               String      @default("PENDING")
+  status               OrderStatus @default(PENDING)
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   deliveryAddressLine1 String
@@ -164,4 +164,12 @@ model Cart {
 enum Role {
   USER
   ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }
