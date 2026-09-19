@@ -124,7 +124,7 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
         </div>
       </header>
       {notice ? (
-        <p role="alert" className="text-secondary mb-4 text-sm">
+        <p role="alert" className="text-primary-soft mb-4 text-sm">
           {notice}
         </p>
       ) : null}
@@ -178,7 +178,7 @@ export function CategoryEditor({ mode, categoryId }: CategoryEditorProps) {
               <button
                 type="button"
                 onClick={remove}
-                className="border-secondary/50 text-secondary rounded border px-3 py-2 text-xs"
+                className="border-primary/50 text-primary-soft rounded border px-3 py-2 text-xs"
               >
                 Delete Category
               </button>

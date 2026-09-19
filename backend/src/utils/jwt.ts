@@ -1,6 +1,7 @@
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { prisma } from "./prisma.ts";
 import type { JwtPayload } from "../interfaces/jwtpayload.interface.ts";
+import "../configs/configs.js";
 
 const accessSecretKey = process.env.JWT_ACCESS_SECRET;
 const refreshSecretKey = process.env.JWT_REFRESH_SECRET;

@@ -146,7 +146,7 @@ export default function CreateProductPage() {
         </div>
 
         {message ? (
-          <div className="meta-font border-tertiary/30 bg-tertiary/10 text-tertiary mb-5 rounded-md border px-4 py-3 text-xs">
+          <div className="meta-font border-primary/30 bg-primary/10 text-primary-soft mb-5 rounded-md border px-4 py-3 text-xs">
             {message}
           </div>
         ) : null}

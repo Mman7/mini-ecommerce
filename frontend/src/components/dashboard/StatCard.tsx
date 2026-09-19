@@ -6,9 +6,9 @@ type StatCardAccent = "amber" | "pink" | "cyan" | "green";
 
 const accentStyles: Record<StatCardAccent, string> = {
   amber: "bg-surface-2 text-primary-soft",
-  pink: "bg-surface-2 text-secondary",
+  pink: "bg-surface-2 text-primary-soft",
   cyan: "bg-surface-2 text-primary-soft",
-  green: "bg-surface-2 text-tertiary",
+  green: "bg-surface-2 text-primary-soft",
 };
 
 export function StatCard({

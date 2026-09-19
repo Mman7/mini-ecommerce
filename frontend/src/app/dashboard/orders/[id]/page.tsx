@@ -118,7 +118,7 @@ export default function AdminOrderDetailPage() {
   if (!order)
     return (
       <>
-        <p role="alert" className="text-secondary">
+        <p role="alert" className="text-primary-soft">
           {error || "Order not found."}
         </p>
       </>
@@ -139,7 +139,7 @@ export default function AdminOrderDetailPage() {
         }
       />
       {error ? (
-        <p role="alert" className="text-secondary mb-4 text-sm">
+        <p role="alert" className="text-primary-soft mb-4 text-sm">
           {error}
         </p>
       ) : null}
@@ -244,7 +244,7 @@ export default function AdminOrderDetailPage() {
                   type="button"
                   disabled={saving}
                   onClick={cancel}
-                  className="meta-font border-secondary/50 text-secondary w-full rounded border px-3 py-2 text-xs disabled:opacity-50"
+                  className="meta-font border-primary/50 text-primary-soft w-full rounded border px-3 py-2 text-xs disabled:opacity-50"
                 >
                   Cancel Order
                 </button>

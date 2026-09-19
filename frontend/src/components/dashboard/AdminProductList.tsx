@@ -157,7 +157,7 @@ export function AdminProductList({
         <span
           className={
             row.original.stock === 0
-              ? "text-secondary text-xs"
+              ? "text-primary-soft text-xs"
               : "text-text-muted text-xs"
           }
         >
@@ -263,7 +263,7 @@ export function AdminProductList({
         </select>
       </div>
       {error ? (
-        <p role="alert" className="text-secondary p-5 text-sm">
+        <p role="alert" className="text-primary-soft p-5 text-sm">
           {error}
         </p>
       ) : loading ? (

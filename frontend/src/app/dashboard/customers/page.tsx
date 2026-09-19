@@ -311,7 +311,7 @@ export default function DashboardCustomersPage() {
           }
         />
         {error ? (
-          <p role="alert" className="text-secondary p-5 text-sm">
+          <p role="alert" className="text-primary-soft p-5 text-sm">
             {error}
           </p>
         ) : loading ? (

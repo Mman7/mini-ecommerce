@@ -104,7 +104,7 @@ export default function CustomerDetailPage() {
     );
   if (!customer)
     return (
-      <p role="alert" className="text-secondary">
+      <p role="alert" className="text-primary-soft">
         {error || "Customer not found."}
       </p>
     );
@@ -133,7 +133,7 @@ export default function CustomerDetailPage() {
         }
       />
       {error ? (
-        <p role="alert" className="text-secondary mb-4 text-sm">
+        <p role="alert" className="text-primary-soft mb-4 text-sm">
           {error}
         </p>
       ) : null}
@@ -240,7 +240,7 @@ export default function CustomerDetailPage() {
                 type="button"
                 disabled={saving}
                 onClick={toggleStatus}
-                className="meta-font border-secondary/50 text-secondary w-full rounded border px-3 py-2 text-xs disabled:opacity-50"
+                className="meta-font border-primary/50 text-primary-soft w-full rounded border px-3 py-2 text-xs disabled:opacity-50"
               >
                 {customer.isActive
                   ? "Deactivate Customer"

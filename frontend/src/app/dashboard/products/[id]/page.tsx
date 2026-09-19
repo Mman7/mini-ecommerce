@@ -121,7 +121,7 @@ export default function ProductDetailPage() {
           </DashboardPanel>
         </>
       ) : (
-        <p role="alert" className="text-secondary">
+        <p role="alert" className="text-primary-soft">
           {error || "Loading product..."}
         </p>
       )}

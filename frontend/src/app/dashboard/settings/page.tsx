@@ -84,7 +84,7 @@ export default function DashboardSettingsPage() {
           </section>
           <div className="flex items-center justify-end gap-4">
             {notice ? (
-              <span className="text-tertiary text-xs">{notice}</span>
+              <span className="text-primary-soft text-xs">{notice}</span>
             ) : null}
             <button
               type="submit"

@@ -1,79 +1,33 @@
 "use client";
 
-import {
-  Bell,
-  ChartNoAxesCombined,
-  ClipboardList,
-  LayoutDashboard,
-  LogOut,
-  Menu,
-  Package,
-  Settings,
-  Store,
-  Tags,
-  Users,
-  X,
-} from "lucide-react";
+import { Bell, LogOut, Menu, Store, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { authApi } from "@/src/api/auth.api";
 import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
-
-export type DashboardSection =
-  | "overview"
-  | "products"
-  | "categories"
-  | "orders"
-  | "customers"
-  | "analytics"
-  | "settings";
-
-const navigation = [
-  {
-    key: "overview" as const,
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    key: "products" as const,
-    label: "Products",
-    href: "/dashboard/products",
-    icon: Package,
-  },
-  {
-    key: "categories" as const,
-    label: "Categories",
-    href: "/dashboard/categories",
-    icon: Tags,
-  },
-  {
-    key: "orders" as const,
-    label: "Orders",
-    href: "/dashboard/orders",
-    icon: ClipboardList,
-  },
-  {
-    key: "customers" as const,
-    label: "Customers",
-    href: "/dashboard/customers",
-    icon: Users,
-  },
-  {
-    key: "analytics" as const,
-    label: "Analytics",
-    href: "/dashboard/analytics",
-    icon: ChartNoAxesCombined,
-  },
-  {
-    key: "settings" as const,
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
-  },
-];
+import { Button, buttonVariants } from "@/components/ui/button";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from "@/components/ui/drawer";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  DashboardNavigation,
+  type DashboardSection,
+} from "./DashboardNavigation";
 
 type DashboardShellProps = {
   activeSection: DashboardSection;
@@ -103,7 +57,8 @@ export function DashboardShell({
   return (
     <div className="text-foreground bg-background min-h-screen">
       <div className="mx-auto grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
-        <aside className="bg-surface-1 hidden border-r border-(--glass-border) lg:flex lg:flex-col">
+        {/* desktop sidebar */}
+        <aside className="bg-surface-1 hidden self-start border-r border-(--glass-border) lg:sticky lg:top-0 lg:flex lg:h-screen lg:max-h-screen lg:flex-col lg:overflow-y-auto">
           <DashboardBrand />
           <DashboardNavigation activeSection={activeSection} />
           <AdminIdentity
@@ -112,58 +67,76 @@ export function DashboardShell({
           />
         </aside>
 
+        {/* main content area */}
         <div className="min-w-0">
-          <header className="bg-background border-b border-(--glass-border) px-4 py-3 sm:px-6 lg:px-8">
+          <header className="bg-background px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between gap-4">
+              {/* mobile sidebar trigger */}
               <div className="flex items-center gap-3 lg:hidden">
-                <button
-                  type="button"
-                  aria-expanded={mobileOpen}
-                  aria-controls="mobile-dashboard-navigation"
-                  aria-label="Toggle dashboard navigation"
-                  onClick={() => setMobileOpen((current) => !current)}
-                  className="text-text-muted hover:border-primary hover:text-primary flex h-8 w-8 items-center justify-center rounded-md border border-(--glass-border) transition"
+                <Drawer
+                  open={mobileOpen}
+                  onOpenChange={setMobileOpen}
+                  swipeDirection="left"
                 >
-                  {mobileOpen ? <X size={16} /> : <Menu size={16} />}
-                </button>
+                  <DrawerTrigger
+                    render={
+                      <button
+                        type="button"
+                        aria-label="Toggle dashboard navigation"
+                        className="text-text-muted hover:border-primary hover:text-primary flex h-8 w-8 items-center justify-center rounded-md border border-(--glass-border) transition"
+                      />
+                    }
+                  >
+                    {mobileOpen ? <X size={16} /> : <Menu size={16} />}
+                  </DrawerTrigger>
+                  <DrawerContent className="bg-surface-1 w-[min(85vw,20rem)]">
+                    <DrawerHeader className="border-b border-(--glass-border) px-6 py-5 text-left">
+                      <DrawerTitle className="sr-only">
+                        Dashboard navigation
+                      </DrawerTitle>
+                      <DashboardBrand compact />
+                    </DrawerHeader>
+                    <div className="overflow-y-auto p-4">
+                      <DashboardNavigation
+                        activeSection={activeSection}
+                        onNavigate={() => setMobileOpen(false)}
+                      />
+                      <AdminIdentity
+                        userName={user?.name}
+                        onLogout={() => void handleLogout()}
+                      />
+                    </div>
+                  </DrawerContent>
+                </Drawer>
                 <DashboardBrand compact />
               </div>
-              <div className="relative hidden max-w-full flex-1 sm:block">
-                <input
-                  aria-label="Search dashboard"
-                  type="search"
-                  placeholder="Search anything..."
-                  className="meta-font bg-surface-1 text-foreground focus:border-primary h-8 w-full rounded-md border border-(--glass-border) px-3 text-xs outline-none placeholder:text-(--outline)"
-                />
-              </div>
+
               <div className="ml-auto flex items-center gap-2">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
+                  size="default"
                   aria-label="Notifications"
-                  className="text-text-muted hover:border-primary hover:text-primary-soft relative flex h-8 w-8 items-center justify-center rounded-md border border-(--glass-border) transition"
+                  className="text-text-muted hover:border-primary hover:text-primary-soft relative h-8 w-8 border-(--glass-border) px-0 lg:w-auto lg:px-2.5"
                 >
                   <Bell size={14} />
+                  <span className="hidden lg:inline">Notifications</span>
                   <span className="bg-primary absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full" />
-                </button>
+                </Button>
                 <Link
                   href="/"
-                  aria-label="Store settings"
-                  className="text-text-muted hover:border-primary hover:text-primary-soft flex h-8 w-8 items-center justify-center rounded-md border border-(--glass-border) transition"
+                  aria-label="Store"
+                  className={buttonVariants({
+                    variant: "outline",
+                    size: "default",
+                    className:
+                      "hover:border-primary bg-primary text-primary-foreground! hover:text-primary-soft! h-8 w-8 border-(--glass-border) px-0 lg:w-auto lg:px-2.5",
+                  })}
                 >
                   <Store size={14} />
+                  <span className="hidden lg:inline">Store</span>
                 </Link>
               </div>
-            </div>
-
-            <div
-              id="mobile-dashboard-navigation"
-              className={`${mobileOpen ? "block" : "hidden"} mt-3 border-t border-(--glass-border) pt-3 lg:hidden`}
-            >
-              <DashboardNavigation
-                activeSection={activeSection}
-                compact
-                onNavigate={() => setMobileOpen(false)}
-              />
             </div>
           </header>
 
@@ -182,47 +155,13 @@ function DashboardBrand({ compact = false }: { compact?: boolean }) {
       href="/dashboard"
       className={`flex items-center ${compact ? "gap-2" : "justify-center px-7 py-8"}`}
     >
+      <img src="/Shared/logo.png" alt="logo" className="h-8 w-8" />
       <span
         className={`title-font block font-semibold tracking-wide whitespace-nowrap ${compact ? "text-primary-soft text-sm" : "text-foreground text-xl"}`}
       >
         Komorebi Gift Atelier
       </span>
     </Link>
-  );
-}
-
-function DashboardNavigation({
-  activeSection,
-  compact = false,
-  onNavigate,
-}: {
-  activeSection: DashboardSection;
-  compact?: boolean;
-  onNavigate?: () => void;
-}) {
-  return (
-    <nav
-      className={compact ? "grid gap-1 sm:grid-cols-2" : "px-4 pt-8"}
-      aria-label="Dashboard navigation"
-    >
-      <div className={compact ? "contents" : "space-y-2"}>
-        {navigation.map((item) => (
-          <Link
-            key={item.key}
-            href={item.href}
-            aria-current={item.key === activeSection ? "page" : undefined}
-            onClick={onNavigate}
-            className={`meta-font flex items-center gap-3 rounded-md text-sm transition ${compact ? "px-3 py-2" : "rounded-none px-5 py-4 text-base"} ${item.key === activeSection ? "border-primary border-l-5" : "text-text-muted hover:text-foreground hover:bg-surface-3"}`}
-          >
-            <item.icon
-              size={14}
-              strokeWidth={item.key === activeSection ? 2.3 : 1.8}
-            />
-            {item.label}
-          </Link>
-        ))}
-      </div>
-    </nav>
   );
 }
 
@@ -242,27 +181,44 @@ function AdminIdentity({
   return (
     <div className="mt-auto px-4 pb-5">
       <div className="mb-4 border-t border-(--glass-border)" />
-      <div className="bg-surface-2 flex items-center gap-3 rounded-lg px-3 py-3">
-        <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
-          {initials}
-        </div>
-        <div className="min-w-0">
-          <p className="text-foreground truncate text-xs font-medium">
-            {userName ?? "Administrator"}
-          </p>
-          <p className="meta-font text-text-muted truncate text-xs">
-            Administrator
-          </p>
-        </div>
-        <button
-          type="button"
-          aria-label="Sign out"
-          onClick={onLogout}
-          className="text-text-muted hover:text-secondary ml-auto shrink-0 rounded p-1 transition"
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <button
+              type="button"
+              aria-label="Open account menu"
+              className="bg-surface-2 hover:bg-surface-3 flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left transition"
+            />
+          }
         >
-          <LogOut size={13} />
-        </button>
-      </div>
+          <div className="bg-primary text-primary-foreground flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-semibold">
+            {initials}
+          </div>
+          <div className="min-w-0">
+            <p className="text-foreground truncate text-xs font-medium">
+              {userName ?? "Administrator"}
+            </p>
+            <p className="meta-font text-text-muted truncate text-xs">
+              Administrator
+            </p>
+          </div>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuGroup>
+            <DropdownMenuLabel>
+              <p className="truncate">{userName ?? "Administrator"}</p>
+              <p className="text-text-muted mt-1 text-xs font-normal">
+                Administrator
+              </p>
+            </DropdownMenuLabel>
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem variant="destructive" onClick={onLogout}>
+            <LogOut size={14} />
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </div>
   );
 }

@@ -87,6 +87,7 @@ export function NavbarSection() {
           <nav className="bg-surface-1 border-surface-3 border-b">
             <div className="mx-auto flex max-w-330 items-center justify-between gap-4 px-4 py-3 sm:px-5">
               <div className="flex items-center">
+                <img src="/Shared/logo.png" alt="logo" className="h-8 w-8" />
                 <Link
                   href="/"
                   className="title-font text-primary-soft! text-lg font-semibold tracking-wide"

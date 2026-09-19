@@ -5,6 +5,8 @@ import { useEffect, useState, type ReactNode } from "react";
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import {
   CalendarDays,
+  Check,
+  ChevronDown,
   CircleDollarSign,
   Package,
   RefreshCw,
@@ -28,15 +30,39 @@ import {
   StatusPill,
 } from "../../components/dashboard";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const chartConfig = {
-  amount: { label: "Revenue", color: "#ffb77a" },
+  amount: { label: "Revenue", color: "#e98b2c" },
 } satisfies ChartConfig;
 
 const currency = new Intl.NumberFormat("en-MY", {
   style: "currency",
   currency: "MYR",
 });
+
+const dateRanges = [
+  { value: "1d", label: "Today", days: 1 },
+  { value: "7d", label: "Last 7 days", days: 7 },
+  { value: "30d", label: "Last 30 days", days: 30 },
+  { value: "90d", label: "Last 90 days", days: 90 },
+] as const;
+
+type DateRange = (typeof dateRanges)[number]["value"];
+
+function getDateRange(value: DateRange) {
+  const selected = dateRanges.find((range) => range.value === value)!;
+  const to = new Date();
+  const from = new Date(to);
+  from.setDate(from.getDate() - selected.days);
+
+  return { from: from.toISOString(), to: to.toISOString() };
+}
 
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en-MY", {
@@ -69,12 +95,14 @@ export default function DashboardPage() {
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [selectedRange, setSelectedRange] = useState<DateRange>("7d");
 
-  async function loadOverview() {
+  async function loadOverview(range: DateRange = selectedRange) {
     setLoading(true);
     setError(false);
     try {
-      setOverview(await dashboardApi.overview());
+      const dates = getDateRange(range);
+      setOverview(await dashboardApi.overview(dates.from, dates.to));
     } catch {
       setError(true);
     } finally {
@@ -83,7 +111,7 @@ export default function DashboardPage() {
   }
 
   useEffect(() => {
-    void loadOverview();
+    void loadOverview("7d");
   }, []);
 
   const summary = overview?.summary;
@@ -101,10 +129,37 @@ export default function DashboardPage() {
         title="Overview"
         description={`Welcome back, ${user?.name ?? "Admin"}. Here is what is happening with your atelier today.`}
         action={
-          <div className="meta-font bg-surface-1 text-text-muted flex h-8 items-center gap-2 rounded-md border border-(--glass-border) px-3 text-xs">
-            <CalendarDays size={13} />
-            Last 7 days
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              render={
+                <button
+                  type="button"
+                  className="meta-font bg-surface-1 text-text-muted hover:border-primary hover:text-primary-soft flex h-8 items-center gap-2 rounded-md border border-(--glass-border) px-3 text-xs transition"
+                />
+              }
+            >
+              <CalendarDays size={13} />
+              {dateRanges.find((range) => range.value === selectedRange)?.label}
+              <ChevronDown size={13} />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-40">
+              {dateRanges.map((range) => (
+                <DropdownMenuItem
+                  key={range.value}
+                  onClick={() => {
+                    setSelectedRange(range.value);
+                    void loadOverview(range.value);
+                  }}
+                  className="justify-between"
+                >
+                  {range.label}
+                  {range.value === selectedRange ? (
+                    <Check className="text-primary-soft" size={14} />
+                  ) : null}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
         }
       />
 
@@ -162,7 +217,10 @@ export default function DashboardPage() {
             title="Revenue Overview"
             action={
               <span className="meta-font text-text-muted text-xs">
-                Last 7 days
+                {
+                  dateRanges.find((range) => range.value === selectedRange)
+                    ?.label
+                }
               </span>
             }
           />
@@ -361,7 +419,7 @@ export default function DashboardPage() {
                   <span className="text-foreground min-w-0 flex-1 truncate text-sm">
                     {product.name}
                   </span>
-                  <span className="meta-font text-secondary shrink-0 text-xs">
+                  <span className="meta-font text-text-muted shrink-0 text-xs">
                     Stock: {product.stock}
                   </span>
                 </Link>

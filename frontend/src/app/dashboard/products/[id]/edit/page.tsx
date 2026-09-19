@@ -281,7 +281,7 @@ export default function EditProductPage() {
         </header>
 
         {message ? (
-          <div className="meta-font border-tertiary/30 bg-tertiary/10 text-tertiary mb-5 flex items-center gap-2 rounded-md border px-4 py-3 text-xs">
+          <div className="meta-font border-primary/30 bg-primary/10 text-primary-soft mb-5 flex items-center gap-2 rounded-md border px-4 py-3 text-xs">
             <CheckCircle2 size={14} /> {message}
           </div>
         ) : null}
@@ -441,9 +441,9 @@ export default function EditProductPage() {
               </section>
             </div>
 
-            <section className="flex flex-col gap-4 rounded-lg border border-[#ffb4ab]/20 bg-[#2b1b1c]/50 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <section className="border-primary/20 bg-primary/5 flex flex-col gap-4 rounded-lg border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <div>
-                <h2 className="heading-font flex items-center gap-2 text-xl font-medium text-[#ffb4ab]">
+                <h2 className="heading-font text-primary-soft flex items-center gap-2 text-xl font-medium">
                   <Trash2 size={18} /> Danger Zone
                 </h2>
                 <p className="text-text-muted mt-1 text-sm">
@@ -454,7 +454,7 @@ export default function EditProductPage() {
               <button
                 type="button"
                 onClick={() => setDeleteDialogOpen(true)}
-                className="meta-font shrink-0 rounded-md border border-[#ffb4ab]/50 px-4 py-2 text-xs text-[#ffb4ab] transition hover:bg-[#ffb4ab]/10"
+                className="meta-font border-primary/50 text-primary-soft hover:bg-primary/10 shrink-0 rounded-md border px-4 py-2 text-xs transition"
               >
                 Delete Product
               </button>
@@ -544,7 +544,7 @@ export default function EditProductPage() {
                   </span>
                 </div>
                 <div className="p-4">
-                  <p className="meta-font text-tertiary mb-1 text-[10px] font-bold tracking-wider uppercase">
+                  <p className="meta-font text-text-muted mb-1 text-[10px] font-bold tracking-wider uppercase">
                     {category}
                   </p>
                   <h2 className="heading-font text-foreground truncate text-base">
@@ -558,7 +558,7 @@ export default function EditProductPage() {
                       RM {compareAtPrice}
                     </span>
                   </div>
-                  <p className="meta-font mt-3 flex items-center gap-1 text-[11px] text-[#4ade80]">
+                  <p className="meta-font text-text-muted mt-3 flex items-center gap-1 text-[11px]">
                     <CheckCircle2 size={13} /> In Stock ({stock})
                   </p>
                 </div>
@@ -568,9 +568,9 @@ export default function EditProductPage() {
         </div>
       </form>
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="text-foreground bg-surface-2! border border-[#ffb4ab]/20">
+        <DialogContent className="text-foreground bg-surface-2! border-primary/20 border">
           <DialogHeader>
-            <DialogTitle className="text-[#ffb4ab]">
+            <DialogTitle className="text-primary-soft">
               Delete product?
             </DialogTitle>
             <DialogDescription className="text-text-muted">
@@ -713,7 +713,7 @@ function ImageTile({
           title="Remove image"
           aria-label="Remove image"
           onClick={() => onRemove(image.id)}
-          className="bg-surface-4 rounded-full p-2 text-[#ffb4ab] hover:cursor-pointer"
+          className="bg-surface-4 text-primary-soft rounded-full p-2 hover:cursor-pointer"
         >
           <X size={14} />
         </button>

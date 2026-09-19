@@ -75,7 +75,7 @@ export default function CategoryDetailPage() {
           </div>
         </>
       ) : (
-        <p role="alert" className="text-secondary">
+        <p role="alert" className="text-primary-soft">
           {error || "Loading category..."}
         </p>
       )}

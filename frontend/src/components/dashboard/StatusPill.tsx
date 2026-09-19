@@ -1,9 +1,9 @@
 import { DashboardStatus } from "./types/dashboard-status.enum";
 
 const STATUS_STYLES = {
-  success: "bg-tertiary/15 text-tertiary",
+  success: "bg-surface-3 text-text-muted",
   primary: "bg-primary/15 text-primary-soft",
-  danger: "bg-secondary/14 text-secondary",
+  danger: "bg-primary/10 text-primary-soft",
   neutral: "bg-(--glass-bg) text-text-muted",
 } as const;
 
