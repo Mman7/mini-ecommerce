@@ -4,6 +4,7 @@ import {
   CheckCircle2,
   Clock3,
   PackageCheck,
+  CircleDollarSign,
   ShoppingCart,
   XCircle,
 } from "lucide-react";
@@ -24,7 +25,7 @@ export default function OrdersPage() {
         title="Orders"
         description="Track and manage customer orders from payment to delivery."
       />
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
         <StatCard
           label="All Orders"
           value={String(all)}
@@ -36,6 +37,13 @@ export default function OrdersPage() {
           value={String(counts.PENDING ?? 0)}
           detail="Awaiting payment"
           icon={<Clock3 />}
+        />
+        <StatCard
+          label="Paid"
+          value={String(counts.PAID ?? 0)}
+          detail="Payment received"
+          accent="green"
+          icon={<CircleDollarSign />}
         />
         <StatCard
           label="Processing"

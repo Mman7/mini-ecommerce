@@ -100,9 +100,8 @@ export const getOverview = async (req: Request, res: Response) => {
       res.status(400).json({ message: "Invalid overview date range" });
       return;
     }
-
     res.status(200).json(await adminService.getOverview({ from, to }));
-  } catch {
+  } catch (error) {
     res.status(500).json({ message: "Failed to retrieve dashboard overview" });
   }
 };

@@ -94,17 +94,23 @@ export default function DashboardPage() {
   const user = useGlobalStore((state) => state.user);
   const [overview, setOverview] = useState<DashboardOverview | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [selectedRange, setSelectedRange] = useState<DateRange>("7d");
 
   async function loadOverview(range: DateRange = selectedRange) {
     setLoading(true);
-    setError(false);
+    setError(null);
     try {
       const dates = getDateRange(range);
-      setOverview(await dashboardApi.overview(dates.from, dates.to));
-    } catch {
-      setError(true);
+      const data = await dashboardApi.overview(dates.from, dates.to);
+      console.log(data);
+      setOverview(data);
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "Unable to load dashboard data.",
+      );
     } finally {
       setLoading(false);
     }
@@ -168,9 +174,7 @@ export default function DashboardPage() {
           role="alert"
           className="border-error/20 bg-surface-1 mb-4 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 text-sm"
         >
-          <span className="text-text-muted">
-            Unable to load dashboard data.
-          </span>
+          <span className="text-text-muted">{error}</span>
           <button
             type="button"
             onClick={() => void loadOverview()}

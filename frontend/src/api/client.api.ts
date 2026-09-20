@@ -49,10 +49,11 @@ export async function request<T>(
     error?: string;
   } | null;
 
-  // Refresh only when the access token is invalid, not for other unauthorized responses.
+  // A missing access token can still be recovered with a valid refresh cookie.
   if (
     response.status === 401 &&
-    body?.message === "Invalid token" &&
+    (body?.message === "Invalid token" ||
+      body?.message === "User is not login") &&
     canRefresh
   ) {
     const refreshed = await refreshAccessToken();

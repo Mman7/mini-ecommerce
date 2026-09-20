@@ -309,10 +309,17 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
   }
 
   const revenue = orders.reduce((sum, order) => sum + Number(order.total), 0);
+  const startDate = new Date(
+    `${from.toISOString().slice(0, 10)}T00:00:00.000Z`,
+  );
   const endDate = new Date(`${to.toISOString().slice(0, 10)}T00:00:00.000Z`);
-  const revenueTrend = Array.from({ length: 7 }, (_, index) => {
+  const dayCount = Math.max(
+    1,
+    Math.floor((endDate.getTime() - startDate.getTime()) / 86400000) + 1,
+  );
+  const revenueTrend = Array.from({ length: dayCount }, (_, index) => {
     const date = new Date(endDate);
-    date.setUTCDate(endDate.getUTCDate() - (6 - index));
+    date.setUTCDate(endDate.getUTCDate() - (dayCount - 1 - index));
     const dateKey = date.toISOString().slice(0, 10);
 
     return { date: dateKey, amount: revenueByDate.get(dateKey) ?? 0 };

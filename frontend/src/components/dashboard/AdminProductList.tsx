@@ -1,7 +1,6 @@
 "use client";
 
 import { Search } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -21,6 +20,7 @@ import {
 } from "./index";
 import type { ColumnDef } from "@tanstack/react-table";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 
 const money = new Intl.NumberFormat("en-MY", {
   style: "currency",
@@ -32,12 +32,7 @@ function getImageSrc(value: string | null | undefined) {
   if (!imageUrl) return null;
   if (imageUrl.startsWith("/")) return imageUrl;
   if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) {
-    try {
-      const parsedUrl = new URL(imageUrl);
-      return `${parsedUrl.pathname}${parsedUrl.search}`;
-    } catch {
-      return null;
-    }
+    return imageUrl;
   }
   return `/${imageUrl}`;
 }
@@ -114,12 +109,13 @@ export function AdminProductList({
         return (
           <div className="flex items-center gap-3">
             <div className="bg-surface-3 relative h-9 w-9 shrink-0 overflow-hidden rounded">
-              <Image
+              <ImageWithFallback
                 src={imageSrc}
                 alt={image?.altText ?? product.name}
                 fill
                 sizes="36px"
                 className="object-cover"
+                fallbackSrc={DEFAULT_PRODUCT_IMAGE}
               />
             </div>
             <Link

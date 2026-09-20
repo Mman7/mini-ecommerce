@@ -57,7 +57,7 @@ const restoreOrderInventory = async (
   }
 };
 
-/* 
+/*
 Order Flow
 Pending → Paid → Processing → Shipped → Delivered
 */
@@ -357,9 +357,13 @@ export const cancelOrderByAdmin = async (orderId: string) => {
     const currentStatus = parseOrderStatus(order.status);
     if (
       !currentStatus ||
-      ![OrderStatus.PENDING, OrderStatus.PAID, OrderStatus.PROCESSING].includes(
-        currentStatus,
-      )
+      !(
+        [
+          OrderStatus.PENDING,
+          OrderStatus.PAID,
+          OrderStatus.PROCESSING,
+        ] as OrderStatus[]
+      ).includes(currentStatus)
     ) {
       throw new Error(`Order cannot be cancelled from ${order.status}`);
     }
