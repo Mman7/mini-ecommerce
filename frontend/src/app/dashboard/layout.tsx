@@ -6,7 +6,7 @@ import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus, Role } from "@/src/types/user";
 import { DashboardShell } from "../../components/dashboard";
 import { DashboardPageTransition } from "@/src/components/motion/PageTransition";
-import { DashboardSection } from "@/src/components/dashboard/DashboardNavigation";
+import { DashboardSection } from "@/src/components/dashboard/DashboardNavigationSidebar";
 
 function getActiveSection(pathname: string): DashboardSection {
   if (pathname.startsWith("/dashboard/products")) return "products";

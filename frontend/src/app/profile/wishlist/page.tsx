@@ -128,7 +128,7 @@ export default function WishlistPage() {
         <div>
           <div className="flex items-center gap-3">
             <h1 className="heading-font text-foreground text-3xl font-semibold sm:text-4xl">
-              My Favourites
+              My Wishlist
             </h1>
             <Heart
               className="text-secondary"

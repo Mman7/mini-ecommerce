@@ -13,8 +13,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { authApi } from "@/src/api/auth.api";
 import { useGlobalStore } from "@/src/store/global.store";
 
-export type ProfileSection =
-  "profile" | "orders" | "wishlist" | "addresses" | "settings";
+export type ProfileSection = "profile" | "orders" | "wishlist" | "addresses";
 
 type ProfileSidebarProps = {
   activeSection?: ProfileSection;
@@ -45,12 +44,6 @@ const navigation = [
     href: "/profile/addresses",
     icon: MapPin,
   },
-  {
-    key: "settings" as const,
-    label: "Settings",
-    href: "/profile/settings",
-    icon: Settings,
-  },
 ];
 
 export function ProfileSidebar({
@@ -73,7 +66,7 @@ export function ProfileSidebar({
     <aside className="flex flex-col gap-5 md:sticky md:top-24 md:h-[calc(100dvh-7rem)]">
       <nav
         aria-label="Profile navigation"
-        className="bg-surface-1 rounded-lg border border-white/8 p-3"
+        className="bg-surface-2 rounded-lg p-3"
       >
         <div className="grid grid-cols-2 gap-1 sm:grid-cols-5 md:grid-cols-1">
           {navigation.map((item) => {
@@ -91,8 +84,8 @@ export function ProfileSidebar({
                 aria-current={active ? "page" : undefined}
                 className={`meta-font flex items-center justify-center gap-2 px-3 py-3 text-xs transition sm:justify-start md:px-4 ${
                   active
-                    ? "border-primary bg-surface-2 text-primary border-l-2"
-                    : "text-text-muted hover:bg-surface-2 hover:text-foreground"
+                    ? "border-primary bg-surface-3 text-primary border-l-2"
+                    : "text-text-muted hover:bg-surface-3 hover:text-foreground"
                 }`}
               >
                 <Icon size={16} strokeWidth={active ? 2.2 : 1.8} />

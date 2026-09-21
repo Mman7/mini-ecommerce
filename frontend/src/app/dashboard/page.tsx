@@ -172,7 +172,7 @@ export default function DashboardPage() {
       {error && (
         <div
           role="alert"
-          className="border-error/20 bg-surface-1 mb-4 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 text-sm"
+          className="bg-surface-1 mb-4 flex items-center justify-between gap-4 rounded-lg px-4 py-3 text-sm"
         >
           <span className="text-text-muted">{error}</span>
           <button
@@ -289,11 +289,11 @@ export default function DashboardPage() {
               </Link>
             }
           />
-          <div className="divide-y divide-(--glass-border) px-4">
+          <div className="px-4">
             {loading ? (
               <RowsSkeleton count={4} />
             ) : overview?.topProducts.length ? (
-              overview.topProducts.map((product, index) => (
+              overview.topProducts.slice(0, 10).map((product, index) => (
                 <Link
                   href={`/dashboard/products/${product.productId}/edit`}
                   key={product.productId}
@@ -405,7 +405,7 @@ export default function DashboardPage() {
               </Link>
             }
           />
-          <div className="divide-y divide-(--glass-border) px-4">
+          <div className="px-4">
             {loading ? (
               <RowsSkeleton count={3} />
             ) : overview?.lowStock.length ? (

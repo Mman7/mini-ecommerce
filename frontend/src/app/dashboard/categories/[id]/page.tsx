@@ -43,7 +43,7 @@ export default function CategoryDetailPage() {
           <DashboardPanel>
             <PanelHeading title={`Products (${category.products.length})`} />
             {category.products.length ? (
-              <div className="divide-y divide-(--glass-border)">
+              <div>
                 {category.products.map((product) => (
                   <div
                     key={product.productId}

@@ -30,7 +30,7 @@ export default function ProductsPage() {
         action={
           <Link
             href="/dashboard/products/create"
-            className="meta-font bg-primary text-primary-foreground flex h-8 items-center gap-2 rounded-md p-5 px-3 text-xs font-semibold"
+            className="meta-font bg-primary border-primary hover:text-primary! text-primary-foreground flex h-8 items-center gap-2 rounded-md p-5 px-3 text-xs font-semibold transition hover:border hover:bg-transparent"
           >
             <Plus size={14} /> Add Product
           </Link>

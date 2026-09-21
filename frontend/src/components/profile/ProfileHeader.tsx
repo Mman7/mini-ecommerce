@@ -3,7 +3,7 @@ import { TextInView } from "../motion/TextInView";
 
 export function ProfileHeader({ user }: { user: User | null }) {
   return (
-    <section className="glass-panel flex items-center gap-5 rounded-lg p-6">
+    <section className="bg-surface-2 flex items-center gap-5 rounded-lg p-6">
       <div className="bg-primary text-primary-ink flex h-20 w-20 shrink-0 items-center justify-center rounded-full text-3xl font-semibold">
         {user?.name?.charAt(0).toUpperCase() || "U"}
       </div>

@@ -56,7 +56,7 @@ const navigation = [
   },
 ];
 
-export function DashboardNavigation({
+export function DashboardNavigationSidebar({
   activeSection,
   compact = false,
   onNavigate,

@@ -106,7 +106,7 @@ export default function CreateProductPage() {
   return (
     <>
       <form onSubmit={(event) => handleSubmit(event)}>
-        <div className="mb-6 flex flex-col gap-4 border-b border-(--glass-border) pb-6 xl:flex-row xl:items-end xl:justify-between">
+        <div className="mb-6 flex flex-col gap-4 pb-6 xl:flex-row xl:items-end xl:justify-between">
           <div>
             <div className="meta-font text-text-muted mb-2 flex items-center gap-2 text-xs">
               <Link
@@ -145,14 +145,14 @@ export default function CreateProductPage() {
         </div>
 
         {message ? (
-          <div className="meta-font border-primary/30 bg-primary/10 text-primary-soft mb-5 rounded-md border px-4 py-3 text-xs">
+          <div className="meta-font bg-surface-2 text-primary-soft mb-5 rounded-md px-4 py-3 text-xs">
             {message}
           </div>
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-6">
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <SectionTitle title="Basic Information" />
               <div className="space-y-4">
                 <Field label="Product Name">
@@ -191,7 +191,7 @@ export default function CreateProductPage() {
               </div>
             </section>
 
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <SectionTitle title="Description" />
               <textarea
                 value={description}
@@ -202,7 +202,7 @@ export default function CreateProductPage() {
               />
             </section>
 
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <SectionTitle title="Product Images" />
               <label
                 onDragOver={(event) => event.preventDefault()}
@@ -239,7 +239,7 @@ export default function CreateProductPage() {
             </section>
 
             <div className="grid gap-6 md:grid-cols-2">
-              <section className="glass-panel rounded-lg p-5 sm:p-6">
+              <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
                 <SectionTitle title="Pricing" />
                 <div className="space-y-4">
                   <CurrencyField
@@ -249,7 +249,7 @@ export default function CreateProductPage() {
                   />
                 </div>
               </section>
-              <section className="glass-panel rounded-lg p-5 sm:p-6">
+              <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
                 <SectionTitle title="Inventory" />
                 <div className="space-y-4">
                   <Field label="Stock Quantity">
@@ -278,7 +278,7 @@ export default function CreateProductPage() {
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
+            <section className="bg-surface-2 rounded-lg p-5">
               <AsideTitle title="Category" />
               <select
                 value={category}
@@ -295,7 +295,7 @@ export default function CreateProductPage() {
               </select>
             </section>
 
-            <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
+            <section className="bg-surface-2 rounded-lg p-5">
               <AsideTitle title="Visibility" />
               <label className="flex cursor-pointer items-center justify-between gap-4 rounded p-2 hover:bg-white/10">
                 <span className="text-foreground text-sm">
@@ -315,9 +315,9 @@ export default function CreateProductPage() {
               </label>
             </section>
 
-            <section className="bg-surface-3 rounded-lg border border-(--glass-border) p-5">
+            <section className="bg-surface-2 rounded-lg p-5">
               <AsideTitle title="Product Preview" />
-              <div className="bg-surface-1 overflow-hidden rounded-lg border border-(--glass-border)">
+              <div className="bg-surface-2 overflow-hidden rounded-lg">
                 <div className="bg-surface-2 relative flex aspect-square items-center justify-center overflow-hidden">
                   {imagePreview ? (
                     <Image

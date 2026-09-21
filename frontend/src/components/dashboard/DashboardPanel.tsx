@@ -8,9 +8,7 @@ export function DashboardPanel({
   className?: string;
 }) {
   return (
-    <section
-      className={`bg-surface-1 rounded-lg border border-(--glass-border) ${className}`}
-    >
+    <section className={`bg-surface-2 rounded-lg ${className}`}>
       {children}
     </section>
   );

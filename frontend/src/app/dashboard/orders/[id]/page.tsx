@@ -274,7 +274,7 @@ export default function AdminOrderDetailPage() {
       </DashboardPanel>
 
       <DashboardPanel>
-        <div className="flex items-center justify-between border-b border-(--glass-border) px-5 py-4">
+        <div className="flex items-center justify-between px-5 py-4">
           <div className="flex items-center gap-2">
             <Truck size={16} className="text-primary-soft" />
             <h2 className="heading-font text-foreground text-sm font-medium">
@@ -346,10 +346,10 @@ export default function AdminOrderDetailPage() {
               {order.orderItems.map((item) => (
                 <div
                   key={item.id}
-                  className="bg-surface-2 flex items-center justify-between gap-3 rounded-lg border border-(--glass-border) p-3"
+                  className="bg-surface-2 flex items-center justify-between gap-3 rounded-lg p-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
-                    <div className="bg-surface-4 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-(--glass-border)">
+                    <div className="bg-surface-2 flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg">
                       {item.product.productImages[0]?.url ? (
                         <img
                           src={item.product.productImages[0].url}
@@ -383,7 +383,7 @@ export default function AdminOrderDetailPage() {
                 </div>
               ))}
             </div>
-            <div className="border-t border-(--glass-border) px-4 py-4">
+            <div className="px-4 py-4">
               <div className="flex justify-between text-xs">
                 <span className="text-text-muted">Items subtotal</span>
                 <span className="text-foreground font-mono">
@@ -450,7 +450,7 @@ export default function AdminOrderDetailPage() {
               action={<MapPin size={14} className="text-primary-soft" />}
             />
             <div className="p-4">
-              <div className="bg-surface-2 rounded-lg border border-(--glass-border) p-3">
+              <div className="bg-surface-2 rounded-lg p-3">
                 <p className="text-foreground text-[10px] font-semibold tracking-[0.12em] uppercase">
                   Recipient delivery address
                 </p>

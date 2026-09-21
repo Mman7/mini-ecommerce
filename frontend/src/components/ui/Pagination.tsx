@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment } from "react";
+import { useRouter } from "next/navigation";
 import {
   Pagination as PaginationRoot,
   PaginationContent,
@@ -22,6 +23,27 @@ export default function Pagination({
   total: number;
   query: string;
 }) {
+  const router = useRouter();
+
+  const navigate = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    href: string,
+  ) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+    router.push(href);
+  };
+
   if (totalPages <= 1)
     return (
       <p className="text-text-muted mt-8 text-center text-sm">
@@ -44,6 +66,7 @@ export default function Pagination({
         <PaginationItem>
           <PaginationPrevious
             href={hrefFor(page - 1)}
+            onClick={(event) => navigate(event, hrefFor(page - 1))}
             aria-disabled={page === 1}
             className={`bg-surface-3 text-on-surface/70 hover:bg-surface-4 hover:text-on-surface ${page === 1 ? "pointer-events-none opacity-35" : ""}`}
             text=""
@@ -59,6 +82,7 @@ export default function Pagination({
             <PaginationItem>
               <PaginationLink
                 href={hrefFor(item)}
+                onClick={(event) => navigate(event, hrefFor(item))}
                 isActive={item === page}
                 className={`meta-font text-[13px] font-semibold ${
                   item === page
@@ -74,6 +98,7 @@ export default function Pagination({
         <PaginationItem>
           <PaginationNext
             href={hrefFor(page + 1)}
+            onClick={(event) => navigate(event, hrefFor(page + 1))}
             aria-disabled={page === totalPages}
             className={`bg-surface-3 text-on-surface/70 hover:bg-surface-4 hover:text-on-surface ${page === totalPages ? "pointer-events-none opacity-35" : ""}`}
             text=""

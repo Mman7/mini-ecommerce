@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, LogOut, Menu, Store, X } from "lucide-react";
+import { ArrowUpRight, Bell, LogOut, Menu, Store, X } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
@@ -25,9 +25,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  DashboardNavigation,
+  DashboardNavigationSidebar,
   type DashboardSection,
-} from "./DashboardNavigation";
+} from "./DashboardNavigationSidebar";
 
 type DashboardShellProps = {
   activeSection: DashboardSection;
@@ -58,9 +58,9 @@ export function DashboardShell({
     <div className="text-foreground bg-background min-h-screen">
       <div className="mx-auto grid min-h-screen lg:grid-cols-[280px_minmax(0,1fr)]">
         {/* desktop sidebar */}
-        <aside className="bg-surface-1 hidden self-start border-r border-(--glass-border) lg:sticky lg:top-0 lg:flex lg:h-screen lg:max-h-screen lg:flex-col lg:overflow-y-auto">
+        <aside className="bg-surface-1 hidden self-start lg:sticky lg:top-0 lg:flex lg:h-screen lg:max-h-screen lg:flex-col lg:overflow-y-auto">
           <DashboardBrand />
-          <DashboardNavigation activeSection={activeSection} />
+          <DashboardNavigationSidebar activeSection={activeSection} />
           <AdminIdentity
             userName={user?.name}
             onLogout={() => void handleLogout()}
@@ -97,7 +97,7 @@ export function DashboardShell({
                       <DashboardBrand compact />
                     </DrawerHeader>
                     <div className="overflow-y-auto p-4">
-                      <DashboardNavigation
+                      <DashboardNavigationSidebar
                         activeSection={activeSection}
                         onNavigate={() => setMobileOpen(false)}
                       />
@@ -112,17 +112,6 @@ export function DashboardShell({
               </div>
 
               <div className="ml-auto flex items-center gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="default"
-                  aria-label="Notifications"
-                  className="text-text-muted hover:border-primary hover:text-primary-soft relative h-8 w-8 border-(--glass-border) px-0 lg:w-auto lg:px-2.5"
-                >
-                  <Bell size={14} />
-                  <span className="hidden lg:inline">Notifications</span>
-                  <span className="bg-primary absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full" />
-                </Button>
                 <Link
                   href="/"
                   aria-label="Store"
@@ -130,9 +119,10 @@ export function DashboardShell({
                     variant: "outline",
                     size: "default",
                     className:
-                      "hover:border-primary bg-primary text-primary-foreground! hover:text-primary-soft! h-8 w-8 border-(--glass-border) px-0 lg:w-auto lg:px-2.5",
+                      "hover:border-primary group-hover:bg-primary group bg-primary text-primary-foreground! hover:text-primary-soft! relative group-hover:ml-10 hover:pl-7! lg:w-auto lg:px-2.5",
                   })}
                 >
+                  <ArrowUpRight className="group-hover:text-primary-soft absolute left-2.5 opacity-0 transition group-hover:opacity-100" />
                   <Store size={14} />
                   <span className="hidden lg:inline">Store</span>
                 </Link>

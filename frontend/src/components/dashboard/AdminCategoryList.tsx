@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Tags } from "lucide-react";
+import { RotateCcw, Search, Tags } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -153,38 +153,63 @@ export function AdminCategoryList({
   ];
 
   return (
-    <DashboardPanel className="mt-3">
+    <DashboardPanel className="mt-4 overflow-hidden">
       <PanelHeading
-        title="All Categories"
-        titleClassName="hidden sm:block"
+        title="Category registry"
+        titleClassName="text-base sm:text-lg"
         action={
-          <div className="flex w-full justify-between gap-2 sm:w-auto">
-            <div className="relative">
-              <Search
-                className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--outline)"
-                size={13}
-              />
-              <input
-                aria-label="Search categories"
-                value={query}
-                onChange={(event) => updateParam("search", event.target.value)}
-                placeholder="Search categories..."
-                className="meta-font bg-surface-2 text-foreground h-7 w-44 rounded border border-(--glass-border) pl-8 text-xs outline-none"
-              />
-            </div>
+          <span className="meta-font text-xs text-(--outline)">
+            {pagination.total} records
+          </span>
+        }
+      />
+      <div className="p-4">
+        <div className="flex flex-col gap-2.5 sm:flex-row">
+          <div className="relative min-w-0 flex-1">
+            <Search
+              aria-hidden="true"
+              className="absolute top-1/2 left-3 -translate-y-1/2 text-(--outline)"
+              size={14}
+            />
+            <input
+              aria-label="Search categories"
+              value={query}
+              onChange={(event) => updateParam("search", event.target.value)}
+              placeholder="Search by category name..."
+              className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
+            />
+          </div>
+          <div className="flex gap-2">
             <select
               aria-label="Category status"
               value={status}
               onChange={(event) => updateParam("status", event.target.value)}
-              className="meta-font bg-surface-2 text-text-muted h-7 rounded border border-(--glass-border) px-2 text-xs"
+              className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-36 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
             </select>
+            <button
+              type="button"
+              aria-label="Reset category filters"
+              onClick={() => router.push(pathname)}
+              className="text-text-muted hover:border-primary hover:text-primary-soft flex h-9 w-9 items-center justify-center rounded-md border border-(--glass-border) transition"
+            >
+              <RotateCcw size={14} />
+            </button>
           </div>
-        }
-      />
+        </div>
+        <div className="meta-font mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-(--outline)">
+          <span className="tracking-widest uppercase">Active filter</span>
+          <span className="text-primary-soft border-primary/20 bg-primary/10 rounded border px-2 py-0.5">
+            {status ? `${status} categories` : "all categories"}
+          </span>
+          <span>
+            Showing {items.length} of {pagination.total} categories
+          </span>
+        </div>
+      </div>
       {error ? (
         <p role="alert" className="text-primary-soft p-5 text-sm">
           {error}

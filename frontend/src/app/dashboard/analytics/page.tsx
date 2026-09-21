@@ -178,7 +178,7 @@ export default function DashboardAnalyticsPage() {
       {error && (
         <div
           role="alert"
-          className="border-error/20 bg-surface-1 flex items-center justify-between gap-4 rounded-lg border px-4 py-3 text-sm"
+          className="bg-surface-1 flex items-center justify-between gap-4 rounded-lg px-4 py-3 text-sm"
         >
           <span className="text-text-muted">{error}</span>
           <button

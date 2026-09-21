@@ -59,7 +59,7 @@ export function MetricCard({
     green: "text-emerald-400",
   }[tone];
   return (
-    <div className="bg-surface-1 hover:border-primary/50 rounded-lg border border-(--glass-border) p-4 transition">
+    <div className="bg-surface-1 hover:border-primary/50 rounded-lg  p-4 transition">
       <div className="flex items-start justify-between gap-3">
         <p className="meta-font text-text-muted text-xs tracking-wider uppercase">
           {label}
@@ -75,10 +75,6 @@ export function MetricCard({
       </p>
       <div className="mt-3 flex items-center justify-between border-t border-(--glass-border) pt-3">
         <span className="meta-font text-xs text-emerald-400">↗ {detail}</span>
-        <span
-          className={`h-5 w-14 rounded-sm border-b ${toneClass} opacity-80`}
-          style={{ transform: "skewY(-8deg)" }}
-        />
       </div>
     </div>
   );
@@ -94,9 +90,9 @@ export function LedgerStat({
   tone?: string;
 }) {
   return (
-    <div className="border-l border-(--glass-border) px-3 first:border-0">
-      <p className="meta-font text-text-muted text-xs">{label}</p>
-      <p className={`text-xs font-semibold ${tone}`}>{value}</p>
+    <div className="border-l px-3 first:border-0">
+      <p className="meta-font text-text-muted mb-1 text-xs">{label}</p>
+      <p className={`text-xl font-semibold ${tone}`}>{value}</p>
     </div>
   );
 }

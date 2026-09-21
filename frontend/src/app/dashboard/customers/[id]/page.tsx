@@ -140,7 +140,7 @@ export default function CustomerDetailPage() {
       <DashboardPanel className="mb-3 overflow-hidden">
         <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-4">
-            <div className="bg-secondary/20 text-secondary border-secondary/40 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border text-xl font-semibold">
+            <div className="bg-secondary/20 text-secondary flex h-16 w-16 shrink-0 items-center justify-center rounded-xl text-xl font-semibold">
               {initials(customer.name)}
             </div>
             <div>
@@ -295,7 +295,7 @@ export default function CustomerDetailPage() {
                 label="Phone"
                 value={customer.phoneNumber ?? "Not provided"}
               />
-              <div className="bg-surface-2 rounded border border-(--glass-border) px-3 py-2">
+              <div className="bg-surface-2 rounded px-3 py-2">
                 <p className="meta-font text-text-muted text-[10px] uppercase">
                   Engagement
                 </p>
@@ -326,10 +326,7 @@ export default function CustomerDetailPage() {
               </thead>
               <tbody>
                 {customer.orderHistory.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-t border-(--glass-border)"
-                  >
+                  <tr key={order.id}>
                     <td className="text-text-muted px-4 py-3 text-xs">
                       #{order.id.slice(0, 8)}
                     </td>
@@ -378,7 +375,7 @@ function initials(name: string) {
 
 function Metric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-surface-2 rounded border border-(--glass-border) px-3 py-2">
+    <div className="bg-surface-2 rounded px-3 py-2">
       <p className="meta-font text-text-muted text-[10px] uppercase">{label}</p>
       <p className="text-primary-soft mt-1 text-sm font-semibold">{value}</p>
     </div>
@@ -387,7 +384,7 @@ function Metric({ label, value }: { label: string; value: string }) {
 
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-(--glass-border) pb-3 last:border-0 last:pb-0">
+    <div className="flex items-start justify-between gap-3 pb-3 last:pb-0">
       <span className="meta-font text-text-muted text-[10px] uppercase">
         {label}
       </span>

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
@@ -39,9 +39,26 @@ export default function MyOrdersPage() {
       {ordersQuery.isPending ? (
         <p className="text-text-muted text-sm">Loading your orders...</p>
       ) : error ? null : orders.length === 0 ? (
-        <p className="text-text-muted text-sm">
-          You have not placed any orders yet.
-        </p>
+        <div className="bg-surface-1 flex min-h-96 flex-col items-center justify-center rounded-xl border border-(--glass-border) px-6 py-12 text-center">
+          <ShoppingCart
+            className="mb-5 fill-pink-300 text-pink-300"
+            size={32}
+          />
+          <h2 className="heading-font text-foreground text-2xl font-semibold">
+            Nothing here yet
+          </h2>
+          <p className="text-text-muted mt-3 max-w-md text-base">
+            Save the little things that make you smile, and they&apos;ll appear
+            here.
+          </p>
+          <Link
+            href="/products"
+            className="meta-font bg-primary text-primary-ink mt-7 inline-flex items-center gap-2 rounded-lg px-5 py-3 text-sm font-semibold transition hover:brightness-110"
+          >
+            <ShoppingCart size={16} />
+            Explore the Collection
+          </Link>
+        </div>
       ) : (
         <div className="space-y-4">
           {orders.map((order) => {

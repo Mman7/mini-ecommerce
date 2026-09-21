@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
@@ -207,56 +207,85 @@ export function AdminProductList({
   ];
 
   return (
-    <DashboardPanel className="mt-3">
-      <PanelHeading title="All Products" />
-      <div className="flex flex-col gap-2 border-b border-(--glass-border) p-3 sm:flex-row">
-        <div className="relative flex-1">
+    <DashboardPanel className="mt-4 overflow-hidden">
+      <PanelHeading
+        title="Product registry"
+        titleClassName="text-base sm:text-lg"
+        action={
+          <span className="meta-font text-xs text-(--outline)">
+            {data?.pagination.total ?? 0} records
+          </span>
+        }
+      />
+      <div className="flex flex-col gap-2 p-3 sm:flex-row">
+        <div className="relative min-w-0 flex-1">
           <Search
+            aria-hidden="true"
             className="absolute top-1/2 left-3 -translate-y-1/2 text-(--outline)"
-            size={13}
+            size={14}
           />
           <input
             aria-label="Search products"
             value={query}
             onChange={(event) => updateParam("search", event.target.value)}
-            placeholder="Search products..."
-            className="meta-font bg-surface-2 text-foreground h-8 w-full rounded border border-(--glass-border) pl-8 text-xs outline-none"
+            placeholder="Search by product name, SKU, or category..."
+            className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
           />
         </div>
-        <select
-          aria-label="Product category"
-          value={categoryId}
-          onChange={(event) => updateParam("categoryId", event.target.value)}
-          className="meta-font bg-surface-2 text-text-muted h-8 rounded border border-(--glass-border) px-2 text-xs"
-        >
-          <option value="">All Categories</option>
-          {categories.map((category) => (
-            <option key={category.categoryId} value={category.categoryId}>
-              {category.name}
-            </option>
-          ))}
-        </select>
-        <select
-          aria-label="Product status"
-          value={status}
-          onChange={(event) => updateParam("status", event.target.value)}
-          className="meta-font bg-surface-2 text-text-muted h-8 rounded border border-(--glass-border) px-2 text-xs"
-        >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </select>
-        <select
-          aria-label="Product stock"
-          value={stock}
-          onChange={(event) => updateParam("stock", event.target.value)}
-          className="meta-font bg-surface-2 text-text-muted h-8 rounded border border-(--glass-border) px-2 text-xs"
-        >
-          <option value="">All Stock</option>
-          <option value="in">In Stock</option>
-          <option value="low">Low Stock</option>
-          <option value="out">Out of Stock</option>
-        </select>
+        <div className="flex flex-wrap gap-2">
+          <select
+            aria-label="Product category"
+            value={categoryId}
+            onChange={(event) => updateParam("categoryId", event.target.value)}
+            className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-36 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
+          >
+            <option value="">All Categories</option>
+            {categories.map((category) => (
+              <option key={category.categoryId} value={category.categoryId}>
+                {category.name}
+              </option>
+            ))}
+          </select>
+          <select
+            aria-label="Product status"
+            value={status}
+            onChange={(event) => updateParam("status", event.target.value)}
+            className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-32 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <select
+            aria-label="Product stock"
+            value={stock}
+            onChange={(event) => updateParam("stock", event.target.value)}
+            className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-28 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
+          >
+            <option value="">All Stock</option>
+            <option value="in">In Stock</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
+          </select>
+          <button
+            type="button"
+            aria-label="Reset product filters"
+            onClick={() => router.push(pathname)}
+            className="text-text-muted hover:border-primary hover:text-primary-soft flex h-9 w-9 items-center justify-center rounded-md border border-(--glass-border) transition"
+          >
+            <RotateCcw size={14} />
+          </button>
+        </div>
+      </div>
+      <div className="meta-font flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3 text-[11px] text-(--outline)">
+        <span className="tracking-widest uppercase">Active filter</span>
+        <span className="text-primary-soft border-primary/20 bg-primary/10 rounded border px-2 py-0.5">
+          {status || stock || categoryId ? "filtered products" : "all products"}
+        </span>
+        <span>
+          Showing {data?.items.length ?? 0} of {data?.pagination.total ?? 0}{" "}
+          products
+        </span>
       </div>
       {error ? (
         <p role="alert" className="text-primary-soft p-5 text-sm">

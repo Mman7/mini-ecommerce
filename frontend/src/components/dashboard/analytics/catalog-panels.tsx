@@ -62,7 +62,7 @@ export function TopProductsPanel({
         {products.slice(0, 3).map((product) => (
           <div
             key={product.productId}
-            className="bg-surface-2 flex items-center gap-3 rounded-md border border-(--glass-border) p-2"
+            className="bg-surface-3 flex items-center gap-3 rounded-md p-2 px-6 py-3 pr-10"
           >
             <img
               src={product.image?.url || DEFAULT_PRODUCT_IMAGE}

@@ -25,7 +25,7 @@ export function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div className="bg-surface-1 rounded-lg border border-(--glass-border) p-4">
+    <div className="bg-surface-2 rounded-md p-4">
       <div className="flex items-start justify-between gap-3">
         <p className="meta-font text-text-muted text-sm">{label}</p>
         <span

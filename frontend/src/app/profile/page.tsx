@@ -164,7 +164,7 @@ function ProfileField({
         {label}
       </span>
       <input
-        className="bg-surface-3 text-foreground focus:border-primary rounded-md border border-(--glass-border) px-4 py-3 text-sm outline-none"
+        className="bg-surface-3 text-foreground focus:border-primary rounded-md px-4 py-3 text-sm outline-none"
         type={type}
         value={value}
         onChange={(event) => onChange(event.target.value)}

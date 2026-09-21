@@ -144,7 +144,7 @@ export function AdminOrderList({
           </span>
         }
       />
-      <div className="border-b border-(--glass-border) p-4">
+      <div className="p-4">
         <div className="flex flex-col gap-2.5 xl:flex-row">
           <div className="relative min-w-0 flex-1">
             <Search
@@ -210,7 +210,11 @@ export function AdminOrderList({
           No orders found.
         </div>
       ) : (
-        <DataTable columns={columns} data={data.items} className="min-w-190" />
+        <DataTable
+          columns={columns}
+          data={data.items}
+          className="min-w-190 "
+        />
       )}
       <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
         <span>

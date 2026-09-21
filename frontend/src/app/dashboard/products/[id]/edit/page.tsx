@@ -363,14 +363,14 @@ export default function EditProductPage() {
         </header>
 
         {message ? (
-          <div className="meta-font border-primary/30 bg-primary/10 text-primary-soft mb-5 flex items-center gap-2 rounded-md border px-4 py-3 text-xs">
+          <div className="meta-font bg-surface-2 text-primary-soft mb-5 flex items-center gap-2 rounded-md px-4 py-3 text-xs">
             <CheckCircle2 size={14} /> {message}
           </div>
         ) : null}
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
           <div className="space-y-6">
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <SectionTitle
                 icon={<span className="text-primary">ⓘ</span>}
                 title="Basic Information"
@@ -407,7 +407,7 @@ export default function EditProductPage() {
               </div>
             </section>
 
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <SectionTitle
                 icon={<List size={18} className="text-primary" />}
                 title="Description"
@@ -420,7 +420,7 @@ export default function EditProductPage() {
               />
             </section>
 
-            <section className="glass-panel rounded-lg p-5 sm:p-6">
+            <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
               <div className="mb-5 flex items-center justify-between">
                 <SectionTitle
                   icon={<ImageIcon size={18} className="text-primary" />}
@@ -453,7 +453,7 @@ export default function EditProductPage() {
             </section>
 
             <div className="grid gap-6 md:grid-cols-2">
-              <section className="glass-panel rounded-lg p-5 sm:p-6">
+              <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
                 <SectionTitle
                   icon={<span className="text-primary">RM</span>}
                   title="Pricing"
@@ -466,7 +466,7 @@ export default function EditProductPage() {
                   />
                 </div>
               </section>
-              <section className="glass-panel rounded-lg p-5 sm:p-6">
+              <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
                 <SectionTitle
                   icon={<span className="text-primary">▥</span>}
                   title="Inventory"
@@ -494,7 +494,7 @@ export default function EditProductPage() {
               </section>
             </div>
 
-            <section className="border-primary/20 bg-primary/5 flex flex-col gap-4 rounded-lg border p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
+            <section className="bg-surface-2 flex flex-col gap-4 rounded-lg p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
               <div>
                 <h2 className="heading-font text-primary-soft flex items-center gap-2 text-xl font-medium">
                   <Trash2 size={18} /> Danger Zone
@@ -515,7 +515,7 @@ export default function EditProductPage() {
           </div>
 
           <aside className="space-y-6 xl:sticky xl:top-6 xl:self-start">
-            <section className="glass-panel rounded-lg p-5">
+            <section className="bg-surface-2 rounded-lg p-5">
               <AsideTitle title="Status" />
               <Select
                 value={visible ? "Active" : "Inactive"}
@@ -532,7 +532,7 @@ export default function EditProductPage() {
                   <SelectItem value="Inactive">Inactive</SelectItem>
                 </SelectContent>
               </Select>
-              <div className="my-5 border-t border-(--glass-border)" />
+              <div className="my-5" />
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-foreground text-sm">Store Visibility</p>
@@ -552,7 +552,7 @@ export default function EditProductPage() {
                   />
                 </button>
               </div>
-              <div className="my-5 border-t border-(--glass-border)" />
+              <div className="my-5" />
               <Field label="Category">
                 <Select
                   value={category || null}
@@ -577,9 +577,9 @@ export default function EditProductPage() {
                 </Select>
               </Field>
             </section>
-            <section className="glass-panel rounded-lg p-5">
+            <section className="bg-surface-2 rounded-lg p-5">
               <AsideTitle title="Storefront Preview" />
-              <div className="bg-background overflow-hidden rounded-md border border-(--glass-border)">
+              <div className="bg-background overflow-hidden rounded-md">
                 <div className="bg-surface-2 relative aspect-square">
                   <Image
                     src={

@@ -25,7 +25,6 @@ import {
   DashboardPanel,
   PanelHeading,
   StatCard,
-  StatusPill,
   DataTable,
   TableAction,
 } from "../../../components/dashboard";
@@ -194,11 +193,6 @@ export default function DashboardCustomersPage() {
       ),
     },
     {
-      accessorKey: "status",
-      header: "Status",
-      cell: ({ row }) => <StatusPill status={row.original.status} />,
-    },
-    {
       id: "actions",
       header: () => <span className="block text-right">Action</span>,
       cell: ({ row }) => (
@@ -265,7 +259,7 @@ export default function DashboardCustomersPage() {
             </span>
           }
         />
-        <div className="border-b border-(--glass-border) p-4">
+        <div className="p-4">
           <div className="flex flex-col gap-2.5 xl:flex-row">
             <div className="relative min-w-0 flex-1">
               <Search
@@ -365,7 +359,7 @@ export default function DashboardCustomersPage() {
             className="min-w-190"
           />
         )}
-        <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
+        <div className="meta-font flex items-center justify-between px-4 py-3 text-xs text-(--outline)">
           <span>
             Showing {data?.items.length ?? 0} of {data?.pagination.total ?? 0}{" "}
             customers
