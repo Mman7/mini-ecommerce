@@ -5,10 +5,10 @@ import CountUp from "../motion/CountUp";
 type StatCardAccent = "amber" | "pink" | "cyan" | "green";
 
 const accentStyles: Record<StatCardAccent, string> = {
-  amber: "bg-surface-2 text-primary-soft",
-  pink: "bg-surface-2 text-primary-soft",
-  cyan: "bg-surface-2 text-primary-soft",
-  green: "bg-surface-2 text-primary-soft",
+  amber: "text-primary-soft",
+  pink: "text-secondary",
+  cyan: "text-tertiary",
+  green: "text-emerald-400",
 };
 
 export function StatCard({
@@ -25,13 +25,11 @@ export function StatCard({
   icon: ReactNode;
 }) {
   return (
-    <div
-      className={`rounded-lg border border-(--glass-border) p-4 ${accentStyles[accent]} `}
-    >
+    <div className="bg-surface-1 rounded-lg border border-(--glass-border) p-4">
       <div className="flex items-start justify-between gap-3">
-        <p className={`meta-font text-sm ${accentStyles[accent]}`}>{label}</p>
+        <p className="meta-font text-text-muted text-sm">{label}</p>
         <span
-          className={`flex h-10 w-10 items-center justify-center rounded-lg ${accentStyles[accent]}`}
+          className={`bg-surface-2 flex h-10 w-10 items-center justify-center rounded-lg ${accentStyles[accent]}`}
         >
           {icon}
         </span>
@@ -39,7 +37,7 @@ export function StatCard({
       <p className="heading-font text-foreground mt-4 text-2xl font-medium">
         {typeof parseFloat(value) === "number" && !isNaN(parseFloat(value)) ? (
           <CountUp
-            duration={0.2}
+            duration={0.1}
             to={parseFloat(value)}
             className="heading-font text-foreground mt-4 text-2xl font-medium"
           />
@@ -48,7 +46,7 @@ export function StatCard({
         )}
       </p>
       <p
-        className={`meta-font mt-1 bg-transparent text-sm opacity-75 ${accentStyles[accent]}`}
+        className={`meta-font mt-1 bg-transparent text-sm opacity-90 ${accentStyles[accent]}`}
       >
         {detail}
       </p>

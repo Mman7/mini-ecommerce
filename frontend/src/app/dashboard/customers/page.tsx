@@ -1,8 +1,10 @@
 "use client";
 
 import {
+  Activity,
   Download,
   Crown,
+  RotateCcw,
   Repeat2,
   Search,
   UserPlus,
@@ -150,7 +152,7 @@ export default function DashboardCustomersPage() {
           </span>
           <Link
             href={`/dashboard/customers/${row.original.userId}`}
-            className="text-foreground hover:text-primary-soft text-sm"
+            className="text-foreground hover:text-primary-soft! text-sm"
           >
             {row.original.name}
           </Link>
@@ -212,17 +214,17 @@ export default function DashboardCustomersPage() {
   return (
     <>
       <DashboardHeading
-        eyebrow="Your community"
+        eyebrow="Customer operations"
         title="Customers"
-        description="Manage your lovely collectors and understand who visits the atelier."
+        description="Track your collectors, identify loyal customers, and keep the atelier community close."
         action={
           <button
             type="button"
             onClick={exportCustomers}
             disabled={exporting}
-            className="meta-font text-text-muted hover:border-primary hover:text-primary-soft flex h-8 items-center gap-2 rounded-md border border-(--glass-border) px-3 text-xs disabled:opacity-50"
+            className="meta-font bg-primary text-primary-foreground hover:bg-primary-soft flex h-9 items-center gap-2 rounded-md px-3 text-xs font-semibold transition disabled:opacity-50"
           >
-            <Download size={13} /> {exporting ? "Exporting..." : "Export"}
+            <Download size={14} /> {exporting ? "Exporting..." : "Export CSV"}
           </button>
         }
       />
@@ -230,55 +232,61 @@ export default function DashboardCustomersPage() {
         <StatCard
           label="Total Customers"
           value={String(stats?.total ?? 0)}
-          detail="All registered customers"
-          icon={<Users />}
+          detail="All registered collectors"
+          icon={<Users size={18} />}
         />
         <StatCard
           label="New Customers"
           value={String(stats?.newThisMonth ?? 0)}
           detail={`${stats?.newGrowth && stats.newGrowth > 0 ? "+" : ""}${(stats?.newGrowth ?? 0).toFixed(1)}% this month`}
           accent="pink"
-          icon={<UserPlus />}
+          icon={<UserPlus size={18} />}
         />
         <StatCard
           label="Repeat Customers"
           value={String(stats?.repeat ?? 0)}
           detail={`${(stats?.repeatRate ?? 0).toFixed(1)}% of total`}
           accent="cyan"
-          icon={<Repeat2 />}
+          icon={<Repeat2 size={18} />}
         />
         <StatCard
           label="VIP Customers"
           value={String(stats?.vip ?? 0)}
           detail={`${(stats?.vipRate ?? 0).toFixed(1)}% of total`}
-          icon={<Crown />}
+          icon={<Crown size={18} />}
         />
       </div>
-      <DashboardPanel className="mt-3">
+      <DashboardPanel className="mt-4 overflow-hidden">
         <PanelHeading
-          title="All Customers"
+          title="Customer registry"
           action={
+            <span className="meta-font text-xs text-(--outline)">
+              {data?.pagination.total ?? 0} records
+            </span>
+          }
+        />
+        <div className="border-b border-(--glass-border) p-4">
+          <div className="flex flex-col gap-2.5 xl:flex-row">
+            <div className="relative min-w-0 flex-1">
+              <Search
+                aria-hidden="true"
+                className="absolute top-1/2 left-3 -translate-y-1/2 text-(--outline)"
+                size={14}
+              />
+              <input
+                aria-label="Search customers"
+                value={search}
+                onChange={(event) => updateParam("search", event.target.value)}
+                placeholder="Search by name, email, or phone..."
+                className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
+              />
+            </div>
             <div className="flex flex-wrap gap-2">
-              <div className="relative">
-                <Search
-                  className="absolute top-1/2 left-2.5 -translate-y-1/2 text-(--outline)"
-                  size={13}
-                />
-                <input
-                  aria-label="Search customers"
-                  value={search}
-                  onChange={(event) =>
-                    updateParam("search", event.target.value)
-                  }
-                  placeholder="Search customers..."
-                  className="meta-font bg-surface-2 text-foreground h-7 w-44 rounded border border-(--glass-border) pl-8 text-xs outline-none"
-                />
-              </div>
               <select
                 aria-label="Customer status"
                 value={status}
                 onChange={(event) => updateParam("status", event.target.value)}
-                className="meta-font bg-surface-2 text-text-muted h-7 rounded border border-(--glass-border) px-2 text-xs"
+                className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-32 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
               >
                 <option value="">All Status</option>
                 <option value="regular">Regular</option>
@@ -289,7 +297,7 @@ export default function DashboardCustomersPage() {
                 aria-label="Customer sort"
                 value={sort}
                 onChange={(event) => updateParam("sort", event.target.value)}
-                className="meta-font bg-surface-2 text-text-muted h-7 rounded border border-(--glass-border) px-2 text-xs"
+                className="meta-font bg-surface-2 text-text-muted focus:border-primary h-9 min-w-40 rounded-md border border-(--glass-border) px-2.5 text-xs outline-none"
               >
                 <option value="newest">Newest Customers</option>
                 <option value="oldest">Oldest Customers</option>
@@ -301,15 +309,25 @@ export default function DashboardCustomersPage() {
               </select>
               <button
                 type="button"
-                onClick={exportCustomers}
-                disabled={exporting}
-                className="meta-font text-text-muted hover:border-primary flex h-7 items-center gap-1.5 rounded border border-(--glass-border) px-2 text-xs disabled:opacity-50"
+                aria-label="Reset customer filters"
+                onClick={() => router.push(pathname)}
+                className="text-text-muted hover:border-primary hover:text-primary-soft flex h-9 w-9 items-center justify-center rounded-md border border-(--glass-border) transition"
               >
-                <Download size={12} /> Export
+                <RotateCcw size={14} />
               </button>
             </div>
-          }
-        />
+          </div>
+          <div className="meta-font mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-(--outline)">
+            <span className="tracking-widest uppercase">Active view</span>
+            <span className="text-primary-soft border-primary/20 bg-primary/10 rounded border px-2 py-0.5">
+              {status ? `${status} customers` : "all customers"}
+            </span>
+            <span>
+              Showing {data?.items.length ?? 0} of {data?.pagination.total ?? 0}{" "}
+              customers
+            </span>
+          </div>
+        </div>
         {error ? (
           <p role="alert" className="text-primary-soft p-5 text-sm">
             {error}

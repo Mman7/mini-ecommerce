@@ -1,16 +1,12 @@
 "use client";
 
 import {
-  Bold,
   CheckCircle2,
   Image as ImageIcon,
-  Italic,
   List,
-  ListOrdered,
   Save,
   Star,
   Trash2,
-  Underline,
   Upload,
   X,
 } from "lucide-react";
@@ -48,7 +44,6 @@ type ProductFormSnapshot = {
   sku: string;
   description: string;
   price: string;
-  compareAtPrice: string;
   stock: string;
   threshold: string;
   category: string;
@@ -76,7 +71,6 @@ export default function EditProductPage() {
     "A soft and adorable bunny plush inspired by Japanese kawaii gift culture. Made with premium minky fabric and filled with hypoallergenic stuffing. Features delicate embroidered sakura blossoms on the ears and tail. Perfect as a comforting companion or a collector's display piece.",
   );
   const [price, setPrice] = useState("48.00");
-  const [compareAtPrice, setCompareAtPrice] = useState("55.00");
   const [stock, setStock] = useState("12");
   const [threshold, setThreshold] = useState("3");
   const [category, setCategory] = useState("Plushies");
@@ -90,6 +84,7 @@ export default function EditProductPage() {
   );
   const [message, setMessage] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [imageAction, setImageAction] = useState<string | null>(null);
 
   const currentForm: ProductFormSnapshot = {
     name,
@@ -97,7 +92,6 @@ export default function EditProductPage() {
     sku,
     description,
     price,
-    compareAtPrice,
     stock,
     threshold,
     category,
@@ -133,7 +127,6 @@ export default function EditProductPage() {
           sku: product.sku ?? "",
           description: product.description,
           price: String(product.price),
-          compareAtPrice,
           stock: String(product.stock),
           threshold,
           category: String(product.category?.categoryId ?? ""),
@@ -180,33 +173,122 @@ export default function EditProductPage() {
     }
   }
 
-  function handleMedia(event: ChangeEvent<HTMLInputElement>) {
+  async function uploadImage(file: File) {
+    setImageAction("upload");
+    try {
+      const data = new FormData();
+      data.append("image", file);
+      const response = await productApi.admin.createImage(Number(id), data);
+      const image = response.item;
+      setImages((current) => [
+        ...current,
+        {
+          id: String(image.id),
+          src: image.url,
+          primary: image.isThumbnail,
+        },
+      ]);
+      toast.add({
+        title: "Image uploaded",
+        description: "The product image was added successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Image upload failed",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      });
+    } finally {
+      setImageAction(null);
+    }
+  }
+
+  async function replaceImage(imageId: string, file: File) {
+    setImageAction(imageId);
+    try {
+      const data = new FormData();
+      data.append("image", file);
+      const response = await productApi.admin.updateImage(
+        Number(id),
+        Number(imageId),
+        data,
+      );
+      setImages((current) =>
+        current.map((image) =>
+          image.id === imageId ? { ...image, src: response.item.url } : image,
+        ),
+      );
+      toast.add({
+        title: "Image replaced",
+        description: "The product image was updated successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Image update failed",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      });
+    } finally {
+      setImageAction(null);
+    }
+  }
+
+  async function setPrimaryImage(imageId: string) {
+    setImageAction(imageId);
+    try {
+      const data = new FormData();
+      data.append("isThumbnail", "true");
+      await productApi.admin.updateImage(Number(id), Number(imageId), data);
+      setImages((current) =>
+        current.map((image) => ({ ...image, primary: image.id === imageId })),
+      );
+      toast.add({
+        title: "Primary image updated",
+        description: "This image is now the storefront thumbnail.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Primary image update failed",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      });
+    } finally {
+      setImageAction(null);
+    }
+  }
+
+  async function removeImage(imageId: string) {
+    setImageAction(imageId);
+    try {
+      await productApi.admin.deleteImage(Number(id), Number(imageId));
+      setImages((current) => current.filter((image) => image.id !== imageId));
+      toast.add({
+        title: "Image removed",
+        description: "The product image was deleted successfully.",
+        type: "success",
+      });
+    } catch (error) {
+      toast.add({
+        title: "Image removal failed",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        type: "error",
+      });
+    } finally {
+      setImageAction(null);
+    }
+  }
+
+  function handleUpload(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
-    if (!file || !file.type.startsWith("image/")) return;
-    setImages((current) => [
-      ...current,
-      { id: `${file.name}-${Date.now()}`, src: URL.createObjectURL(file) },
-    ]);
-  }
-
-  function removeImage(id: string) {
-    setImages((current) => current.filter((image) => image.id !== id));
-    toast.add({
-      title: "Image removed",
-      description: "The image was removed from this product draft.",
-      type: "info",
-    });
-  }
-
-  function makePrimary(id: string) {
-    setImages((current) =>
-      current.map((image) => ({ ...image, primary: image.id === id })),
-    );
-    toast.add({
-      title: "Primary image changed",
-      description: "The selected image is now the product thumbnail.",
-      type: "success",
-    });
+    event.target.value = "";
+    if (file) void uploadImage(file);
   }
 
   async function deleteProduct() {
@@ -330,29 +412,11 @@ export default function EditProductPage() {
                 icon={<List size={18} className="text-primary" />}
                 title="Description"
               />
-              <div className="bg-surface-2 flex gap-1 rounded-t-md border border-b-0 border-(--glass-border) p-2">
-                <ToolbarButton label="Bold">
-                  <Bold size={14} />
-                </ToolbarButton>
-                <ToolbarButton label="Italic">
-                  <Italic size={14} />
-                </ToolbarButton>
-                <ToolbarButton label="Underline">
-                  <Underline size={14} />
-                </ToolbarButton>
-                <span className="mx-1 w-px bg-(--glass-border)" />
-                <ToolbarButton label="Bulleted list">
-                  <List size={14} />
-                </ToolbarButton>
-                <ToolbarButton label="Numbered list">
-                  <ListOrdered size={14} />
-                </ToolbarButton>
-              </div>
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
                 rows={6}
-                className="form-input resize-y rounded-t-none"
+                className="form-input resize-y"
               />
             </section>
 
@@ -363,11 +427,13 @@ export default function EditProductPage() {
                   title="Product Images"
                 />
                 <label className="meta-font text-primary-soft hover:text-primary cursor-pointer text-xs underline">
-                  Add Media
+                  <Upload size={13} className="mr-1 inline" />
+                  Add image
                   <input
                     type="file"
                     accept="image/png,image/jpeg,image/webp"
-                    onChange={handleMedia}
+                    onChange={handleUpload}
+                    disabled={imageAction !== null}
                     className="sr-only"
                   />
                 </label>
@@ -377,20 +443,12 @@ export default function EditProductPage() {
                   <ImageTile
                     key={image.id}
                     image={image}
-                    onRemove={removeImage}
-                    onPrimary={makePrimary}
+                    busy={imageAction === image.id}
+                    onReplace={(file) => void replaceImage(image.id, file)}
+                    onPrimary={() => void setPrimaryImage(image.id)}
+                    onRemove={() => void removeImage(image.id)}
                   />
                 ))}
-                <label className="bg-surface-2/60 hover:border-primary hover:bg-surface-3 text-text-muted relative flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-md border border-dashed border-(--outline) transition">
-                  <Upload size={22} />
-                  <span className="meta-font text-xs">Upload</span>
-                  <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={handleMedia}
-                    className="sr-only"
-                  />
-                </label>
               </div>
             </section>
 
@@ -405,11 +463,6 @@ export default function EditProductPage() {
                     label="Price"
                     value={price}
                     onChange={setPrice}
-                  />
-                  <CurrencyField
-                    label="Compare-at Price"
-                    value={compareAtPrice}
-                    onChange={setCompareAtPrice}
                   />
                 </div>
               </section>
@@ -550,12 +603,9 @@ export default function EditProductPage() {
                   <h2 className="heading-font text-foreground truncate text-base">
                     {name}
                   </h2>
-                  <div className="mt-2 flex items-end gap-2">
+                  <div className="mt-2">
                     <span className="meta-font text-primary text-sm">
                       RM {price}
-                    </span>
-                    <span className="meta-font text-text-muted text-[11px] line-through">
-                      RM {compareAtPrice}
                     </span>
                   </div>
                   <p className="meta-font text-text-muted mt-3 flex items-center gap-1 text-[11px]">
@@ -660,32 +710,18 @@ function CurrencyField({
     </Field>
   );
 }
-function ToolbarButton({
-  label,
-  children,
-}: {
-  label: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      title={label}
-      aria-label={label}
-      className="text-text-muted hover:bg-surface-3 hover:text-foreground rounded p-2 transition"
-    >
-      {children}
-    </button>
-  );
-}
 function ImageTile({
   image,
-  onRemove,
+  busy,
+  onReplace,
   onPrimary,
+  onRemove,
 }: {
   image: ProductImage;
-  onRemove: (id: string) => void;
-  onPrimary: (id: string) => void;
+  busy: boolean;
+  onReplace: (file: File) => void;
+  onPrimary: () => void;
+  onRemove: () => void;
 }) {
   return (
     <div
@@ -698,22 +734,44 @@ function ImageTile({
         className="object-cover"
         unoptimized
       />
-      <div className="bg-background/70 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition group-hover:opacity-100">
-        <button
-          type="button"
-          title="Set as primary"
-          aria-label="Set as primary"
-          onClick={() => onPrimary(image.id)}
-          className="bg-surface-4 text-primary-soft rounded-full p-2 hover:cursor-pointer"
+      <div className="bg-background/75 absolute inset-0 flex items-center justify-center gap-2 opacity-0 transition group-hover:opacity-100 focus-within:opacity-100">
+        <label
+          title="Replace image"
+          aria-label="Replace image"
+          className="bg-surface-4 text-primary-soft cursor-pointer rounded-full p-2"
         >
-          <Star size={14} />
-        </button>
+          <Upload size={14} />
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            disabled={busy}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) onReplace(file);
+            }}
+            className="sr-only"
+          />
+        </label>
+        {!image.primary && (
+          <button
+            type="button"
+            title="Set as primary"
+            aria-label="Set as primary"
+            disabled={busy}
+            onClick={onPrimary}
+            className="bg-surface-4 text-primary-soft rounded-full p-2 disabled:opacity-50"
+          >
+            <Star size={14} />
+          </button>
+        )}
         <button
           type="button"
           title="Remove image"
           aria-label="Remove image"
-          onClick={() => onRemove(image.id)}
-          className="bg-surface-4 text-primary-soft rounded-full p-2 hover:cursor-pointer"
+          disabled={busy}
+          onClick={onRemove}
+          className="bg-surface-4 text-primary-soft rounded-full p-2 disabled:opacity-50"
         >
           <X size={14} />
         </button>

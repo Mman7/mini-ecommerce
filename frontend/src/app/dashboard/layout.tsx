@@ -5,8 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus, Role } from "@/src/types/user";
 import { DashboardShell } from "../../components/dashboard";
-import { DashboardSection } from "@/src/components/dashboard/DashboardShell";
 import { DashboardPageTransition } from "@/src/components/motion/PageTransition";
+import { DashboardSection } from "@/src/components/dashboard/DashboardNavigation";
 
 function getActiveSection(pathname: string): DashboardSection {
   if (pathname.startsWith("/dashboard/products")) return "products";
@@ -14,7 +14,6 @@ function getActiveSection(pathname: string): DashboardSection {
   if (pathname.startsWith("/dashboard/orders")) return "orders";
   if (pathname.startsWith("/dashboard/customers")) return "customers";
   if (pathname.startsWith("/dashboard/analytics")) return "analytics";
-  if (pathname.startsWith("/dashboard/settings")) return "settings";
   return "overview";
 }
 

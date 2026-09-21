@@ -114,7 +114,10 @@ export const productApi = {
         body: JSON.stringify(data),
       }),
     updateInventory: (productId: number, stock: number, reorderAt: number) =>
-      request<{ stock: number }>(`/admin/inventory/${productId}`, {
+      request<{
+        msg: string;
+        stock: { stock: number; productId: number; reorderAt: number | null };
+      }>(`/admin/inventory/${productId}`, {
         method: "PATCH",
         body: JSON.stringify({ stock, reorderAt }),
       }),
@@ -123,9 +126,22 @@ export const productApi = {
         method: "DELETE",
       }),
     updateImage: (productId: number, imageId: number, data: FormData) =>
-      request<ProductImage>(`/admin/products/${productId}/images/${imageId}`, {
-        method: "PATCH",
+      request<{ item: ProductImage }>(
+        `/admin/products/${productId}/images/${imageId}`,
+        {
+          method: "PATCH",
+          body: data,
+        },
+      ),
+    createImage: (productId: number, data: FormData) =>
+      request<{ item: ProductImage }>(`/admin/products/${productId}/images`, {
+        method: "POST",
         body: data,
       }),
+    deleteImage: (productId: number, imageId: number) =>
+      request<{ message: string }>(
+        `/admin/products/${productId}/images/${imageId}`,
+        { method: "DELETE" },
+      ),
   },
 };

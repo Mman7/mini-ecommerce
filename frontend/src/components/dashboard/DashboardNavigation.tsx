@@ -3,7 +3,6 @@ import {
   ClipboardList,
   LayoutDashboard,
   Package,
-  Settings,
   Tags,
   Users,
 } from "lucide-react";
@@ -54,12 +53,6 @@ const navigation = [
     label: "Analytics",
     href: "/dashboard/analytics",
     icon: ChartNoAxesCombined,
-  },
-  {
-    key: "settings" as const,
-    label: "Settings",
-    href: "/dashboard/settings",
-    icon: Settings,
   },
 ];
 

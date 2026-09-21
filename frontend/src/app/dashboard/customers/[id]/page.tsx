@@ -111,21 +111,21 @@ export default function CustomerDetailPage() {
   return (
     <>
       <DashboardHeading
-        eyebrow="Customer profile"
-        title={customer.name}
-        description={customer.email}
+        eyebrow="Customer operations"
+        title={`Customer #${customer.userId.slice(0, 8)}`}
+        description="Relationship profile and order activity"
         action={
           <div className="flex gap-2">
             <Link
               href="/dashboard/customers"
-              className="meta-font text-text-muted rounded border border-(--glass-border) px-3 py-2 text-xs"
+              className="meta-font text-text-muted hover:text-foreground rounded border border-(--glass-border) px-3 py-2 text-xs transition-colors"
             >
-              Back to Customers
+              ← Back to Customers
             </Link>
             <button
               type="button"
               onClick={() => setEditing(!editing)}
-              className="meta-font bg-primary text-primary-foreground rounded px-3 py-2 text-xs"
+              className="meta-font bg-primary text-primary-foreground rounded px-3 py-2 text-xs shadow-[0_0_24px_rgba(233,139,44,0.18)]"
             >
               {editing ? "Cancel" : "Edit Customer"}
             </button>
@@ -137,11 +137,43 @@ export default function CustomerDetailPage() {
           {error}
         </p>
       ) : null}
+      <DashboardPanel className="mb-3 overflow-hidden">
+        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-secondary/20 text-secondary border-secondary/40 flex h-16 w-16 shrink-0 items-center justify-center rounded-xl border text-xl font-semibold">
+              {initials(customer.name)}
+            </div>
+            <div>
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h1 className="heading-font text-foreground text-2xl font-semibold">
+                  {customer.name}
+                </h1>
+                <StatusPill
+                  status={customer.isActive ? "Active" : "Inactive"}
+                />
+              </div>
+              <p className="text-text-muted text-sm">{customer.email}</p>
+              <p className="meta-font text-secondary mt-2 text-[11px]">
+                {customer.status === "VIP"
+                  ? "✦ VIP customer"
+                  : "Community customer"}
+              </p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2 sm:min-w-64">
+            <Metric label="Orders" value={String(customer.orders)} />
+            <Metric
+              label="Lifetime value"
+              value={money.format(customer.totalSpent)}
+            />
+          </div>
+        </div>
+      </DashboardPanel>
       <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_300px]">
         <div className="space-y-3">
           <DashboardPanel>
             <PanelHeading title="Customer Information" />
-            <div className="grid gap-4 p-4 sm:grid-cols-2">
+            <div className="grid gap-4 p-5 sm:grid-cols-2">
               {editing ? (
                 <>
                   <label className="text-text-muted text-xs">
@@ -204,19 +236,19 @@ export default function CustomerDetailPage() {
             </div>
           </DashboardPanel>
           <DashboardPanel>
-            <PanelHeading title="Customer Statistics" />
-            <div className="grid grid-cols-2 gap-4 p-4">
-              <Info label="Total Orders" value={String(customer.orders)} />
+            <PanelHeading title="Relationship Snapshot" />
+            <div className="grid grid-cols-2 gap-4 p-5 sm:grid-cols-4">
+              <Info label="Total orders" value={String(customer.orders)} />
               <Info
-                label="Total Spent"
+                label="Total spent"
                 value={money.format(customer.totalSpent)}
               />
               <Info
-                label="Average Order"
+                label="Average order"
                 value={money.format(customer.averageOrderValue)}
               />
               <Info
-                label="Last Order"
+                label="Last order"
                 value={
                   customer.lastOrder
                     ? new Date(customer.lastOrder).toLocaleDateString()
@@ -229,7 +261,7 @@ export default function CustomerDetailPage() {
         <div className="space-y-3">
           <DashboardPanel>
             <PanelHeading title="Account Status" />
-            <div className="space-y-3 px-4 py-4">
+            <div className="space-y-3 px-5 py-5">
               <div className="flex items-center justify-between gap-3">
                 <span className="text-text-muted text-xs">Current status</span>
                 <StatusPill
@@ -248,6 +280,33 @@ export default function CustomerDetailPage() {
               </button>
             </div>
           </DashboardPanel>
+          <DashboardPanel>
+            <PanelHeading title="Customer Profile" />
+            <div className="space-y-3 px-5 py-5">
+              <ProfileRow
+                label="Customer UID"
+                value={`usr_${customer.userId.slice(0, 8)}`}
+              />
+              <ProfileRow
+                label="Joined"
+                value={new Date(customer.createdAt).toLocaleDateString()}
+              />
+              <ProfileRow
+                label="Phone"
+                value={customer.phoneNumber ?? "Not provided"}
+              />
+              <div className="bg-surface-2 rounded border border-(--glass-border) px-3 py-2">
+                <p className="meta-font text-text-muted text-[10px] uppercase">
+                  Engagement
+                </p>
+                <p className="text-secondary mt-1 text-xs">
+                  {customer.orders > 1
+                    ? "Returning customer"
+                    : "First order journey"}
+                </p>
+              </div>
+            </div>
+          </DashboardPanel>
         </div>
       </div>
       <DashboardPanel className="mt-3">
@@ -257,7 +316,7 @@ export default function CustomerDetailPage() {
             <table className="w-full min-w-150 text-left">
               <thead className="meta-font bg-surface-2/60 text-xs text-(--outline) uppercase">
                 <tr>
-                  <th className="px-4 py-3">Order ID</th>
+                  <th className="px-4 py-3">Order reference</th>
                   <th className="py-3">Date</th>
                   <th className="py-3">Items</th>
                   <th className="py-3">Total</th>
@@ -291,7 +350,7 @@ export default function CustomerDetailPage() {
                         href={`/dashboard/orders/${order.id}`}
                         className="text-primary-soft text-xs hover:underline"
                       >
-                        View
+                        View order →
                       </Link>
                     </td>
                   </tr>
@@ -304,6 +363,36 @@ export default function CustomerDetailPage() {
         )}
       </DashboardPanel>
     </>
+  );
+}
+
+function initials(name: string) {
+  return name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+}
+
+function Metric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-surface-2 rounded border border-(--glass-border) px-3 py-2">
+      <p className="meta-font text-text-muted text-[10px] uppercase">{label}</p>
+      <p className="text-primary-soft mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ProfileRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-start justify-between gap-3 border-b border-(--glass-border) pb-3 last:border-0 last:pb-0">
+      <span className="meta-font text-text-muted text-[10px] uppercase">
+        {label}
+      </span>
+      <span className="text-foreground text-right text-xs">{value}</span>
+    </div>
   );
 }
 

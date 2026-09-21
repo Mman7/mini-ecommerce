@@ -11,7 +11,6 @@ import {
   FieldSet,
 } from "@/components/ui/field";
 import { Slider } from "@/components/ui/slider";
-import { toast } from "@/components/ui/toast";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Toggle } from "@/components/ui/toggle";
 
@@ -185,29 +184,6 @@ export default function FiltersSidebar({
           className="meta-font hover:bg-primary-soft text-primary-soft border-primary-soft mt-3 w-full rounded border bg-transparent px-3 py-2 text-sm font-semibold transition hover:cursor-pointer hover:text-white"
         >
           Clear filters
-        </button>
-      </div>
-
-      <div className="group relative overflow-hidden rounded-[14px] border border-[rgba(255,174,218,0.22)] bg-[linear-gradient(160deg,rgba(111,49,87,0.28),rgba(38,22,33,0.82))] p-6">
-        <div className="absolute -top-8 -right-8 h-32 w-32 bg-[rgba(255,174,218,0.14)] blur-3xl transition-all group-hover:blur-2xl"></div>
-        <h3 className="title-font text-secondary mb-3 text-4xl font-semibold">
-          Monthly Crate
-        </h3>
-        <p className="text-body-md mb-5 text-(--foreground)/92">
-          Get a curated box of Tokyo surprises every month.
-        </p>
-        <button
-          type="button"
-          onClick={() =>
-            toast.add({
-              title: "Subscriptions are coming soon",
-              description: "We will let you know when the Monthly Crate opens.",
-              type: "info",
-            })
-          }
-          className="meta-font bg-secondary w-full rounded-md py-2.5 text-lg font-semibold text-[#541a3f] transition-all hover:scale-[1.02] active:scale-95"
-        >
-          Subscribe Now
         </button>
       </div>
     </aside>

@@ -7,12 +7,36 @@ export type DashboardOverview = {
     customers: number;
     averageOrderValue: number;
   };
-  revenueTrend: { date: string; amount: number }[];
+  previousSummary: {
+    revenue: number;
+    orders: number;
+    averageOrderValue: number;
+  };
+  catalog: { totalActiveProducts: number; inStockProducts: number };
+  revenueTrend: { date: string; amount: number; orderCount: number }[];
+  fulfillmentBreakdown: {
+    status: string;
+    count: number;
+    percentage: number;
+  }[];
+  categoryRevenue: {
+    categoryId: number;
+    name: string;
+    revenue: number;
+    percentage: number;
+  }[];
+  cohortMetrics: {
+    repeatRate: number;
+    newCustomerRate: number;
+    estimatedClv: number;
+  };
   topProducts: {
     productId: number;
     name: string;
     price: number;
     sold: number;
+    revenue: number;
+    orderCount: number;
     image: { url: string; altText: string | null } | null;
   }[];
   recentOrders: {

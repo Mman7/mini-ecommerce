@@ -231,52 +231,81 @@ export const getTotalActiveUsers = async () => {
 };
 
 export const getOverview = async ({ from, to }: OverviewRange) => {
+  // Revenue metrics include only orders that have reached a paid or fulfillment state.
   const orderWhere = {
     createdAt: { gte: from, lt: to },
     status: { in: [...revenueStatuses] },
   };
-  const [orders, customers, lowStock] = await Promise.all([
-    prisma.order.findMany({
-      where: orderWhere,
-      orderBy: { createdAt: "desc" },
-      take: 1000,
-      include: {
-        user: { select: { name: true, email: true } },
-        orderItems: {
-          include: {
-            product: {
-              select: {
-                productId: true,
-                name: true,
-                price: true,
-                productImages: {
-                  where: { isThumbnail: true },
-                  take: 1,
-                  select: { url: true, altText: true },
+  // Compare the selected range with the immediately preceding range of equal length.
+  const rangeDuration = to.getTime() - from.getTime();
+  const previousFrom = new Date(from.getTime() - rangeDuration);
+  const previousTo = from;
+  // These queries are independent, so fetch the dashboard data in parallel.
+  const [orders, customers, lowStock, statusRows, cohortUsers] =
+    await Promise.all([
+      prisma.order.findMany({
+        where: orderWhere,
+        orderBy: { createdAt: "desc" },
+        take: 1000,
+        include: {
+          user: { select: { name: true, email: true } },
+          orderItems: {
+            include: {
+              product: {
+                select: {
+                  productId: true,
+                  name: true,
+                  price: true,
+                  category: { select: { categoryId: true, name: true } },
+                  productImages: {
+                    where: { isThumbnail: true },
+                    take: 1,
+                    select: { url: true, altText: true },
+                  },
                 },
               },
             },
           },
         },
-      },
-    }),
-    prisma.user.count({ where: { createdAt: { gte: from, lt: to } } }),
-    prisma.product.findMany({
-      where: { isActive: true, inventory: { isNot: null } },
-      orderBy: { inventory: { stock: "asc" } },
-      take: 8,
-      select: {
-        productId: true,
-        name: true,
-        inventory: { select: { stock: true, reorderAt: true } },
-        productImages: {
-          where: { isThumbnail: true },
-          take: 1,
-          select: { url: true, altText: true },
+      }),
+      prisma.user.count({ where: { createdAt: { gte: from, lt: to } } }),
+      prisma.product.findMany({
+        where: { isActive: true, inventory: { isNot: null } },
+        orderBy: { inventory: { stock: "asc" } },
+        take: 8,
+        select: {
+          productId: true,
+          name: true,
+          inventory: { select: { stock: true, reorderAt: true } },
+          productImages: {
+            where: { isThumbnail: true },
+            take: 1,
+            select: { url: true, altText: true },
+          },
         },
-      },
-    }),
-  ]);
+      }),
+      prisma.order.findMany({
+        where: { createdAt: { gte: from, lt: to } },
+        select: { status: true },
+      }),
+      prisma.user.findMany({
+        where: {
+          role: "USER",
+          orders: {
+            some: {
+              createdAt: { gte: from, lt: to },
+              status: { in: [...revenueStatuses] },
+            },
+          },
+        },
+        select: {
+          orders: {
+            where: { status: { in: [...revenueStatuses] } },
+            select: { createdAt: true, total: true },
+          },
+        },
+      }),
+    ]);
 
   const productSales = new Map<
     number,
@@ -285,17 +314,26 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
       name: string;
       price: number;
       sold: number;
+      revenue: number;
+      orderCount: number;
       image: { url: string; altText: string | null } | null;
     }
   >();
   const revenueByDate = new Map<string, number>();
+  const ordersByDate = new Map<string, number>();
+  const categorySales = new Map<
+    number,
+    { categoryId: number; name: string; revenue: number }
+  >();
 
+  // Build all chart and product aggregates from the same filtered order set.
   for (const order of orders) {
     const date = order.createdAt.toISOString().slice(0, 10);
     revenueByDate.set(
       date,
       (revenueByDate.get(date) ?? 0) + Number(order.total),
     );
+    ordersByDate.set(date, (ordersByDate.get(date) ?? 0) + 1);
     for (const item of order.orderItems) {
       const current = productSales.get(item.productId);
       productSales.set(item.productId, {
@@ -303,8 +341,23 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
         name: item.product.name,
         price: Number(item.product.price),
         sold: (current?.sold ?? 0) + item.quantity,
+        revenue: (current?.revenue ?? 0) + Number(item.price) * item.quantity,
+        // Count orders containing the product, rather than counting individual units.
+        orderCount: (current?.orderCount ?? 0) + 1,
         image: item.product.productImages[0] ?? null,
       });
+      if (item.product.category) {
+        const currentCategory = categorySales.get(
+          item.product.category.categoryId,
+        );
+        categorySales.set(item.product.category.categoryId, {
+          categoryId: item.product.category.categoryId,
+          name: item.product.category.name,
+          revenue:
+            (currentCategory?.revenue ?? 0) +
+            Number(item.price) * item.quantity,
+        });
+      }
     }
   }
 
@@ -317,13 +370,73 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
     1,
     Math.floor((endDate.getTime() - startDate.getTime()) / 86400000) + 1,
   );
+  // Include zero-value days so the frontend chart keeps a continuous timeline.
   const revenueTrend = Array.from({ length: dayCount }, (_, index) => {
     const date = new Date(endDate);
     date.setUTCDate(endDate.getUTCDate() - (dayCount - 1 - index));
     const dateKey = date.toISOString().slice(0, 10);
 
-    return { date: dateKey, amount: revenueByDate.get(dateKey) ?? 0 };
+    return {
+      date: dateKey,
+      amount: revenueByDate.get(dateKey) ?? 0,
+      orderCount: ordersByDate.get(dateKey) ?? 0,
+    };
   });
+
+  // Keep the denominator non-zero when the selected period has no orders.
+  const fulfillmentTotal = statusRows.length || 1;
+  const fulfillmentBreakdown = Object.values(OrderStatus).map((status) => ({
+    status,
+    count: statusRows.filter((order) => order.status === status).length,
+    percentage:
+      (statusRows.filter((order) => order.status === status).length /
+        fulfillmentTotal) *
+      100,
+  }));
+  // Cohort users are customers with at least one qualifying order in this range.
+  const rangeCustomers = cohortUsers.length;
+  const repeatCustomers = cohortUsers.filter(
+    (user) => user.orders.length > 1,
+  ).length;
+  const newCustomers = cohortUsers.filter((user) => {
+    const firstOrder = user.orders.reduce<Date | null>(
+      (earliest, order) =>
+        !earliest || order.createdAt < earliest ? order.createdAt : earliest,
+      null,
+    );
+    return firstOrder ? firstOrder >= from && firstOrder < to : false;
+  }).length;
+  const cohortRevenue = cohortUsers.reduce(
+    (sum, user) =>
+      sum +
+      user.orders.reduce((userSum, order) => userSum + Number(order.total), 0),
+    0,
+  );
+  const categoryRevenue = [...categorySales.values()]
+    .sort((left, right) => right.revenue - left.revenue)
+    .map((category) => ({
+      ...category,
+      percentage: revenue ? (category.revenue / revenue) * 100 : 0,
+    }));
+  // Fetch comparison revenue and catalog health after the range aggregates are built.
+  const [previousOrders, totalActiveProducts, inStockProducts] =
+    await Promise.all([
+      prisma.order.findMany({
+        where: {
+          createdAt: { gte: previousFrom, lt: previousTo },
+          status: { in: [...revenueStatuses] },
+        },
+        select: { total: true },
+      }),
+      prisma.product.count({ where: { isActive: true } }),
+      prisma.product.count({
+        where: { isActive: true, inventory: { stock: { gt: 0 } } },
+      }),
+    ]);
+  const previousRevenue = previousOrders.reduce(
+    (sum, order) => sum + Number(order.total),
+    0,
+  );
 
   return {
     summary: {
@@ -332,10 +445,27 @@ export const getOverview = async ({ from, to }: OverviewRange) => {
       customers,
       averageOrderValue: orders.length ? revenue / orders.length : 0,
     },
+    previousSummary: {
+      revenue: previousRevenue,
+      orders: previousOrders.length,
+      averageOrderValue: previousOrders.length
+        ? previousRevenue / previousOrders.length
+        : 0,
+    },
+    catalog: { totalActiveProducts, inStockProducts },
     revenueTrend,
-    topProducts: [...productSales.values()]
-      .sort((left, right) => right.sold - left.sold)
-      .slice(0, 5),
+    fulfillmentBreakdown,
+    categoryRevenue,
+    cohortMetrics: {
+      repeatRate: rangeCustomers ? (repeatCustomers / rangeCustomers) * 100 : 0,
+      newCustomerRate: rangeCustomers
+        ? (newCustomers / rangeCustomers) * 100
+        : 0,
+      estimatedClv: rangeCustomers ? cohortRevenue / rangeCustomers : 0,
+    },
+    topProducts: [...productSales.values()].sort(
+      (left, right) => right.sold - left.sold,
+    ),
     recentOrders: orders.slice(0, 8).map((order) => ({
       id: order.id,
       customer: order.user.name,

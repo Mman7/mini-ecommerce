@@ -14,7 +14,6 @@ export default function CreateProductPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
-  const [compareAtPrice, setCompareAtPrice] = useState("");
   const [stock, setStock] = useState("");
   const [threshold, setThreshold] = useState("5");
   const [category, setCategory] = useState("");
@@ -247,11 +246,6 @@ export default function CreateProductPage() {
                     label="Price (RM)"
                     value={price}
                     onChange={setPrice}
-                  />
-                  <CurrencyField
-                    label="Compare-at Price (RM)"
-                    value={compareAtPrice}
-                    onChange={setCompareAtPrice}
                   />
                 </div>
               </section>

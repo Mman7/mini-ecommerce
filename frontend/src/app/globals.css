@@ -139,7 +139,7 @@
   --chart-2: var(--secondary);
   --chart-3: var(--tertiary);
   --chart-4: var(--outline);
-  --chart-5: var(--outline-strong);
+  --chart-5: #34d399;
 
   /* Sidebar */
   --sidebar: var(--surface-1);

@@ -322,6 +322,65 @@ export const updateProductImageById = async (
   return updatedImage;
 };
 
+export const createProductImage = async (
+  productId: number,
+  data: {
+    url: string;
+    altText?: string;
+    sortOrder?: number;
+    isThumbnail?: boolean;
+  },
+) => {
+  const product = await prisma.product.findUnique({
+    where: { productId },
+    select: { productId: true },
+  });
+  if (!product) throw new Error(`Product ${productId} not found`);
+
+  return prisma.$transaction(async (transaction) => {
+    if (data.isThumbnail === true) {
+      await transaction.productImage.updateMany({
+        where: { productId },
+        data: { isThumbnail: false },
+      });
+    }
+    const sortOrder =
+      data.sortOrder ??
+      ((
+        await transaction.productImage.aggregate({
+          where: { productId },
+          _max: { sortOrder: true },
+        })
+      )._max.sortOrder ?? -1) + 1;
+    return transaction.productImage.create({
+      data: {
+        productId,
+        url: data.url,
+        altText: data.altText ?? null,
+        sortOrder,
+        isThumbnail: data.isThumbnail ?? false,
+      },
+    });
+  });
+};
+
+export const deleteProductImageById = async (
+  productId: number,
+  imageId: number,
+) => {
+  const image = await prisma.productImage.findUnique({
+    where: { id: imageId },
+  });
+  if (!image || image.productId !== productId) {
+    throw new Error(
+      `Product image with ID ${imageId} not found for product ${productId}`,
+    );
+  }
+  await prisma.productImage.delete({ where: { id: imageId } });
+  await deleteFileByPath(image.url);
+  return image;
+};
+
 export const deleteProductById = async (id: number) => {
   const images = await prisma.productImage.findMany({
     where: { productId: id },

@@ -1,10 +1,10 @@
 import { DashboardStatus } from "./types/dashboard-status.enum";
 
 const STATUS_STYLES = {
-  success: "bg-surface-3 text-text-muted",
-  primary: "bg-primary/15 text-primary-soft",
-  danger: "bg-primary/10 text-primary-soft",
-  neutral: "bg-(--glass-bg) text-text-muted",
+  success: "border border-emerald-500/20 bg-emerald-500/10 text-emerald-400",
+  primary: "border border-primary/30 bg-primary/15 text-primary-soft",
+  danger: "border border-red-500/20 bg-red-500/10 text-red-300",
+  neutral: "border border-(--glass-border) bg-(--glass-bg) text-text-muted",
 } as const;
 
 function getStatusStyle(status: DashboardStatus | string) {
@@ -16,6 +16,10 @@ function getStatusStyle(status: DashboardStatus | string) {
     normalized === DashboardStatus.Paid
   ) {
     return STATUS_STYLES.success;
+  }
+
+  if (normalized === DashboardStatus.Vip) {
+    return "border border-secondary/30 bg-secondary/15 text-secondary";
   }
 
   if (
@@ -34,10 +38,11 @@ function getStatusStyle(status: DashboardStatus | string) {
     return STATUS_STYLES.danger;
   }
 
-  if (
-    normalized === DashboardStatus.Shipped ||
-    normalized === DashboardStatus.Regular
-  ) {
+  if (normalized === DashboardStatus.Shipped) {
+    return "border border-tertiary/30 bg-tertiary/15 text-tertiary";
+  }
+
+  if (normalized === DashboardStatus.Regular) {
     return STATUS_STYLES.success;
   }
 

@@ -81,12 +81,6 @@ function ProductTile({
           {product.label}
         </span>
         <FavoriteButton productId={product.id} productName={product.name} />
-        <button
-          type="button"
-          className="meta-font bg-primary-soft absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-3 px-4 py-2 text-xs font-semibold text-black opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100"
-        >
-          Quick Add
-        </button>
       </div>
       <div className="space-y-1 pt-4">
         <div className="flex items-start justify-between gap-3">

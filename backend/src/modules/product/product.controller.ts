@@ -406,6 +406,49 @@ export const updateProductImage = async (req: Request, res: Response) => {
   }
 };
 
+export const createProductImage = async (req: Request, res: Response) => {
+  const productId = Number(req.params.productId);
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return res.status(400).json({ error: "Valid product ID is required" });
+  }
+  if (!req.file) {
+    return res.status(400).json({ error: "Image file is required" });
+  }
+
+  try {
+    const image = await productService.createProductImage(productId, {
+      url: `/uploads/${req.file.filename}`,
+      altText: req.file.originalname,
+      isThumbnail: req.body.isThumbnail === "true",
+    });
+    return res.status(201).json({
+      message: "Product image uploaded successfully",
+      item: image,
+    });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to upload product image" });
+  }
+};
+
+export const deleteProductImage = async (req: Request, res: Response) => {
+  const productId = Number(req.params.productId);
+  const imageId = Number(req.params.imageId);
+  if (!Number.isInteger(productId) || productId <= 0) {
+    return res.status(400).json({ error: "Valid product ID is required" });
+  }
+  if (!Number.isInteger(imageId) || imageId <= 0) {
+    return res.status(400).json({ error: "Valid image ID is required" });
+  }
+  try {
+    await productService.deleteProductImageById(productId, imageId);
+    return res
+      .status(200)
+      .json({ message: "Product image deleted successfully" });
+  } catch (error) {
+    return res.status(500).json({ error: "Failed to delete product image" });
+  }
+};
+
 export const deleteProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (id === undefined) {

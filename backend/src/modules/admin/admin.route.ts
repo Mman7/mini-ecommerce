@@ -45,6 +45,16 @@ adminRoute.patch(
   handleSingleImageUploadError,
   productController.updateProductImage,
 );
+adminRoute.post(
+  "/products/:productId/images",
+  upload.single("image"),
+  handleSingleImageUploadError,
+  productController.createProductImage,
+);
+adminRoute.delete(
+  "/products/:productId/images/:imageId",
+  productController.deleteProductImage,
+);
 adminRoute.delete("/products/:id", productController.deleteProduct);
 
 adminRoute.post("/categories", categoryController.createCategory);

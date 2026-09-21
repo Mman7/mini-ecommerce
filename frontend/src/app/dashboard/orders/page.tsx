@@ -23,9 +23,9 @@ export default function OrdersPage() {
       <DashboardHeading
         eyebrow="Order operations"
         title="Orders"
-        description="Track and manage customer orders from payment to delivery."
+        description="Track and manage customer orders from payment verification to final delivery."
       />
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
         <StatCard
           label="All Orders"
           value={String(all)}
@@ -48,21 +48,21 @@ export default function OrdersPage() {
         <StatCard
           label="Processing"
           value={String(counts.PROCESSING ?? 0)}
-          detail="Being prepared"
+          detail="Atelier wrapping"
           accent="cyan"
           icon={<PackageCheck />}
         />
         <StatCard
           label="Delivered"
           value={String(counts.DELIVERED ?? 0)}
-          detail="Successfully completed"
+          detail="Successfully fulfilled"
           accent="green"
           icon={<CheckCircle2 />}
         />
         <StatCard
           label="Cancelled"
           value={String(counts.CANCELLED ?? 0)}
-          detail="Not fulfilled"
+          detail="Refunded or void"
           accent="pink"
           icon={<XCircle />}
         />
