@@ -12,7 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/components/ui/toast";
@@ -62,6 +63,7 @@ export default function DashboardCustomersPage() {
   const [exportError, setExportError] = useState("");
   const [exporting, setExporting] = useState(false);
   const search = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(search);
   const status = searchParams.get("status") ?? "";
   const sort = searchParams.get("sort") ?? "newest";
   const page = Number(searchParams.get("page") ?? 1);
@@ -99,6 +101,15 @@ export default function DashboardCustomersPage() {
     if (key !== "page") next.set("page", "1");
     router.push(`${pathname}?${next.toString()}`);
   }
+
+  useEffect(() => {
+    setSearchInput(search);
+  }, [search]);
+
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => updateParam("search", value),
+    300,
+  );
 
   async function exportCustomers() {
     setExporting(true);
@@ -269,8 +280,12 @@ export default function DashboardCustomersPage() {
               />
               <input
                 aria-label="Search customers"
-                value={search}
-                onChange={(event) => updateParam("search", event.target.value)}
+                value={searchInput}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setSearchInput(value);
+                  debouncedSearch(value);
+                }}
                 placeholder="Search by name, email, or phone..."
                 className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
               />

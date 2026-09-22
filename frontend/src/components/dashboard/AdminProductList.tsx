@@ -4,7 +4,8 @@ import { RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import {
   productApi,
   type AdminProductListResponse,
@@ -48,6 +49,7 @@ export function AdminProductList({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(query);
   const categoryId = searchParams.get("categoryId") ?? "";
   const status = searchParams.get("status") ?? "";
   const stock = searchParams.get("stock") ?? "";
@@ -95,6 +97,15 @@ export function AdminProductList({
     if (key !== "page") next.set("page", "1");
     router.push(`${pathname}?${next.toString()}`);
   }
+
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => updateParam("search", value),
+    300,
+  );
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   const columns: ColumnDef<Product>[] = [
     {
@@ -226,8 +237,12 @@ export function AdminProductList({
           />
           <input
             aria-label="Search products"
-            value={query}
-            onChange={(event) => updateParam("search", event.target.value)}
+            value={searchInput}
+            onChange={(event) => {
+              const value = event.target.value;
+              setSearchInput(value);
+              debouncedSearch(value);
+            }}
             placeholder="Search by product name, SKU, or category..."
             className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
           />

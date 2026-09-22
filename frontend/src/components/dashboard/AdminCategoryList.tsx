@@ -3,7 +3,8 @@
 import { RotateCcw, Search, Tags } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { categoryApi, type AdminCategory } from "../../api/category.api";
 import type { ColumnDef } from "@tanstack/react-table";
 import { toast } from "@/components/ui/toast";
@@ -29,6 +30,7 @@ export function AdminCategoryList({
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const query = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(query);
   const status = searchParams.get("status") ?? "";
   const page = Number(searchParams.get("page") ?? 1);
 
@@ -70,6 +72,15 @@ export function AdminCategoryList({
     if (key !== "page") next.set("page", "1");
     router.push(`${pathname}?${next.toString()}`);
   }
+
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => updateParam("search", value),
+    300,
+  );
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   async function toggle(category: AdminCategory) {
     try {
@@ -173,8 +184,12 @@ export function AdminCategoryList({
             />
             <input
               aria-label="Search categories"
-              value={query}
-              onChange={(event) => updateParam("search", event.target.value)}
+              value={searchInput}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearchInput(value);
+                debouncedSearch(value);
+              }}
               placeholder="Search by category name..."
               className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
             />

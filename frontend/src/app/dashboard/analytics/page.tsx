@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useDebounce } from "use-debounce";
 import { RefreshCw } from "lucide-react";
 import { DashboardHeading } from "../../../components/dashboard";
 import { dashboardApi, type DashboardOverview } from "@/src/api/dashboard.api";
@@ -54,6 +55,7 @@ export default function DashboardAnalyticsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [debouncedQuery] = useDebounce(query, 300);
   const [showOrders, setShowOrders] = useState(true);
   const [onlySelling, setOnlySelling] = useState(false);
   const [restockingId, setRestockingId] = useState<number | null>(null);
@@ -86,10 +88,10 @@ export default function DashboardAnalyticsPage() {
     () =>
       (overview?.topProducts ?? []).filter(
         (product) =>
-          product.name.toLowerCase().includes(query.toLowerCase()) &&
+          product.name.toLowerCase().includes(debouncedQuery.toLowerCase()) &&
           (!onlySelling || product.sold > 0),
       ),
-    [onlySelling, overview?.topProducts, query],
+    [debouncedQuery, onlySelling, overview?.topProducts],
   );
   const trend = useMemo(
     () =>

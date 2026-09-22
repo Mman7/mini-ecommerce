@@ -4,7 +4,8 @@ import { Activity, RotateCcw, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useDebouncedCallback } from "use-debounce";
 import { orderApi, type AdminOrderListResponse } from "../../api/order.api";
 import type { ColumnDef } from "@tanstack/react-table";
 import {
@@ -31,6 +32,7 @@ export function AdminOrderList({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const query = searchParams.get("search") ?? "";
+  const [searchInput, setSearchInput] = useState(query);
   const status = searchParams.get("status") ?? "";
   const page = Number(searchParams.get("page") ?? 1);
 
@@ -56,6 +58,15 @@ export function AdminOrderList({
     if (key !== "page") next.set("page", "1");
     router.push(`${pathname}?${next.toString()}`);
   }
+
+  const debouncedSearch = useDebouncedCallback(
+    (value: string) => updateParam("search", value),
+    300,
+  );
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
 
   const columns: ColumnDef<AdminOrderListResponse["items"][number]>[] = [
     {
@@ -154,8 +165,12 @@ export function AdminOrderList({
             />
             <input
               aria-label="Search orders"
-              value={query}
-              onChange={(event) => updateParam("search", event.target.value)}
+              value={searchInput}
+              onChange={(event) => {
+                const value = event.target.value;
+                setSearchInput(value);
+                debouncedSearch(value);
+              }}
               placeholder="Search by order ID, customer name, or email..."
               className="meta-font bg-surface-2 text-foreground focus:border-primary h-9 w-full rounded-md border border-(--glass-border) pr-3 pl-9 text-xs transition outline-none placeholder:text-(--outline)"
             />
@@ -210,11 +225,7 @@ export function AdminOrderList({
           No orders found.
         </div>
       ) : (
-        <DataTable
-          columns={columns}
-          data={data.items}
-          className="min-w-190 "
-        />
+        <DataTable columns={columns} data={data.items} className="min-w-190" />
       )}
       <div className="meta-font flex items-center justify-between border-t border-(--glass-border) px-4 py-3 text-xs text-(--outline)">
         <span>
