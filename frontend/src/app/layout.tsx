@@ -49,9 +49,40 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Komorebi Gift Atelier",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
+  ),
+  title: {
+    default: "Komorebi Gift Atelier | Thoughtful Japanese-Inspired Gifts",
+    template: "%s | Komorebi Gift Atelier",
+  },
   description:
-    "Luxury kawaii gifts and artisan collections inspired by a warm Tokyo atelier.",
+    "Shop thoughtful kawaii gifts, stationery, plush collectibles, and artisan treasures inspired by a warm Tokyo atelier.",
+  keywords: [
+    "Japanese inspired gifts",
+    "kawaii gifts",
+    "artisan gifts",
+    "Japanese stationery",
+    "plush collectibles",
+  ],
+  alternates: { canonical: "/" },
+  openGraph: {
+    type: "website",
+    siteName: "Komorebi Gift Atelier",
+    title: "Komorebi Gift Atelier | Thoughtful Japanese-Inspired Gifts",
+    description:
+      "Discover kawaii gifts, stationery, plush collectibles, and artisan treasures from Komorebi Gift Atelier.",
+    images: [{ url: "/homepage/komorebi-gift-atelier-store-display.png" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Komorebi Gift Atelier | Thoughtful Japanese-Inspired Gifts",
+    description:
+      "Discover kawaii gifts, stationery, plush collectibles, and artisan treasures from Komorebi Gift Atelier.",
+    images: ["/homepage/komorebi-gift-atelier-store-display.png"],
+  },
+  icons: { icon: "/Shared/logo.png", apple: "/Shared/logo.png" },
+  robots: { index: true, follow: true },
 };
 
 export default function RootLayout({

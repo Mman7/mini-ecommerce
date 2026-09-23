@@ -3,12 +3,23 @@
 import { faInstagram, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { faAt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { Mail, Play, MapPin, CreditCard } from "lucide-react";
+import { MapPin, CreditCard } from "lucide-react";
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const footerLinks = {
-  shop: ["All Products", "New Arrivals", "Best Sellers", "Exclusives"],
-  customerCare: ["Shipping Policy", "Returns", "Contact", "Atelier Story"],
+  shop: [
+    { label: "All Products", href: "/products" },
+    { label: "New Arrivals" },
+    { label: "Best Sellers" },
+    { label: "Exclusives" },
+  ],
+  customerCare: [
+    { label: "Shipping Policy" },
+    { label: "Returns" },
+    { label: "Contact" },
+    { label: "Atelier Story", href: "/about" },
+  ],
   legal: ["Terms", "Privacy", "Accessibility"],
 };
 
@@ -56,8 +67,15 @@ export function FooterSection() {
             </p>
             <ul className="text-text-muted mt-3 space-y-2 text-sm">
               {footerLinks.shop.map((item) => (
-                <li key={item} className="hover:text-primary my-4 transition">
-                  {item}
+                <li
+                  key={item.label}
+                  className="hover:text-primary my-4 transition"
+                >
+                  {item.href ? (
+                    <Link href={item.href}>{item.label}</Link>
+                  ) : (
+                    item.label
+                  )}
                 </li>
               ))}
             </ul>
@@ -68,8 +86,15 @@ export function FooterSection() {
             </p>
             <ul className="text-text-muted mt-3 space-y-2 text-sm">
               {footerLinks.customerCare.map((item) => (
-                <li key={item} className="hover:text-primary my-4 transition">
-                  {item}
+                <li
+                  key={item.label}
+                  className="hover:text-primary my-4 transition"
+                >
+                  {item.href ? (
+                    <Link href={item.href}>{item.label}</Link>
+                  ) : (
+                    item.label
+                  )}
                 </li>
               ))}
             </ul>
@@ -101,11 +126,6 @@ export function FooterSection() {
         </div>
         <div className="text-text-muted mt-6 flex items-center justify-between border-t border-(--glass-border) pt-4 text-sm">
           <div>© 2024 Komorebi Gift Atelier. Crafted with heart in Tokyo.</div>
-          <div className="flex items-center gap-3">
-            <CreditCard size={20} className="text-text-muted" />
-            <CreditCard size={20} className="text-text-muted" />
-            <CreditCard size={20} className="text-text-muted" />
-          </div>
         </div>
       </div>
     </footer>

@@ -29,6 +29,7 @@ function ProductListingSkeleton() {
   );
 }
 
+// This component handles the display of the product listing, including error states and empty states.
 export default function ProductsListing({
   result,
   hasError,

@@ -2,6 +2,7 @@
 
 import { Search, Heart, ShoppingBag, User } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { AnimatePresence, motion } from "motion/react";
 import { usePathname } from "next/navigation";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -86,15 +87,23 @@ export function NavbarSection() {
         >
           <nav className="bg-surface-1 border-surface-3 border-b">
             <div className="mx-auto flex max-w-330 items-center justify-between gap-4 px-4 py-3 sm:px-5">
-              <div className="flex items-center">
-                <img src="/Shared/logo.png" alt="logo" className="h-8 w-8" />
-                <Link
-                  href="/"
-                  className="title-font text-primary-soft! text-lg font-semibold tracking-wide"
-                >
+              <Link
+                href="/"
+                aria-label="Komorebi Gift Atelier home"
+                className="flex items-center gap-2"
+              >
+                <Image
+                  src="/Shared/logo.png"
+                  alt=""
+                  width={40}
+                  height={40}
+                  priority
+                  className="h-10 w-10 object-contain"
+                />
+                <span className="title-font text-primary-soft! text-lg font-semibold tracking-wide">
                   Komorebi Gift Atelier
-                </Link>
-              </div>
+                </span>
+              </Link>
 
               <div className="hidden flex-1 items-center justify-center gap-6 lg:flex">
                 <ul className="flex items-center gap-6 text-sm">

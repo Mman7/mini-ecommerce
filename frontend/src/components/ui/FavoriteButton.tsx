@@ -105,7 +105,7 @@ export function FavoriteButton({
       data-product-id={productId}
       disabled={isPending}
       onClick={handleToggle}
-      className="bg-surface-2/80 text-on-surface hover:text-primary absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full backdrop-blur-md transition-colors hover:cursor-pointer"
+      className="hover:bg-surface-2/80 text-on-surface hover:text-primary absolute top-3 right-3 flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:cursor-pointer"
     >
       <Heart fill={isFavorite ? "currentColor" : "none"} />
     </button>

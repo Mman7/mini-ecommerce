@@ -53,6 +53,7 @@ export default function ProductsPage() {
   );
 }
 
+// This component handles the content for the products page, including the product listing and pagination.
 function ProductsPageContent() {
   const searchParams = useSearchParams();
   const params = new URLSearchParams(searchParams.toString());

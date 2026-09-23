@@ -30,21 +30,24 @@ const categories = [
 ];
 
 const principles = [
-  [
-    "01",
-    "Curated with intention",
-    "Every object has a lineage, an artisan's mark, and a reason to exist. We never stock mass factory surplus; we collaborate directly with multi-generational workshops in Kyoto, Kanazawa, and Asakusa.",
-  ],
-  [
-    "02",
-    "Made to be cherished",
-    "Created to outlive trends — timeless keepsakes designed to age gracefully alongside you. Materials like vegetable-tanned leather, heavy linen, and natural stoneware deepen in beauty over years.",
-  ],
-  [
-    "03",
-    "Given with joy",
-    "Honoring the ritual of Japanese gift-giving where the wrapping is as meaningful as what lies inside. The anticipation of untying a furoshiki knot is an essential part of the emotional journey.",
-  ],
+  {
+    no: "01",
+    title: "Curated with intention",
+    description:
+      "Every object has a lineage, an artisan's mark, and a reason to exist. We never stock mass factory surplus; we collaborate directly with multi-generational workshops in Kyoto, Kanazawa, and Asakusa.",
+  },
+  {
+    no: "02",
+    title: "Made to be cherished",
+    description:
+      "Created to outlive trends — timeless keepsakes designed to age gracefully alongside you. Materials like vegetable-tanned leather, heavy linen, and natural stoneware deepen in beauty over years.",
+  },
+  {
+    no: "03",
+    title: "Given with joy",
+    description:
+      "Honoring the ritual of Japanese gift-giving where the wrapping is as meaningful as what lies inside. The anticipation of untying a furoshiki knot is an essential part of the emotional journey.",
+  },
 ];
 
 const gallery = [
@@ -141,7 +144,10 @@ export function HeroSection() {
             </p>
           </TextInView>
           <TextInView delay={0.34}>
-            <Button href="/products" className="mt-7 rounded-sm">
+            <Button
+              href="/products"
+              className="bg-secondary text-primary-foreground! mt-7 rounded-sm"
+            >
               Explore the Collection <ArrowUpRight className="ml-2 size-4" />
             </Button>
           </TextInView>
@@ -327,19 +333,21 @@ export function PhilosophySection() {
         </TextInView>
       </div>
       <div className="grid gap-6 md:grid-cols-3">
-        {principles.map(([number, title, copy], index) => (
+        {principles.map(({ no, title, description }, index) => (
           <TextInView
-            key={number}
+            key={no}
             delay={index * 0.1}
-            className="bg-surface-2 min-h-104 rounded-sm border p-9 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-10"
+            className="bg-surface-2 min-h-104 rounded-sm p-9 shadow-[0_18px_50px_rgba(0,0,0,0.18)] sm:p-10"
           >
             <p className="display-font bg-surface-3 text-primary-soft inline-flex size-14 items-center justify-center rounded-sm border text-2xl">
-              {number}
+              {no}
             </p>
             <h3 className="heading-font mt-9 text-xl leading-tight font-medium uppercase">
               {title}
             </h3>
-            <p className="text-text-muted mt-5 text-sm leading-7">{copy}</p>
+            <p className="text-text-muted mt-5 text-sm leading-7">
+              {description}
+            </p>
           </TextInView>
         ))}
       </div>
@@ -493,21 +501,24 @@ export function GallerySection() {
 
 export function CommitmentSection() {
   const commitments = [
-    [
-      Handshake,
-      "Thoughtfully Curated",
-      "We form lasting, ethical relationships with generational studios across Japan, bringing you genuine pieces steeped in tradition and modern joy.",
-    ],
-    [
-      Gem,
-      "Quality First",
-      "From natural French-Japanese blended linen and archival fountain pen paper to lead-free heirloom ceramics, we choose permanence.",
-    ],
-    [
-      Gift,
-      "Beautifully Gifted",
-      "Every parcel leaves our atelier wrapped as artwork. Reusable cloth, botanical wax seals, and handwritten tags make the reveal part of the gift.",
-    ],
+    {
+      icon: Handshake,
+      title: "Thoughtfully Curated",
+      description:
+        "We form lasting, ethical relationships with generational studios across Japan, bringing you genuine pieces steeped in tradition and modern joy.",
+    },
+    {
+      icon: Gem,
+      title: "Quality First",
+      description:
+        "From natural French-Japanese blended linen and archival fountain pen paper to lead-free heirloom ceramics, we choose permanence.",
+    },
+    {
+      icon: Gift,
+      title: "Beautifully Gifted",
+      description:
+        "Every parcel leaves our atelier wrapped as artwork. Reusable cloth, botanical wax seals, and handwritten tags make the reveal part of the gift.",
+    },
   ] as const;
 
   return (
@@ -522,17 +533,19 @@ export function CommitmentSection() {
           </h2>
         </TextInView>
         <div className="mt-12 grid gap-5 sm:grid-cols-3 sm:gap-6">
-          {commitments.map(([Icon, title, copy], index) => (
+          {commitments.map(({ icon: Icon, title, description }, index) => (
             <TextInView
               key={title}
               delay={0.15 + index * 0.08}
-              className="bg-surface-2 min-h-76 rounded-sm border px-6 py-9 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:px-8 sm:py-10"
+              className="bg-surface-2 min-h-76 rounded-sm px-6 py-9 shadow-[0_16px_40px_rgba(0,0,0,0.16)] sm:px-8 sm:py-10"
             >
               <span className="bg-surface-3 inline-flex size-14 items-center justify-center rounded-full border">
                 <Icon className="text-primary-soft size-5" strokeWidth={1.6} />
               </span>
               <h3 className="heading-font mt-8 text-xl font-medium">{title}</h3>
-              <p className="text-text-muted mt-4 text-sm leading-6">{copy}</p>
+              <p className="text-text-muted mt-4 text-sm leading-6">
+                {description}
+              </p>
             </TextInView>
           ))}
         </div>
