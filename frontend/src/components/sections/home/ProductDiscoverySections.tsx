@@ -1,4 +1,5 @@
 import { ArrowRight, Heart } from "lucide-react";
+import Link from "next/link";
 import { productApi, type Product } from "@/src/api/product.api";
 import { FavoriteButton } from "@/src/components/ui/FavoriteButton";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
@@ -65,44 +66,45 @@ function ProductTile({
 }) {
   return (
     <article className={`group relative ${large ? "md:row-span-2" : ""}`}>
-      <div className="bg-surface-2 relative aspect-square overflow-hidden rounded-sm">
-        <ImageWithFallback
-          src={product.image}
-          fallbackSrc={DEFAULT_PRODUCT_IMAGE}
-          alt={product.name}
-          sizes={
-            large
-              ? "(min-width: 768px) 50vw, 100vw"
-              : "(min-width: 768px) 25vw, 50vw"
-          }
-          className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
-        />
-        <span className="meta-font text-primary-soft absolute top-3 left-3 bg-black/70 px-2 py-1 text-sm tracking-wide">
-          {product.label}
-        </span>
-        <FavoriteButton productId={product.id} productName={product.name} />
-      </div>
-      <div className="space-y-1 pt-4">
-        <div className="flex items-start justify-between gap-3">
-          <h3 className="heading-font truncate text-base font-medium">
-            {product.name}
-          </h3>
-          {!product.isFallback && (
-            <span className="meta-font text-primary-soft shrink-0 text-sm">
-              {product.price}
-            </span>
-          )}
+      <Link href={`/products/${product.slug}`}>
+        <div className="bg-surface-2 relative aspect-square overflow-hidden rounded-sm">
+          <ImageWithFallback
+            src={product.image}
+            fallbackSrc={DEFAULT_PRODUCT_IMAGE}
+            alt={product.name}
+            sizes={
+              large
+                ? "(min-width: 768px) 50vw, 100vw"
+                : "(min-width: 768px) 25vw, 50vw"
+            }
+            className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+          />
+          <span className="meta-font text-primary-soft absolute top-3 left-3 bg-black/70 px-2 py-1 text-sm tracking-wide">
+            {product.label}
+          </span>
         </div>
-        <p className="meta-font text-text-muted text-[11px] tracking-wide uppercase">
-          {product.category}
-        </p>
-      </div>
+        <div className="space-y-1 pt-4">
+          <div className="flex items-start justify-between gap-3">
+            <h3 className="heading-font truncate text-base font-medium">
+              {product.name}
+            </h3>
+            {!product.isFallback && (
+              <span className="meta-font text-primary-soft shrink-0 text-sm">
+                {product.price}
+              </span>
+            )}
+          </div>
+          <p className="meta-font text-text-muted text-[11px] tracking-wide uppercase">
+            {product.category}
+          </p>
+        </div>
+      </Link>
+      <FavoriteButton productId={product.id} productName={product.name} />
     </article>
   );
 }
 
 export async function KomorebiEditSection() {
-  // TODO get recommended products from API or context if needed
   const products = await loadProducts(
     () => productApi.recommended(4),
     fallbackProducts2,

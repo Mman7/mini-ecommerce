@@ -1,7 +1,7 @@
 "use client";
 
 import { Suspense, type ReactNode } from "react";
-import { useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { categoryApi } from "../../api/category.api";
 import ProductsAside from "../../components/sections/ProductsAside";
@@ -22,12 +22,15 @@ export default function ProductsLayoutContent({
 }
 
 function ProductsLayoutView({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const categoryId = Number(searchParams.get("categoryId"));
   const categoriesQuery = useQuery({
     queryKey: ["categories"],
     queryFn: categoryApi.list,
   });
+
+  if (pathname.startsWith("/products/")) return children;
 
   const categories = categoriesQuery.data ?? [];
   const selectedCategory = categories.find(

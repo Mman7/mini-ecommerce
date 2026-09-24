@@ -1,1 +1,2 @@
-export const DEFAULT_PRODUCT_IMAGE = "/Shared/default_product.png";
+export const DEFAULT_PRODUCT_IMAGE =
+  "/homepage/kappa-plush-toy-holding-cucumber.png";

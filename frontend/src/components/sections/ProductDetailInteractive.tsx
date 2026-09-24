@@ -15,6 +15,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { FavoriteButton } from "../ui/FavoriteButton";
+import { ImageWithFallback } from "../ui/ImageWithFallback";
 import ProductCard from "../ui/ProductCard";
 import { toast } from "@/components/ui/toast";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
@@ -123,9 +124,11 @@ export default function ProductDetailInteractive({
                   aria-pressed={index === activeImage}
                   className={`focus-amber h-18 w-18 shrink-0 overflow-hidden rounded-xl border transition-transform hover:scale-[1.03] ${index === activeImage ? "border-primary" : "border-(--outline-strong)"}`}
                 >
-                  <img
+                  <ImageWithFallback
                     src={imageUrl(image.url)}
+                    fallbackSrc={DEFAULT_PRODUCT_IMAGE}
                     alt={image.altText ?? product.name}
+                    sizes="72px"
                     className="h-full w-full object-cover"
                   />
                 </button>
@@ -133,13 +136,12 @@ export default function ProductDetailInteractive({
             </div>
             <div className="col-span-12 md:col-span-10">
               <div className="shelf-surface bg-surface-2 relative aspect-4/5 overflow-hidden rounded-[1.6rem] border border-(--outline-strong)">
-                <motion.img
+                <ImageWithFallback
                   key={currentImage.url}
-                  initial={{ opacity: 0.8, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
                   src={imageUrl(currentImage.url)}
+                  fallbackSrc={DEFAULT_PRODUCT_IMAGE}
                   alt={currentImage.altText ?? product.name}
+                  sizes="(min-width: 1024px) 58vw, 100vw"
                   className="h-full w-full object-cover"
                 />
                 <FavoriteButton

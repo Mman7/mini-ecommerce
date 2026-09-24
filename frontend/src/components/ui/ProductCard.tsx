@@ -8,8 +8,10 @@ import { cartApi } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
 import { Button } from "./Button";
 import { FavoriteButton } from "./FavoriteButton";
+import { ImageWithFallback } from "./ImageWithFallback";
 import { ShoppingCart } from "lucide-react";
 import { toast } from "@/components/ui/toast";
+import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
@@ -53,12 +55,11 @@ export default function ProductCard({ product }: { product: Product }) {
         href={`/products/${product.slug}`}
         className="bg-surface-container-high absolute inset-0 overflow-hidden"
       >
-        <img
-          src={
-            product.productImages[0]?.url ??
-            "/homepage/blue-and-gold-mythical-creature-plush-toy-wooden-shelf.png"
-          }
+        <ImageWithFallback
+          src={product.productImages[0]?.url ?? DEFAULT_PRODUCT_IMAGE}
+          fallbackSrc={DEFAULT_PRODUCT_IMAGE}
           alt={product.productImages[0]?.altText ?? product.name}
+          sizes="(min-width: 768px) 33vw, 100vw"
           className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-transparent" />
