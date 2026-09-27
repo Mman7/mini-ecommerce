@@ -13,6 +13,10 @@ import { useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { authApi } from "@/src/api/auth.api";
+import { userApi } from "@/src/api/user.api";
+import { useGlobalStore } from "@/src/store/global.store";
+import { useCartStore } from "@/src/store/cart.store";
+import { AuthStatus } from "@/src/types/user";
 
 type RegisterFormValues = {
   name: string;
@@ -25,6 +29,9 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const router = useRouter();
+  const setUser = useGlobalStore((state) => state.setUser);
+  const setAuthStatus = useGlobalStore((state) => state.setAuthStatus);
+  const refreshCart = useCartStore((state) => state.refreshCart);
   const {
     register: registerField,
     handleSubmit,
@@ -37,6 +44,10 @@ export default function RegisterForm() {
 
     try {
       await authApi.register(values.name, values.email, values.password);
+      const { user } = await userApi.me();
+      setUser(user);
+      setAuthStatus(AuthStatus.Authenticated);
+      void refreshCart();
       router.push("/");
     } catch (requestError) {
       setError(
