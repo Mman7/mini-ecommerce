@@ -8,7 +8,7 @@ export function DashboardPanel({
   className?: string;
 }) {
   return (
-    <section className={`bg-surface-2 rounded-lg ${className}`}>
+    <section className={`bg-surface-2 rounded-sm p-3 ${className}`}>
       {children}
     </section>
   );

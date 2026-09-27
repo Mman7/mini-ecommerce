@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import {
   ArrowLeft,
@@ -13,6 +12,7 @@ import {
 import { useEffect, useState } from "react";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import {
   Stepper,
   StepperIndicator,
@@ -161,10 +161,10 @@ export default function OrderDetailPage({
               >
                 {image ? (
                   <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md">
-                    <Image
+                    <ImageWithFallback
                       src={image}
+                      fallbackSrc={DEFAULT_PRODUCT_IMAGE}
                       alt={item.product.name}
-                      fill
                       sizes="80px"
                       className="object-cover"
                     />

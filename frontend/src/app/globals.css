@@ -17,7 +17,7 @@
   --surface-3: #2b292c;
   --surface-4: #363436;
 
-  --text-muted: #dac2b1;
+  --text-muted: #9ca3af;
   --outline: #a28d7d;
   --outline-strong: #544336;
 
@@ -392,12 +392,4 @@ html.lenis.lenis-smooth {
 
 html.lenis.lenis-smooth [data-lenis-prevent] {
   overscroll-behavior: contain;
-}
-
-html.lenis.lenis-stopped {
-  overflow: hidden;
-}
-
-html.lenis.lenis-scrolling iframe {
-  pointer-events: none;
 }

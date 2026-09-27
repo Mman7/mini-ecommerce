@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import type { Product } from "../../types/product";
 import { cartApi } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
@@ -17,6 +17,27 @@ export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const setCart = useCartStore((state) => state.setCart);
+
+  function navigateToProduct() {
+    router.push(`/products/${product.slug}`);
+  }
+
+  function handleCardClick(event: MouseEvent<HTMLElement>) {
+    if (event.target instanceof Element && event.target.closest("a, button")) {
+      return;
+    }
+
+    navigateToProduct();
+  }
+
+  function handleCardKeyDown(event: KeyboardEvent<HTMLElement>) {
+    if (event.target !== event.currentTarget) return;
+
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      navigateToProduct();
+    }
+  }
 
   async function addToCart() {
     if (isAdding || product.stock === 0) return;
@@ -50,17 +71,31 @@ export default function ProductCard({ product }: { product: Product }) {
   }
 
   return (
-    <article className="group hover:border-primary/30 bg-surface-2 relative aspect-square overflow-hidden rounded-md border border-white/6 shadow-[0_10px_28px_rgba(0,0,0,0.26)] transition-all duration-500">
+    <article
+      className="group hover:border-primary/30 bg-surface-2 relative aspect-square cursor-pointer overflow-hidden rounded-md border border-white/6 shadow-[0_10px_28px_rgba(0,0,0,0.26)] transition-all duration-500"
+      onClick={handleCardClick}
+      onKeyDown={handleCardKeyDown}
+      role="link"
+      tabIndex={0}
+    >
       <Link
         href={`/products/${product.slug}`}
         className="bg-surface-container-high absolute inset-0 overflow-hidden"
       >
         <ImageWithFallback
-          src={product.productImages[0]?.url ?? DEFAULT_PRODUCT_IMAGE}
+          src={
+            product.productImages.find((image) => image.isThumbnail)?.url ??
+            product.productImages[0]?.url ??
+            DEFAULT_PRODUCT_IMAGE
+          }
           fallbackSrc={DEFAULT_PRODUCT_IMAGE}
-          alt={product.productImages[0]?.altText ?? product.name}
+          alt={
+            product.productImages.find((image) => image.isThumbnail)?.altText ??
+            product.productImages[0]?.altText ??
+            product.name
+          }
           sizes="(min-width: 768px) 33vw, 100vw"
-          className="size-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+          className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
         />
         <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-transparent" />
         {product.stock === 0 && (

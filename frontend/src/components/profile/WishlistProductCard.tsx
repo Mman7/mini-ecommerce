@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "motion/react";
-import Image from "next/image";
 import Link from "next/link";
 import { Heart, ShoppingCart } from "lucide-react";
 import { useState } from "react";
 import type { Product } from "@/src/api/product.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 
 type WishlistProductCardProps = {
   product: Product;
@@ -55,10 +55,10 @@ export function WishlistProductCard({
       className={`group bg-surface-1 flex min-w-0 flex-col overflow-hidden rounded-2xl border border-white/8 shadow-[0_10px_28px_rgba(0,0,0,0.22)] transition-shadow hover:shadow-[0_14px_34px_rgba(233,139,44,0.14)] ${isOutOfStock ? "opacity-75" : ""}`}
     >
       <div className="bg-surface-3 relative aspect-square overflow-hidden">
-        <Image
+        <ImageWithFallback
           src={image}
+          fallbackSrc={DEFAULT_PRODUCT_IMAGE}
           alt={product.name}
-          fill
           sizes="(min-width: 1280px) 220px, (min-width: 768px) 30vw, 50vw"
           className={`object-cover transition duration-500 group-hover:scale-[1.03] ${isOutOfStock ? "grayscale" : ""}`}
         />

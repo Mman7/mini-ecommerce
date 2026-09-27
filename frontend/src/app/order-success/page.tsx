@@ -1,14 +1,15 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Package } from "lucide-react";
 import { orderApi, type Order } from "@/src/api/order.api";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
+const shippingCost = 500;
 
 function formatYen(value: string | number) {
   return `¥${Number(value).toLocaleString("ja-JP")}`;
@@ -67,6 +68,11 @@ export default function OrderSuccessPage() {
     );
   }
 
+  const itemSubtotal = order.orderItems.reduce(
+    (sum, item) => sum + Number(item.price) * item.quantity,
+    0,
+  );
+
   return (
     <main className="padding-inline min-h-dvh py-20">
       <div className="mx-auto max-w-3xl">
@@ -114,10 +120,10 @@ export default function OrderSuccessPage() {
                 return (
                   <div key={item.id} className="flex items-center gap-3">
                     <div className="bg-surface-3 relative size-14 shrink-0 overflow-hidden rounded-md">
-                      <Image
+                      <ImageWithFallback
                         src={image}
+                        fallbackSrc={fallbackImage}
                         alt={item.product.name}
-                        fill
                         sizes="56px"
                         className="object-cover"
                       />
@@ -140,8 +146,16 @@ export default function OrderSuccessPage() {
           </div>
           <div className="space-y-3 border-t border-(--outline-strong)/50 pt-5 text-sm">
             <div className="text-text-muted flex justify-between">
+              <span>Items subtotal</span>
+              <span>{formatYen(itemSubtotal)}</span>
+            </div>
+            <div className="text-text-muted flex justify-between">
+              <span>Shipping</span>
+              <span>{formatYen(shippingCost)}</span>
+            </div>
+            <div className="text-foreground flex justify-between border-t border-(--outline-strong)/50 pt-3 font-semibold">
               <span>Total</span>
-              <span className="text-primary-soft text-lg font-semibold">
+              <span className="text-primary-soft text-lg">
                 {formatYen(order.total)}
               </span>
             </div>

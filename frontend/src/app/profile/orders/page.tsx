@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 
 const getImage = (order: Order) =>
   order.orderItems[0]?.product.productImages.find((image) => image.isThumbnail)
@@ -71,10 +71,10 @@ export default function MyOrdersPage() {
               >
                 {image ? (
                   <div className="bg-surface-3 relative h-28 w-full shrink-0 overflow-hidden rounded-md sm:h-24 sm:w-32">
-                    <Image
+                    <ImageWithFallback
                       src={image}
+                      fallbackSrc={DEFAULT_PRODUCT_IMAGE}
                       alt={firstItem?.product.name || "Order item"}
-                      fill
                       sizes="(min-width: 640px) 128px, 100vw"
                       className="object-cover"
                     />

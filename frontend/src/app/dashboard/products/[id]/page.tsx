@@ -1,11 +1,11 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import { productApi, type Product } from "../../../../api/product.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import {
   DashboardHeading,
   DashboardPanel,
@@ -72,10 +72,10 @@ export default function ProductDetailPage() {
                     className="bg-surface-2 relative aspect-square overflow-hidden rounded"
                   >
                     {" "}
-                    <Image
+                    <ImageWithFallback
                       src={image.url}
+                      fallbackSrc={DEFAULT_PRODUCT_IMAGE}
                       alt={image.altText ?? product.name}
-                      fill
                       sizes="200px"
                       className="object-cover"
                     />

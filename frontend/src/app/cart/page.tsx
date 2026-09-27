@@ -9,6 +9,7 @@ import { useCartStore } from "@/src/store/cart.store";
 import { useGlobalStore } from "@/src/store/global.store";
 import { AuthStatus } from "@/src/types/user";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
 
@@ -65,11 +66,12 @@ function CartItemRow({
       className="border-surface-3 grid gap-4 border-b py-6 sm:grid-cols-[112px_minmax(0,1fr)_auto] sm:gap-5"
     >
       <div className="bg-surface-2 h-28 overflow-hidden rounded-xl border border-(--outline-strong) sm:h-28 sm:w-28">
-        <img
+        <ImageWithFallback
           src={imageUrl(
             item.product.productImages.find((image) => image.isThumbnail)
               ?.url ?? item.product.productImages[0]?.url,
           )}
+          fallbackSrc={fallbackImage}
           alt={item.product.productImages[0]?.altText ?? item.product.name}
           className="h-full w-full object-cover"
         />

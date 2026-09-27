@@ -346,7 +346,25 @@ The upload document contains module notes, but an upload router is not mounted i
 - **Cart:** authenticated users can add, update, remove, and clear cart items through `/api/carts`.
 - **Checkout/order creation:** `POST /api/orders` accepts order items and creates an order for the authenticated user.
 - **Inventory deduction:** the order service validates stock and deducts inventory as part of the order transaction. Cancellation restores inventory for eligible orders.
-- **Payment processing:** there is no Stripe, PayPal, or other payment-provider integration. The frontend `/payment` route is a UI/demo stepper; it does not process real payments or connect the form to a payment gateway.
+- **Payment processing:** the frontend `/payment` route uses Stripe PaymentElement and PaymentIntent confirmation. The backend creates PaymentIntents at `/api/payments/intent`, verifies Stripe webhooks at `/api/webhooks/stripe`, and creates the paid order only after `payment_intent.succeeded`.
+
+### Local Stripe test
+
+Set these variables in the backend environment:
+
+```env
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_CURRENCY=jpy
+```
+
+The frontend publishable key is `NEXT_PUBLIC_STRIPE_PUBLIC_KEY`. Apply the new Prisma migration before testing. With the Stripe CLI installed and logged in, run:
+
+```bash
+stripe listen --forward-to localhost:5000/api/webhooks/stripe
+```
+
+Copy the CLI's `whsec_...` value to `STRIPE_WEBHOOK_SECRET`, restart the backend, then use Stripe test card `4242 4242 4242 4242` with any future expiry and CVC.
 
 ## Known Limitations
 

@@ -8,6 +8,7 @@ import inventoryRoutes from "./modules/inventory/inventory.route.ts";
 import orderRoutes from "./modules/order/order.route.ts";
 import adminRoute from "./modules/admin/admin.route.ts";
 import favouriteRoutes from "./modules/favourite/favourite.routes.ts";
+import paymentRoutes from "./modules/payment/payment.route.ts";
 
 // Main router to aggregate all sub-routers
 const mainRouter = Router();
@@ -23,5 +24,6 @@ mainRouter.use("/inventory", inventoryRoutes);
 mainRouter.use("/orders", orderRoutes);
 mainRouter.use("/admin", adminRoute);
 mainRouter.use("/favourites", favouriteRoutes);
+mainRouter.use("/payments", paymentRoutes);
 
 export default mainRouter;

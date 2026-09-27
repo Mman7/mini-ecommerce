@@ -87,7 +87,6 @@ export const getCustomersForAdmin = async ({
 }: AdminCustomerQuery) => {
   const users = await prisma.user.findMany({
     where: {
-      role: "USER",
       ...(search
         ? {
             OR: [
@@ -152,7 +151,7 @@ export const getCustomerStatsForAdmin = async () => {
   const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
   const [users, newThisMonth, newPreviousMonth] = await Promise.all([
     prisma.user.findMany({
-      where: { role: "USER" },
+      where: {},
       select: {
         isActive: true,
         createdAt: true,
@@ -163,11 +162,10 @@ export const getCustomerStatsForAdmin = async () => {
       },
     }),
     prisma.user.count({
-      where: { role: "USER", createdAt: { gte: monthStart } },
+      where: { createdAt: { gte: monthStart } },
     }),
     prisma.user.count({
       where: {
-        role: "USER",
         createdAt: { gte: previousMonthStart, lt: monthStart },
       },
     }),
@@ -202,7 +200,7 @@ export const getCustomerStatsForAdmin = async () => {
 
 export const getCustomerForAdmin = async (userId: string) => {
   const user = await prisma.user.findFirst({
-    where: { userId, role: "USER" },
+    where: { userId },
     select: {
       userId: true,
       name: true,

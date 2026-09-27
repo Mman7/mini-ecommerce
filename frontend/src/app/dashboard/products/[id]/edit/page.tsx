@@ -10,7 +10,6 @@ import {
   Upload,
   X,
 } from "lucide-react";
-import Image from "next/image";
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useEffect } from "react";
@@ -25,6 +24,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import {
   Select,
   SelectContent,
@@ -727,10 +727,10 @@ function ImageTile({
     <div
       className={`group bg-surface-2 relative aspect-square overflow-hidden rounded-md ${image.primary ? "border-primary border-2" : "border border-(--glass-border)"}`}
     >
-      <Image
+      <ImageWithFallback
         src={image.src}
+        fallbackSrc={DEFAULT_PRODUCT_IMAGE}
         alt="Product media"
-        fill
         className="object-cover"
         unoptimized
       />

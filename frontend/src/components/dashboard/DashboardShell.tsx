@@ -2,7 +2,7 @@
 
 import { ArrowUpRight, Bell, LogOut, Menu, Store, X } from "lucide-react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { authApi } from "@/src/api/auth.api";
 import { useCartStore } from "@/src/store/cart.store";
@@ -39,6 +39,7 @@ export function DashboardShell({
   children,
 }: DashboardShellProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
   const user = useGlobalStore((state) => state.user);
   const logout = useGlobalStore((state) => state.logout);
@@ -111,6 +112,11 @@ export function DashboardShell({
                 <DashboardBrand compact />
               </div>
 
+              <DashboardBreadcrumb
+                activeSection={activeSection}
+                pathname={pathname}
+              />
+
               <div className="ml-auto flex items-center gap-2">
                 <Link
                   href="/"
@@ -136,6 +142,66 @@ export function DashboardShell({
         </div>
       </div>
     </div>
+  );
+}
+
+function DashboardBreadcrumb({
+  activeSection,
+  pathname,
+}: {
+  activeSection: DashboardSection;
+  pathname: string;
+}) {
+  const sectionLabels: Record<DashboardSection, string> = {
+    overview: "Dashboard",
+    products: "Products",
+    categories: "Categories",
+    orders: "Orders",
+    customers: "Customers",
+    analytics: "Analytics",
+    settings: "Settings",
+  };
+  const sectionLabel = sectionLabels[activeSection];
+  const isDetailPage = pathname.split("/").filter(Boolean).length > 2;
+
+  return (
+    <nav aria-label="Breadcrumb" className="hidden min-w-0 sm:block">
+      <ol className="meta-font text-text-muted flex min-w-0 items-center gap-2 truncate text-[10px] tracking-wider uppercase">
+        <li>
+          <Link
+            href="/dashboard"
+            className="hover:text-primary transition-colors"
+          >
+            Dashboard
+          </Link>
+        </li>
+        <li aria-hidden="true" className="text-(--glass-border)">
+          /
+        </li>
+        {isDetailPage ? (
+          <>
+            <li>
+              <Link
+                href={`/dashboard/${activeSection}`}
+                className="hover:text-primary transition-colors"
+              >
+                {sectionLabel}
+              </Link>
+            </li>
+            <li aria-hidden="true" className="text-(--glass-border)">
+              /
+            </li>
+            <li aria-current="page" className="text-foreground">
+              Details
+            </li>
+          </>
+        ) : (
+          <li aria-current="page" className="text-foreground">
+            {sectionLabel}
+          </li>
+        )}
+      </ol>
+    </nav>
   );
 }
 

@@ -1,10 +1,15 @@
 "use client";
 
 import Lenis from "lenis";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 
 export function SmoothScroll() {
+  const pathname = usePathname();
+
   useEffect(() => {
+    if (pathname === "/payment") return;
+
     const isMobile =
       /Android|iPhone|iPad|iPod|webOS|BlackBerry|IEMobile|Opera Mini/i.test(
         navigator.userAgent,
@@ -31,6 +36,8 @@ export function SmoothScroll() {
     const WHEEL_POWER = 0.06;
     const FRICTION = 0.96;
     const MAX_VELOCITY = 100;
+    let isActive = true;
+    let animationFrame = 0;
 
     const onWheel = (event: WheelEvent) => {
       if (isScrollbarDragging) return;
@@ -60,9 +67,11 @@ export function SmoothScroll() {
     };
 
     const update = () => {
+      if (!isActive) return;
+
       if (isScrollbarDragging) {
         target = window.scrollY;
-        requestAnimationFrame(update);
+        animationFrame = requestAnimationFrame(update);
         return;
       }
 
@@ -84,7 +93,7 @@ export function SmoothScroll() {
         duration: 0.8,
       });
 
-      requestAnimationFrame(update);
+      animationFrame = requestAnimationFrame(update);
     };
 
     window.addEventListener("wheel", onWheel, {
@@ -93,16 +102,20 @@ export function SmoothScroll() {
     window.addEventListener("mousedown", onMouseDown);
     window.addEventListener("mouseup", onMouseUp);
 
-    const raf = requestAnimationFrame(update);
+    window.scrollTo({ top: 0, behavior: "auto" });
+    target = 0;
+    lenis.scrollTo(0, { immediate: true });
+    animationFrame = requestAnimationFrame(update);
 
     return () => {
+      isActive = false;
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("mousedown", onMouseDown);
       window.removeEventListener("mouseup", onMouseUp);
-      cancelAnimationFrame(raf);
+      cancelAnimationFrame(animationFrame);
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return null;
 }

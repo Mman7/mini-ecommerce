@@ -14,6 +14,7 @@ export type AdminOrderQuery = {
 };
 
 const serializeDate = (value: Date) => value.toISOString();
+const shippingCost = 500;
 
 const orderTransitions: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
@@ -22,6 +23,7 @@ const orderTransitions: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
   [OrderStatus.DELIVERED]: [],
   [OrderStatus.CANCELLED]: [],
+  [OrderStatus.REFUNDED]: [],
 };
 
 const parseOrderStatus = (status: string): OrderStatus | null =>
@@ -66,6 +68,7 @@ export const createOrder = async (
   userId: string,
   items: OrderItemInput[],
   addressId: number,
+  stripePaymentIntentId?: string,
 ) => {
   if (!Number.isInteger(addressId) || addressId < 1) {
     throw new Error("A valid delivery address is required");
@@ -81,6 +84,13 @@ export const createOrder = async (
     )
   ) {
     throw new Error("Each order item must have a valid product and quantity");
+  }
+
+  if (stripePaymentIntentId) {
+    const existingOrder = await prisma.order.findUnique({
+      where: { stripePaymentIntentId },
+    });
+    if (existingOrder) return existingOrder;
   }
 
   return prisma.$transaction(async (transaction) => {
@@ -129,10 +139,11 @@ export const createOrder = async (
       productsWithPrices.push({ ...item, price: product.price });
     }
 
-    const total = productsWithPrices.reduce(
+    const subtotal = productsWithPrices.reduce(
       (sum, item) => sum + Number(item.price) * item.quantity,
       0,
     );
+    const total = subtotal + shippingCost;
     await transaction.cartItem.deleteMany({
       where: { cart: { userId } },
     });
@@ -141,6 +152,7 @@ export const createOrder = async (
         userId,
         total,
         status: OrderStatus.PAID,
+        ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
         deliveryAddressLine1: address.addressLine,
         deliveryCity: address.city,
         deliveryState: address.state,
@@ -157,6 +169,23 @@ export const createOrder = async (
     });
   });
 };
+
+export const createOrderFromPaymentIntent = async ({
+  paymentIntentId,
+  userId,
+  addressId,
+  items,
+}: {
+  paymentIntentId: string;
+  userId: string;
+  addressId: number;
+  items: OrderItemInput[];
+}) => createOrder(userId, items, addressId, paymentIntentId);
+
+export const getOrderByPaymentIntentId = async (paymentIntentId: string) =>
+  prisma.order.findUnique({
+    where: { stripePaymentIntentId: paymentIntentId },
+  });
 
 export const getOrderById = async (orderId: string) => {
   const order = await prisma.order.findUnique({

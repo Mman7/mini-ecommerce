@@ -4,6 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { Elements } from "@stripe/react-stripe-js";
+import { loadStripe } from "@stripe/stripe-js";
 import {
   ArrowLeft,
   ArrowRight,
@@ -15,7 +17,7 @@ import {
   Truck,
 } from "lucide-react";
 import { cartApi, type Cart, type CartItem } from "@/src/api/cart.api";
-import { orderApi } from "@/src/api/order.api";
+import { paymentApi } from "@/src/api/payment.api";
 import { userApi, type SavedAddress, type User } from "@/src/api/user.api";
 import {
   PaymentStep,
@@ -23,6 +25,7 @@ import {
 } from "@/src/components/payment/PaymentStep";
 import { PaymentLoadState } from "@/src/types/payment-load-state.enum";
 import { useCartStore } from "@/src/store/cart.store";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import {
   Stepper,
   StepperContent,
@@ -39,6 +42,9 @@ import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 const checkoutSteps = ["Shipping", "Payment", "Review"];
 const shippingCost = 500;
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "",
+);
 type PaymentMethod = "google" | "apple" | "card";
 type CardFields = { name: string; number: string; expiry: string; cvc: string };
 
@@ -83,6 +89,8 @@ export default function PaymentPage() {
     "idle",
   );
   const [actionError, setActionError] = useState("");
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -147,18 +155,25 @@ export default function PaymentPage() {
     }
     setActionError("");
     setAction("processing");
-    await new Promise((resolve) => setTimeout(resolve, 450));
-    setAction("idle");
-    completeStep(1);
+    try {
+      const payment = await paymentApi.createIntent(address.id);
+      setClientSecret(payment.clientSecret);
+      setPaymentIntentId(payment.paymentIntentId);
+      completeStep(1);
+    } catch (error) {
+      setActionError(
+        error instanceof Error ? error.message : "Unable to prepare payment.",
+      );
+    } finally {
+      setAction("idle");
+    }
   }
   function continuePayment() {
     paymentFormRef.current?.submit();
   }
-  async function submitPayment() {
+  function submitPayment(confirmedPaymentIntentId: string) {
+    setPaymentIntentId(confirmedPaymentIntentId);
     setActionError("");
-    setAction("processing");
-    await new Promise((resolve) => setTimeout(resolve, 450));
-    setAction("idle");
     completeStep(2);
   }
   async function placeOrder() {
@@ -166,15 +181,24 @@ export default function PaymentPage() {
     setActionError("");
     setAction("processing");
     try {
-      const response = await orderApi.create(
-        items.map(({ productId, quantity }) => ({ productId, quantity })),
-        address.id,
-      );
-      clearCart();
-      setAction("success");
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      router.push(
-        `/order-success?orderId=${encodeURIComponent(response.order.id)}`,
+      if (!paymentIntentId) throw new Error("Payment session is missing.");
+      for (let attempt = 0; attempt < 15; attempt += 1) {
+        const payment = await paymentApi.status(paymentIntentId);
+        if (payment.order) {
+          clearCart();
+          setAction("success");
+          router.push(
+            `/order-success?orderId=${encodeURIComponent(payment.order.id)}`,
+          );
+          return;
+        }
+        if (["requires_payment_method", "canceled"].includes(payment.status)) {
+          throw new Error("Payment was not completed.");
+        }
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+      throw new Error(
+        "Payment is still processing. Please check your orders shortly.",
       );
     } catch (error) {
       setActionError(
@@ -282,8 +306,8 @@ export default function PaymentPage() {
               <StepperPanel
                 className={
                   direction === "forward"
-                    ? "animate-step-forward text-sm"
-                    : "animate-step-backward text-sm"
+                    ? "animate-step-forward min-h-0 overflow-visible text-sm"
+                    : "animate-step-backward min-h-0 overflow-visible text-sm"
                 }
               >
                 <StepperContent value={1} className="space-y-6">
@@ -295,16 +319,18 @@ export default function PaymentPage() {
                   />
                 </StepperContent>
                 <StepperContent value={2} className="space-y-6">
-                  <PaymentStep
-                    ref={paymentFormRef}
-                    paymentMethod={paymentMethod}
-                    card={card}
-                    billingSame={billingSame}
-                    onPaymentMethodChange={setPaymentMethod}
-                    onCardChange={setCard}
-                    onBillingSameChange={setBillingSame}
-                    onValid={submitPayment}
-                  />
+                  {clientSecret && (
+                    <Elements
+                      stripe={stripePromise}
+                      options={{ clientSecret, appearance: { theme: "night" } }}
+                    >
+                      <PaymentStep
+                        ref={paymentFormRef}
+                        onError={setActionError}
+                        onValid={submitPayment}
+                      />
+                    </Elements>
+                  )}
                 </StepperContent>
                 <StepperContent value={3} className="space-y-6">
                   <ReviewStep
@@ -541,10 +567,10 @@ function ReviewStep({
             className="bg-surface-1 animate-review-item flex items-center gap-4 rounded-xl border border-(--outline-strong)/70 p-4"
           >
             <div className="bg-surface-3 relative size-16 shrink-0 overflow-hidden rounded-lg">
-              <Image
+              <ImageWithFallback
                 src={itemImage(item)}
+                fallbackSrc={fallbackImage}
                 alt={item.product.name}
-                fill
                 sizes="64px"
                 className="object-cover"
               />
@@ -624,10 +650,10 @@ function OrderSummary({
                 key={item.id}
                 className="bg-surface-3 relative size-10 overflow-hidden rounded-md border-2 border-(--surface-1)"
               >
-                <Image
+                <ImageWithFallback
                   src={itemImage(item)}
+                  fallbackSrc={fallbackImage}
                   alt=""
-                  fill
                   sizes="40px"
                   className="object-cover"
                 />

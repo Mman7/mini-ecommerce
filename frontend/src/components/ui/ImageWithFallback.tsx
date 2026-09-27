@@ -1,7 +1,7 @@
 "use client";
 
 import Image, { type ImageProps } from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface ImageWithFallbackProps extends Omit<ImageProps, "src"> {
   src: string;
@@ -20,8 +20,11 @@ export function ImageWithFallback({
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const [hasError, setHasError] = useState(!src);
   const [imageSrc, setImageSrc] = useState(src);
+  const previousSrc = useRef(src);
 
   useEffect(() => {
+    if (previousSrc.current === src) return;
+    previousSrc.current = src;
     setImageSrc(src);
     setHasError(!src);
     setIsLoading(Boolean(src));

@@ -10,6 +10,18 @@ const nextConfig: NextConfig = {
         hostname: "placehold.co",
         pathname: "/**",
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
+      {
+        protocol: "http",
+        hostname: "backend",
+        port: "5000",
+        pathname: "/uploads/**",
+      },
     ],
   },
   async rewrites() {

@@ -115,21 +115,22 @@ model OrderItem {
 }
 
 model Order {
-  id                   String      @id @unique @default(uuid())
-  userId               String
-  total                Decimal     @db.Decimal(10, 2)
-  status               OrderStatus @default(PENDING)
-  createdAt            DateTime    @default(now())
-  updatedAt            DateTime    @updatedAt
-  deliveryAddressLine1 String
-  deliveryAddressLine2 String?
-  deliveryCity         String
-  deliveryCountry      String
-  deliveryName         String?
-  deliveryPostcode     String
-  deliveryState        String?
-  user                 User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
-  orderItems           OrderItem[]
+  id                    String      @id @unique @default(uuid())
+  userId                String
+  total                 Decimal     @db.Decimal(10, 2)
+  status                OrderStatus @default(PENDING)
+  stripePaymentIntentId String?     @unique
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+  deliveryAddressLine1  String
+  deliveryAddressLine2  String?
+  deliveryCity          String
+  deliveryCountry       String
+  deliveryName          String?
+  deliveryPostcode      String
+  deliveryState         String?
+  user                  User        @relation(fields: [userId], references: [userId], onDelete: Cascade)
+  orderItems            OrderItem[]
 }
 
 model Category {
