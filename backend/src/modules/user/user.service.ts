@@ -208,6 +208,7 @@ export const getCustomerForAdmin = async (userId: string) => {
       phoneNumber: true,
       isActive: true,
       createdAt: true,
+      role: true,
       orders: {
         where: { status: { in: customerOrderStatuses } },
         orderBy: { createdAt: "desc" },
@@ -221,6 +222,8 @@ export const getCustomerForAdmin = async (userId: string) => {
       },
     },
   });
+
+  console.log(user?.role);
   if (!user) return null;
   const customer = serializeCustomer(user);
   return {

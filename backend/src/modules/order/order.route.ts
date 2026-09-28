@@ -19,10 +19,10 @@ orderRouter.get(
   orderController.getOrderById,
 );
 orderRouter.post(
-  "/:orderId/cancel",
+  "/:orderId/cancellation-request",
   authMiddleware,
   validateOrderId,
-  orderController.cancelOrder,
+  orderController.requestOrderCancellation,
 );
 
 export default orderRouter;

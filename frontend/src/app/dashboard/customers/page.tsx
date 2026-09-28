@@ -29,11 +29,8 @@ import {
   DataTable,
   TableAction,
 } from "../../../components/dashboard";
+import { yenCurrency as money } from "@/src/lib/currency";
 
-const money = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
 const sortValues = [
   "newest",
   "oldest",

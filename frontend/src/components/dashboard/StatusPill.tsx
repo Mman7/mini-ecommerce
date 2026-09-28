@@ -33,6 +33,7 @@ function getStatusStyle(status: DashboardStatus | string) {
 
   if (
     normalized.includes(DashboardStatus.Cancelled) ||
+    normalized.includes(DashboardStatus.Refunded) ||
     normalized.includes(DashboardStatus.Out)
   ) {
     return STATUS_STYLES.danger;

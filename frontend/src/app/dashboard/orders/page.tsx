@@ -5,6 +5,7 @@ import {
   Clock3,
   PackageCheck,
   CircleDollarSign,
+  RotateCcw,
   ShoppingCart,
   XCircle,
 } from "lucide-react";
@@ -25,7 +26,7 @@ export default function OrdersPage() {
         title="Orders"
         description="Track and manage customer orders from payment verification to final delivery."
       />
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
         <StatCard
           label="All Orders"
           value={String(all)}
@@ -62,9 +63,16 @@ export default function OrdersPage() {
         <StatCard
           label="Cancelled"
           value={String(counts.CANCELLED ?? 0)}
-          detail="Refunded or void"
+          detail="Cancelled orders"
           accent="pink"
           icon={<XCircle />}
+        />
+        <StatCard
+          label="Refunded"
+          value={String(counts.REFUNDED ?? 0)}
+          detail="Fully refunded"
+          accent="pink"
+          icon={<RotateCcw />}
         />
       </div>
       <AdminOrderList onStatisticsChange={setCounts} />

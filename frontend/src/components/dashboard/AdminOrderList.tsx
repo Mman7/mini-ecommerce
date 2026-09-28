@@ -15,11 +15,7 @@ import {
   StatusPill,
   TableAction,
 } from "./index";
-
-const money = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
+import { yenCurrency } from "@/src/lib/currency";
 
 export function AdminOrderList({
   onStatisticsChange,
@@ -121,14 +117,23 @@ export function AdminOrderList({
       header: "Amount",
       cell: ({ row }) => (
         <span className="text-text-muted text-xs">
-          {money.format(row.original.total)}
+          {yenCurrency.format(row.original.total)}
         </span>
       ),
     },
     {
       accessorKey: "status",
       header: "Status",
-      cell: ({ row }) => <StatusPill status={row.original.status} />,
+      cell: ({ row }) => (
+        <div className="flex flex-col items-start gap-1">
+          <StatusPill status={row.original.status} />
+          {row.original.cancellationRequestedAt ? (
+            <span className="text-[10px] font-semibold text-amber-300">
+              Cancellation requested
+            </span>
+          ) : null}
+        </div>
+      ),
     },
     {
       id: "actions",
@@ -189,6 +194,7 @@ export function AdminOrderList({
               <option value="SHIPPED">Shipped</option>
               <option value="DELIVERED">Delivered</option>
               <option value="CANCELLED">Cancelled</option>
+              <option value="REFUNDED">Refunded</option>
             </select>
             <button
               type="button"

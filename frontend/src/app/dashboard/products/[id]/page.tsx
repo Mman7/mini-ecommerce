@@ -12,11 +12,7 @@ import {
   PanelHeading,
   StatusPill,
 } from "../../../../components/dashboard";
-
-const money = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
+import { yenCurrency as money } from "@/src/lib/currency";
 
 export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();

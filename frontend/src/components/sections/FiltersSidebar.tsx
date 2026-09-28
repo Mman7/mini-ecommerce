@@ -13,6 +13,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Toggle } from "@/components/ui/toggle";
+import { formatYen } from "@/src/lib/currency";
 
 const PRICE_MAX = 5000;
 const PRICE_STEP = 100;
@@ -157,8 +158,8 @@ export default function FiltersSidebar({
               className="py-2"
             />
             <div className="text-text-muted flex justify-between text-xs">
-              <span>RM {priceRange[0].toLocaleString()}</span>
-              <span>RM {priceRange[1].toLocaleString()}</span>
+              <span>{formatYen(priceRange[0])}</span>
+              <span>{formatYen(priceRange[1])}</span>
             </div>
           </FieldGroup>
         </FieldSet>

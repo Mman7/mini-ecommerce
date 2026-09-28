@@ -42,7 +42,7 @@ export function RevenueTrendPanel({
           className={`meta-font rounded-md border px-3 py-1.5 text-xs ${!showOrders ? "border-primary/40 bg-primary/10 text-primary-soft" : "text-text-muted border-(--glass-border)"}`}
         >
           <span className="bg-primary mr-2 inline-block h-2 w-2 rounded-full" />
-          Revenue (RM)
+          Revenue (¥)
         </button>
         <button
           type="button"

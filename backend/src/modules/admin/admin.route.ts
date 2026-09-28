@@ -96,6 +96,15 @@ adminRoute.patch(
   adminController.updateAdminOrderStatus,
 );
 adminRoute.patch("/orders/:orderId/cancel", adminController.cancelAdminOrder);
+adminRoute.post(
+  "/orders/:orderId/cancellation-request/approve",
+  adminController.approveCancellationRequest,
+);
+adminRoute.post(
+  "/orders/:orderId/cancellation-request/reject",
+  adminController.rejectCancellationRequest,
+);
+adminRoute.post("/orders/:orderId/refund", adminController.refundAdminOrder);
 adminRoute.get("/users", adminController.getAllUsers);
 adminRoute.get(
   "/customers",

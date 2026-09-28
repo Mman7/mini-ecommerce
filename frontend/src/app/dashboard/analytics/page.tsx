@@ -21,11 +21,7 @@ import {
 } from "@/src/components/dashboard/analytics/catalog-panels";
 import { ProductPerformanceMatrix } from "@/src/components/dashboard/analytics/product-performance-matrix";
 import { InventoryAttentionPanel } from "@/src/components/dashboard/analytics/inventory-attention-panel";
-
-const currency = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
+import { yenCurrency as currency } from "@/src/lib/currency";
 
 function dateRange(value: AnalyticsRange) {
   const selected = analyticsRanges.find((range) => range.value === value)!;

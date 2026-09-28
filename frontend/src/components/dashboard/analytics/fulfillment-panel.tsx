@@ -16,6 +16,7 @@ export const fulfillmentChartConfig = {
   PENDING: { label: "Pending", color: "var(--chart-4)" },
   PAID: { label: "Paid", color: "var(--chart-5)" },
   CANCELLED: { label: "Cancelled", color: "var(--foreground)" },
+  REFUNDED: { label: "Refunded", color: "var(--destructive)" },
 } satisfies ChartConfig;
 
 export function FulfillmentPanel({

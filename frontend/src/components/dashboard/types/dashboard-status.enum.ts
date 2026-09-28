@@ -7,6 +7,7 @@ export enum DashboardStatus {
   Processing = "processing",
   Vip = "vip",
   Cancelled = "cancel",
+  Refunded = "refunded",
   Out = "out",
   Shipped = "shipped",
   Regular = "regular",

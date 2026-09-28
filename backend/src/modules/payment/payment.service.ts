@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import { prisma } from "../../utils/prisma.ts";
+import { OrderStatus } from "../../enums/order_status.ts";
 import * as orderService from "../order/order.service.ts";
 import type { OrderItemInput } from "../../types/order.js";
 
@@ -80,6 +81,90 @@ export const fulfillPaymentIntent = async (
     addressId: Number(addressId),
     items: JSON.parse(items) as OrderItemInput[],
   });
+};
+
+export const markRefundCompleted = async (refund: Stripe.Refund) => {
+  if (refund.status !== "succeeded") return null;
+
+  const paymentIntentId =
+    typeof refund.payment_intent === "string"
+      ? refund.payment_intent
+      : refund.payment_intent?.id;
+  if (!paymentIntentId) return null;
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId, {
+    expand: ["latest_charge"],
+  });
+  const charge =
+    typeof paymentIntent.latest_charge === "string"
+      ? await stripe.charges.retrieve(paymentIntent.latest_charge)
+      : paymentIntent.latest_charge;
+  if (!charge || charge.amount_refunded < charge.amount) return null;
+
+  return orderService.markOrderRefundedByPaymentIntent(paymentIntentId);
+};
+
+export const refundOrder = async (orderId: string) => {
+  requireStripeKey();
+
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, status: true, stripePaymentIntentId: true },
+  });
+  if (!order) throw new Error("Order not found");
+  if (order.status === OrderStatus.REFUNDED) {
+    return {
+      status: "succeeded" as const,
+      refundId: null,
+      alreadyRefunded: true,
+    };
+  }
+  if (order.status === OrderStatus.PENDING) {
+    throw new Error("A pending order cannot be refunded");
+  }
+  if (!order.stripePaymentIntentId) {
+    throw new Error("This order has no Stripe payment to refund");
+  }
+
+  const paymentIntent = await stripe.paymentIntents.retrieve(
+    order.stripePaymentIntentId,
+    { expand: ["latest_charge"] },
+  );
+  const charge =
+    typeof paymentIntent.latest_charge === "string"
+      ? await stripe.charges.retrieve(paymentIntent.latest_charge)
+      : paymentIntent.latest_charge;
+  if (!charge) throw new Error("No captured Stripe charge was found");
+
+  const remainingAmount = charge.amount - charge.amount_refunded;
+  if (remainingAmount <= 0) {
+    await orderService.markOrderRefundedByPaymentIntent(
+      order.stripePaymentIntentId,
+    );
+    return {
+      status: "succeeded" as const,
+      refundId: null,
+      alreadyRefunded: true,
+    };
+  }
+
+  const refund = await stripe.refunds.create(
+    {
+      payment_intent: order.stripePaymentIntentId,
+      amount: remainingAmount,
+    },
+    { idempotencyKey: `order-full-refund-${order.id}` },
+  );
+
+  if (refund.status === "succeeded") {
+    await orderService.markOrderRefundedByPaymentIntent(
+      order.stripePaymentIntentId,
+    );
+  } else if (refund.status === "failed" || refund.status === "canceled") {
+    throw new Error(`Stripe refund ${refund.status}`);
+  }
+
+  return { status: refund.status, refundId: refund.id, alreadyRefunded: false };
 };
 
 export const getPaymentStatus = async (

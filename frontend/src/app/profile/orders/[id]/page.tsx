@@ -13,6 +13,7 @@ import { useEffect, useState } from "react";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import {
   Stepper,
   StepperIndicator,
@@ -22,6 +23,7 @@ import {
   StepperTitle,
   StepperTrigger,
 } from "@/src/components/reui/stepper";
+import { formatYen } from "@/src/lib/currency";
 
 export default function OrderDetailPage({
   params,
@@ -30,6 +32,8 @@ export default function OrderDetailPage({
 }) {
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const [requestingCancellation, setRequestingCancellation] = useState(false);
+  const [cancellationDialogOpen, setCancellationDialogOpen] = useState(false);
 
   useEffect(() => {
     params
@@ -44,16 +48,23 @@ export default function OrderDetailPage({
       );
   }, [params]);
 
-  const handleCancel = async () => {
+  const handleCancellationRequest = async () => {
     if (!order) return;
+    setRequestingCancellation(true);
     try {
-      setOrder((await orderApi.cancel(order.id)).order);
+      const result = await orderApi.requestCancellation(order.id);
+      setOrder({
+        ...order,
+        cancellationRequestedAt: result.order.cancellationRequestedAt,
+      });
     } catch (requestError) {
       setError(
         requestError instanceof Error
           ? requestError.message
           : "Unable to cancel this order.",
       );
+    } finally {
+      setRequestingCancellation(false);
     }
   };
   const steps = ["PENDING", "PAID", "PROCESSING", "SHIPPED", "DELIVERED"];
@@ -97,10 +108,12 @@ export default function OrderDetailPage({
       </header>
       <section className="bg-surface-1 rounded-lg border border-(--glass-border) p-5 sm:p-7">
         <h2 className="heading-font mb-8 text-xl font-medium">Order Status</h2>
-        {order.status === "CANCELLED" ? (
+        {order.status === "CANCELLED" || order.status === "REFUNDED" ? (
           <div className="text-error flex items-center gap-3 text-sm font-semibold">
             <RotateCcw size={18} />
-            This order was cancelled.
+            {order.status === "REFUNDED"
+              ? "This order was refunded."
+              : "This order was cancelled."}
           </div>
         ) : (
           <Stepper
@@ -181,7 +194,7 @@ export default function OrderDetailPage({
                   </p>
                 </div>
                 <p className="meta-font text-sm font-semibold">
-                  RM {(Number(item.price) * item.quantity).toFixed(2)}
+                  {formatYen(Number(item.price) * item.quantity)}
                 </p>
               </article>
             );
@@ -191,18 +204,33 @@ export default function OrderDetailPage({
       <section className="bg-surface-3 flex items-center justify-between rounded-lg p-6">
         <span className="heading-font text-lg">Total</span>
         <span className="heading-font text-primary text-2xl font-semibold">
-          RM {Number(order.total).toFixed(2)}
+          {formatYen(order.total)}
         </span>
       </section>
-      {(order.status === "PENDING" || order.status === "PROCESSING") && (
+      {order.cancellationRequestedAt ? (
+        <p className="text-text-muted text-sm" role="status">
+          Cancellation requested. An admin will review your request.
+        </p>
+      ) : ["PENDING", "PAID", "PROCESSING"].includes(order.status) ? (
         <button
           type="button"
-          onClick={handleCancel}
-          className="meta-font border-error/30 hover:bg-accent text-error hover:bg-error/10 rounded-md border px-5 py-3 text-xs font-semibold hover:cursor-pointer"
+          disabled={requestingCancellation}
+          onClick={() => setCancellationDialogOpen(true)}
+          className="meta-font border-error/30 text-error hover:border-error hover:bg-error/10 cursor-pointer rounded-md border px-5 py-3 text-xs font-semibold transition duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:shadow-none"
         >
-          Cancel Order
+          {requestingCancellation
+            ? "Sending request..."
+            : "Request cancellation"}
         </button>
-      )}
+      ) : null}
+      <ConfirmDialog
+        open={cancellationDialogOpen}
+        onOpenChange={setCancellationDialogOpen}
+        title="Request order cancellation?"
+        description="Your order will remain active until an admin reviews this request."
+        confirmLabel="Send request"
+        onConfirm={() => void handleCancellationRequest()}
+      />
     </div>
   );
 }

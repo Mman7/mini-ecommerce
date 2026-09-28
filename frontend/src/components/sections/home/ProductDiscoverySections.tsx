@@ -9,6 +9,7 @@ import {
   fallbackProducts2,
 } from "@/src/path/fallback_image_path";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { formatYen } from "@/src/lib/currency";
 
 function toDisplayProduct(
   product: Product,
@@ -24,7 +25,7 @@ function toDisplayProduct(
     id: String(product.productId ?? `product-${index}`),
     name: product.name,
     category: "From the atelier",
-    price: `RM ${product.price.toFixed(2)}`,
+    price: formatYen(product.price),
     image: imageUrl || DEFAULT_PRODUCT_IMAGE,
     label: index === 0 ? "Recommended" : "Curated",
     isFallback: !imageUrl,

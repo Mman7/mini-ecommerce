@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { ArrowRight, Check, Package } from "lucide-react";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
@@ -20,12 +21,12 @@ export default function OrderSuccessPage() {
   const orderId = searchParams.get("orderId");
   const [order, setOrder] = useState<Order | null>(null);
   const [error, setError] = useState("");
+  const [requestError, setRequestError] = useState("");
+  const [requestingCancellation, setRequestingCancellation] = useState(false);
+  const [cancellationDialogOpen, setCancellationDialogOpen] = useState(false);
 
   useEffect(() => {
-    if (!orderId) {
-      setError("This confirmation link is missing an order number.");
-      return;
-    }
+    if (!orderId) return;
     orderApi
       .get(orderId)
       .then((response) => setOrder(response.order))
@@ -38,14 +39,37 @@ export default function OrderSuccessPage() {
       });
   }, [orderId]);
 
-  if (error) {
+  const requestCancellation = async () => {
+    if (!order) return;
+    setRequestingCancellation(true);
+    setRequestError("");
+    try {
+      const result = await orderApi.requestCancellation(order.id);
+      setOrder({
+        ...order,
+        cancellationRequestedAt: result.order.cancellationRequestedAt,
+      });
+    } catch (requestError) {
+      setRequestError(
+        requestError instanceof Error
+          ? requestError.message
+          : "Unable to send cancellation request.",
+      );
+    } finally {
+      setRequestingCancellation(false);
+    }
+  };
+
+  if (error || !orderId) {
     return (
       <main className="padding-inline flex min-h-dvh items-center justify-center">
         <section className="bg-surface-1 w-full max-w-lg rounded-xl border border-(--outline-strong) p-8 text-center">
           <h1 className="heading-font text-foreground text-2xl">
             Order confirmation unavailable
           </h1>
-          <p className="text-text-muted mt-3 text-sm">{error}</p>
+          <p className="text-text-muted mt-3 text-sm">
+            {error || "This confirmation link is missing an order number."}
+          </p>
           <Link
             href="/products"
             className="bg-primary-soft text-primary-foreground mt-6 inline-flex min-h-11 items-center gap-2 rounded-lg px-5 text-sm font-semibold"
@@ -161,6 +185,11 @@ export default function OrderSuccessPage() {
             </div>
           </div>
         </section>
+        {requestError ? (
+          <p className="text-error mt-4 text-sm" role="alert">
+            {requestError}
+          </p>
+        ) : null}
         <div className="mt-7 grid gap-3 sm:grid-cols-2">
           <Link
             href={`/profile/orders/${order.id}`}
@@ -175,7 +204,31 @@ export default function OrderSuccessPage() {
           >
             Continue Shopping
           </Link>
+          {order.cancellationRequestedAt ? (
+            <p className="text-text-muted flex min-h-11 items-center justify-center text-sm sm:col-span-2">
+              Cancellation requested
+            </p>
+          ) : ["PENDING", "PAID", "PROCESSING"].includes(order.status) ? (
+            <button
+              type="button"
+              disabled={requestingCancellation}
+              onClick={() => setCancellationDialogOpen(true)}
+              className="border-error/40 text-error hover:border-error hover:bg-error/10 flex min-h-11 cursor-pointer items-center justify-center rounded-lg border px-5 py-3 text-sm font-semibold transition duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none sm:col-span-2"
+            >
+              {requestingCancellation
+                ? "Sending request..."
+                : "Request cancellation"}
+            </button>
+          ) : null}
         </div>
+        <ConfirmDialog
+          open={cancellationDialogOpen}
+          onOpenChange={setCancellationDialogOpen}
+          title="Request order cancellation?"
+          description="Your order will remain active until an admin reviews this request."
+          confirmLabel="Send request"
+          onConfirm={() => void requestCancellation()}
+        />
       </div>
     </main>
   );

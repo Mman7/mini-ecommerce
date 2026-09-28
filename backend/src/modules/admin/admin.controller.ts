@@ -56,11 +56,74 @@ export const cancelAdminOrder = async (req: Request, res: Response) => {
   if (!orderId)
     return res.status(400).json({ message: "Order ID is required" });
   try {
-    return res.status(200).json(await adminService.cancelAdminOrder(orderId));
+    const result = await adminService.cancelAdminOrder(orderId);
+    return res
+      .status(result.refundStatus && result.refundStatus !== "succeeded" ? 202 : 200)
+      .json(result);
   } catch (error) {
     return res.status(400).json({
       message:
         error instanceof Error ? error.message : "Failed to cancel order",
+    });
+  }
+};
+
+export const approveCancellationRequest = async (
+  req: Request,
+  res: Response,
+) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    return res
+      .status(200)
+      .json(await adminService.approveCancellationRequest(orderId));
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to approve cancellation request",
+    });
+  }
+};
+
+export const rejectCancellationRequest = async (
+  req: Request,
+  res: Response,
+) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    return res
+      .status(200)
+      .json(await adminService.rejectCancellationRequest(orderId));
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error
+          ? error.message
+          : "Failed to reject cancellation request",
+    });
+  }
+};
+
+export const refundAdminOrder = async (req: Request, res: Response) => {
+  const orderId =
+    typeof req.params.orderId === "string" ? req.params.orderId : undefined;
+  if (!orderId)
+    return res.status(400).json({ message: "Order ID is required" });
+  try {
+    const refund = await adminService.refundAdminOrder(orderId);
+    return res.status(refund.status === "succeeded" ? 200 : 202).json(refund);
+  } catch (error) {
+    return res.status(400).json({
+      message:
+        error instanceof Error ? error.message : "Failed to refund order",
     });
   }
 };

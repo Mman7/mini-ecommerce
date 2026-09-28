@@ -17,9 +17,9 @@ const serializeDate = (value: Date) => value.toISOString();
 const shippingCost = 500;
 
 const orderTransitions: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.PENDING]: [OrderStatus.PAID, OrderStatus.CANCELLED],
-  [OrderStatus.PAID]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
-  [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
+  [OrderStatus.PENDING]: [OrderStatus.PAID],
+  [OrderStatus.PAID]: [OrderStatus.PROCESSING],
+  [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED],
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED],
   [OrderStatus.DELIVERED]: [],
   [OrderStatus.CANCELLED]: [],
@@ -308,51 +308,112 @@ export const getOrderForAdmin = async (orderId: string) => {
     where: { id: orderId },
     include: {
       user: {
-        select: { userId: true, name: true, email: true, phoneNumber: true },
+        select: {
+          userId: true,
+          name: true,
+          email: true,
+          phoneNumber: true,
+          _count: { select: { orders: true } },
+        },
       },
       orderItems: {
-        include: { product: { include: { productImages: true } } },
+        include: {
+          product: {
+            include: {
+              productImages: true,
+              category: { select: { name: true } },
+            },
+          },
+        },
       },
     },
   });
   if (!order) return null;
   return {
     ...serializeOrder(order),
-    orderItems: order.orderItems.map((item) => ({
-      ...item,
-      price: Number(item.price),
-      product: {
-        ...item.product,
-        price: Number(item.product.price),
-        createdAt: serializeDate(item.product.createdAt),
-        updatedAt: serializeDate(item.product.updatedAt),
-      },
-    })),
+    user: { ...order.user, ordersCount: order.user._count.orders },
+    deliveryFee: shippingCost,
+    orderItems: order.orderItems.map((item) => {
+      const { category, ...product } = item.product;
+      return {
+        ...item,
+        price: Number(item.price),
+        product: {
+          ...product,
+          collection: category?.name ?? null,
+          price: Number(product.price),
+          createdAt: serializeDate(product.createdAt),
+          updatedAt: serializeDate(product.updatedAt),
+        },
+      };
+    }),
   };
 };
 
-export const cancelOrder = async (orderId: string, userId: string) => {
-  return prisma.$transaction(async (transaction) => {
-    const order = await transaction.order.findUnique({
-      where: { id: orderId, userId },
-      include: { orderItems: true },
-    });
+export const requestOrderCancellation = async (
+  orderId: string,
+  userId: string,
+) => {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId, userId },
+  });
+  if (!order) throw new Error("Order not found");
+  if (
+    !(
+      [
+        OrderStatus.PENDING,
+        OrderStatus.PAID,
+        OrderStatus.PROCESSING,
+      ] as OrderStatus[]
+    ).includes(order.status)
+  ) {
+    throw new Error(`Order cannot be cancelled from ${order.status}`);
+  }
+  if (order.cancellationRequestedAt) return order;
 
-    if (!order) throw new Error(`Order ${orderId} not found`);
-    const currentStatus = parseOrderStatus(order.status);
-    if (
-      !currentStatus ||
-      !canOrderTransition(currentStatus, OrderStatus.CANCELLED)
-    ) {
-      throw new Error(`Order cannot be cancelled from ${order.status}`);
-    }
+  const result = await prisma.order.updateMany({
+    where: {
+      id: orderId,
+      userId,
+      status: order.status,
+      cancellationRequestedAt: null,
+    },
+    data: { cancellationRequestedAt: new Date() },
+  });
+  if (result.count === 0) {
+    const current = await prisma.order.findUnique({ where: { id: orderId } });
+    if (current?.cancellationRequestedAt) return current;
+    throw new Error("Order status changed before the request was submitted");
+  }
 
-    await restoreOrderInventory(transaction, order.orderItems);
+  return prisma.order.findUniqueOrThrow({ where: { id: orderId } });
+};
 
-    return transaction.order.update({
-      where: { id: orderId },
-      data: { status: OrderStatus.CANCELLED },
-    });
+export const resolveOrderCancellationRequest = async (orderId: string) => {
+  const order = await prisma.order.findUnique({ where: { id: orderId } });
+  if (!order) throw new Error("Order not found");
+  if (!order.cancellationRequestedAt) {
+    throw new Error("No cancellation request is pending");
+  }
+
+  return prisma.order.update({
+    where: { id: orderId },
+    data: { cancellationRequestedAt: null },
+  });
+};
+
+export const markOrderRefundedByPaymentIntent = async (
+  paymentIntentId: string,
+) => {
+  const order = await prisma.order.findUnique({
+    where: { stripePaymentIntentId: paymentIntentId },
+  });
+  if (!order) throw new Error("Order for refunded payment not found");
+  if (order.status === OrderStatus.REFUNDED) return order;
+
+  return prisma.order.update({
+    where: { id: order.id },
+    data: { status: OrderStatus.REFUNDED },
   });
 };
 
@@ -360,6 +421,9 @@ export const updateOrderStatusByAdmin = async (
   orderId: string,
   status: OrderStatus,
 ) => {
+  if (status === OrderStatus.CANCELLED) {
+    throw new Error("Use the cancellation action to cancel an order");
+  }
   const order = await prisma.order.findUnique({ where: { id: orderId } });
   if (!order) throw new Error("Order not found");
   const currentStatus = parseOrderStatus(order.status);
@@ -383,6 +447,7 @@ export const cancelOrderByAdmin = async (orderId: string) => {
     });
 
     if (!order) throw new Error("Order not found");
+    if (order.status === OrderStatus.CANCELLED) return order;
     const currentStatus = parseOrderStatus(order.status);
     if (
       !currentStatus ||
@@ -397,11 +462,14 @@ export const cancelOrderByAdmin = async (orderId: string) => {
       throw new Error(`Order cannot be cancelled from ${order.status}`);
     }
 
-    await restoreOrderInventory(transaction, order.orderItems);
-
-    return transaction.order.update({
-      where: { id: orderId },
+    const claimed = await transaction.order.updateMany({
+      where: { id: orderId, status: currentStatus },
       data: { status: OrderStatus.CANCELLED },
     });
+    if (claimed.count === 0) throw new Error("Order status changed");
+
+    await restoreOrderInventory(transaction, order.orderItems);
+
+    return transaction.order.findUniqueOrThrow({ where: { id: orderId } });
   });
 };

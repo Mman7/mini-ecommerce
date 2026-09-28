@@ -27,12 +27,14 @@
 - Shipped
 - Delivered
 - Cancelled
+- Refunded (recorded after Stripe confirms a full refund)
 
 ### Cancel Order
 
-- Cancel Order
-- Restore Stock
-- Update Order Status
+- Customer requests cancellation
+- Admin approves or rejects the request
+- Approval cancels the order and restores stock
+- Captured Stripe payments are fully refunded on approval
 
 ### Admin
 
@@ -89,14 +91,13 @@ available.
 
 ## Cancel Order
 
-1. User requests cancellation
-2. Get User ID from JWT
-3. Find Order
-4. Verify Order belongs to User
-5. Check Order Status
-6. Restore Product Stock
-7. Update Order Status
-8. Return Updated Order
+1. Customer requests cancellation from the order list, order detail, or confirmation page
+2. Verify the order belongs to the authenticated customer
+3. Record the request without changing the order status or stock
+4. Admin reviews the request from the dashboard
+5. Rejection clears the request and leaves the order unchanged
+6. Approval cancels the order and restores stock
+7. Approval fully refunds any captured Stripe payment
 
 ---
 
@@ -108,7 +109,7 @@ POST /api/orders
 
 GET /api/orders/:orderId
 
-PATCH /api/orders/:orderId/cancel
+POST /api/orders/:orderId/cancellation-request
 
 The user order-list endpoint is not implemented yet.
 
@@ -120,6 +121,10 @@ GET /api/admin/orders/:id (TODO)
 
 PATCH /api/admin/orders/:id/status (TODO)
 
+POST /api/admin/orders/:orderId/cancellation-request/approve
+
+POST /api/admin/orders/:orderId/cancellation-request/reject
+
 ---
 
 # Database
@@ -130,6 +135,7 @@ PATCH /api/admin/orders/:id/status (TODO)
 - user_id
 - total_amount
 - status
+- cancellation_requested_at
 - created_at
 - updated_at
 
@@ -156,14 +162,20 @@ Pending
 
 ## Cancellation
 
-Pending
-→ Cancelled
+Pending, Paid, or Processing orders can have a cancellation request.
+The order remains active until an admin decides. Approval restores stock and
+fully refunds any captured Stripe payment; rejection clears only the request.
+Cancellation must use the dedicated action so status changes cannot bypass
+inventory restoration.
 
-Paid
-→ Cancelled
+## Refund
 
-Processing
-→ Cancelled (Optional)
+A full Stripe charge refund marks the order as Refunded through the verified
+`refund.created` or `refund.updated` webhook after Stripe confirms the refund
+succeeded and the entire charge amount has been refunded. Partial refunds do
+not change the order status.
+Admins can request a full refund from the order detail page. The request refunds
+any remaining captured amount and uses an idempotency key per order.
 
 ---
 

@@ -3,6 +3,7 @@ import * as inventoryService from "../inventory/inventory.service.ts";
 import * as categoryService from "../category/category.service.ts";
 import * as productService from "../product/product.service.ts";
 import * as userService from "../user/user.service.ts";
+import * as paymentService from "../payment/payment.service.ts";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 
@@ -189,8 +190,62 @@ export const updateAdminOrderStatus = async (
   return orderService.updateOrderStatusByAdmin(orderId, status);
 };
 
+const cancelAndRefundOrder = async (orderId: string) => {
+  const order = await orderService.getOrderForAdmin(orderId);
+  if (!order) throw new Error("Order not found");
+
+  let refundStatus: string | null = null;
+  if (order.status !== OrderStatus.REFUNDED) {
+    if (order.status !== OrderStatus.CANCELLED) {
+      await orderService.cancelOrderByAdmin(orderId);
+    }
+    if (order.status !== OrderStatus.PENDING && order.stripePaymentIntentId) {
+      const refund = await paymentService.refundOrder(orderId);
+      refundStatus = refund.status;
+    }
+  } else {
+    refundStatus = "succeeded";
+  }
+
+  return {
+    order: await orderService.getOrderForAdmin(orderId),
+    refundStatus,
+  };
+};
+
 export const cancelAdminOrder = async (orderId: string) => {
-  return orderService.cancelOrderByAdmin(orderId);
+  const result = await cancelAndRefundOrder(orderId);
+  if (result.order?.cancellationRequestedAt) {
+    await orderService.resolveOrderCancellationRequest(orderId);
+  }
+  return {
+    order: await orderService.getOrderForAdmin(orderId),
+    refundStatus: result.refundStatus,
+  };
+};
+
+export const approveCancellationRequest = async (orderId: string) => {
+  const order = await orderService.getOrderForAdmin(orderId);
+  if (!order) throw new Error("Order not found");
+  if (!order.cancellationRequestedAt) {
+    throw new Error("No cancellation request is pending");
+  }
+
+  const result = await cancelAndRefundOrder(orderId);
+  await orderService.resolveOrderCancellationRequest(orderId);
+  return {
+    order: await orderService.getOrderForAdmin(orderId),
+    refundStatus: result.refundStatus,
+  };
+};
+
+export const rejectCancellationRequest = async (orderId: string) => {
+  await orderService.resolveOrderCancellationRequest(orderId);
+  return orderService.getOrderForAdmin(orderId);
+};
+
+export const refundAdminOrder = async (orderId: string) => {
+  return paymentService.refundOrder(orderId);
 };
 
 export const getTotalOrders = async () => {

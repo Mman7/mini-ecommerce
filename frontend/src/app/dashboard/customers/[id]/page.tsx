@@ -24,16 +24,7 @@ import {
 } from "../../../../components/dashboard";
 import { Separator } from "@/components/ui/separator";
 import { toast } from "@/components/ui/toast";
-
-const money = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
-
-const getMoney = (value: number) => money.format(value).split(" ")[1];
-const getCurrency = (value: number) => money.format(value).split(" ")[0];
+import { yenCurrency as money } from "@/src/lib/currency";
 
 type CustomerDetail = Awaited<ReturnType<typeof customerApi.admin.get>>;
 
@@ -49,7 +40,10 @@ export default function CustomerDetailPage() {
       .then((result) => {
         setCustomer(result);
       })
-      .catch(() => setError("Unable to load this customer."))
+      .catch((e) => {
+        setError("Unable to load this customer.");
+        console.log(e);
+      })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -217,14 +211,7 @@ export default function CustomerDetailPage() {
               <Info
                 label="Total spent"
                 labelClassName="text-sm tracking-widest"
-                value={
-                  <>
-                    <p className="text-2xl">
-                      {getCurrency(customer.totalSpent)}
-                    </p>
-                    <p className="text-2xl">{getMoney(customer.totalSpent)}</p>
-                  </>
-                }
+                value={money.format(customer.totalSpent)}
                 valueClassName="text-primary"
                 action={<p>Lifetime gross</p>}
                 actionClassName="text-text-muted text-sm"
@@ -232,23 +219,14 @@ export default function CustomerDetailPage() {
               <Info
                 label="Average order"
                 labelClassName="text-sm tracking-widest"
-                valueClassName="text-3xl"
-                value={
-                  <>
-                    <p className="text-3xl">
-                      {getCurrency(customer.averageOrderValue)}
-                    </p>
-                    <p className="text-3xl">
-                      {getMoney(customer.averageOrderValue)}
-                    </p>
-                  </>
-                }
+                valueClassName="text-2xl"
+                value={money.format(customer.averageOrderValue)}
                 action={"Per checkout"}
                 actionClassName="text-text-muted text-sm"
               />
               <Info
                 label="Last order"
-                valueClassName="text-3xl"
+                valueClassName="text-2xl"
                 value={
                   customer.lastOrder
                     ? new Date(customer.lastOrder).toLocaleDateString()

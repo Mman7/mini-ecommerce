@@ -7,6 +7,7 @@ import { useState } from "react";
 import type { Product } from "@/src/api/product.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
+import { formatYen } from "@/src/lib/currency";
 
 type WishlistProductCardProps = {
   product: Product;
@@ -100,7 +101,7 @@ export function WishlistProductCard({
           <span
             className={`meta-font text-sm font-bold ${isOutOfStock ? "text-text-muted" : "text-primary"}`}
           >
-            RM {Number(product.price).toFixed(2)}
+            {formatYen(product.price)}
           </span>
           <button
             type="button"

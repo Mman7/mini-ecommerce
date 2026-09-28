@@ -1036,7 +1036,8 @@ async function main() {
         | "PROCESSING"
         | "SHIPPED"
         | "DELIVERED"
-        | "CANCELLED";
+        | "CANCELLED"
+        | "REFUNDED";
 
       if (ageInDays <= 2) {
         status = randomPick(["PENDING", "PENDING", "PAID"]);
@@ -1057,6 +1058,7 @@ async function main() {
           "DELIVERED",
           "DELIVERED",
           "CANCELLED",
+          "REFUNDED",
         ]);
       }
 

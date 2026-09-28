@@ -167,12 +167,14 @@ export const getAllUsers = async (req: Request, res: Response) => {
 };
 
 export const getCustomers = async (req: Request, res: Response) => {
+  console.log(req.params);
   try {
     const query = res.locals.adminCustomerQuery;
     const [customers, stats] = await Promise.all([
       userService.getCustomersForAdmin(query),
       userService.getCustomerStatsForAdmin(),
     ]);
+    console.log(customers, stats);
     return res.status(200).json({ ...customers, stats });
   } catch {
     return res.status(500).json({ message: "Failed to retrieve customers" });
@@ -185,7 +187,9 @@ export const getCustomer = async (req: Request, res: Response) => {
   if (!customerId)
     return res.status(400).json({ message: "Customer ID is required" });
   try {
+    // console.log(req.params.id);
     const customer = await userService.getCustomerForAdmin(customerId);
+    console.log(customer);
     return customer
       ? res.status(200).json(customer)
       : res.status(404).json({ message: "Customer not found" });

@@ -10,6 +10,7 @@ import {
   Upload,
   X,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { ChangeEvent, FormEvent, useState } from "react";
 import { useEffect } from "react";
@@ -23,6 +24,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import {
@@ -36,6 +38,7 @@ import { productApi } from "../../../../../api/product.api";
 import { categoryApi } from "../../../../../api/category.api";
 import { useRouter } from "next/navigation";
 import { toast } from "@/components/ui/toast";
+import { formatYen } from "@/src/lib/currency";
 
 type ProductImage = { id: string; src: string; primary?: boolean };
 type ProductFormSnapshot = {
@@ -455,7 +458,7 @@ export default function EditProductPage() {
             <div className="grid gap-6 md:grid-cols-2">
               <section className="bg-surface-2 rounded-lg p-5 sm:p-6">
                 <SectionTitle
-                  icon={<span className="text-primary">RM</span>}
+                  icon={<span className="text-primary">¥</span>}
                   title="Pricing"
                 />
                 <div className="space-y-4">
@@ -473,21 +476,21 @@ export default function EditProductPage() {
                 />
                 <div className="space-y-4">
                   <Field label="Stock Quantity">
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={stock}
                       onChange={(event) => setStock(event.target.value)}
-                      className="form-input"
+                      className="form-input number-input-no-spinner rounded-md"
                     />
                   </Field>
                   <Field label="Low Stock Threshold">
-                    <input
+                    <Input
                       type="number"
                       min="0"
                       value={threshold}
                       onChange={(event) => setThreshold(event.target.value)}
-                      className="form-input"
+                      className="form-input number-input-no-spinner rounded-md"
                     />
                   </Field>
                 </div>
@@ -605,7 +608,7 @@ export default function EditProductPage() {
                   </h2>
                   <div className="mt-2">
                     <span className="meta-font text-primary text-sm">
-                      RM {price}
+                      {formatYen(price || "0")}
                     </span>
                   </div>
                   <p className="meta-font text-text-muted mt-3 flex items-center gap-1 text-[11px]">
@@ -696,15 +699,15 @@ function CurrencyField({
     <Field label={label}>
       <div className="relative">
         <span className="meta-font text-text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-          RM
+          ¥
         </span>
-        <input
+        <Input
           type="number"
           min="0"
           step="0.01"
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="form-input pl-10 text-right"
+          className="form-input number-input-no-spinner rounded-md pl-10 text-right"
         />
       </div>
     </Field>

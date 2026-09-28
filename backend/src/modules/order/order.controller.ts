@@ -169,31 +169,20 @@ export const getMyOrders = async (req: Request, res: Response) => {
   }
 };
 
-export const cancelOrder = async (req: Request, res: Response) => {
+export const requestOrderCancellation = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
   try {
     const { orderId } = req.params as { orderId: string };
-    // check order exists and if the order status is valid for cancellation
-    const validOrder = await orderService.getOrderById(orderId);
-    if (!validOrder) {
-      return res.status(404).json({ error: "Order not found" });
-    }
-
-    if (validOrder.userId !== userId) {
-      return res
-        .status(403)
-        .json({ error: "You do not have permission to cancel this order" });
-    }
-    const order = validOrder;
-
-    // cancel order and restore the inventory
-    const cancelledOrder = await orderService.cancelOrder(orderId, userId);
-
-    res
+    const order = await orderService.requestOrderCancellation(orderId, userId);
+    return res
       .status(200)
-      .json({ msg: "Order cancelled successfully", order: cancelledOrder });
+      .json({ msg: "Cancellation request submitted", order });
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ error: "Failed to cancel order" });
+    return res.status(400).json({
+      error:
+        error instanceof Error
+          ? error.message
+          : "Failed to submit cancellation request",
+    });
   }
 };

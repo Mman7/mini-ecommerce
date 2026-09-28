@@ -10,6 +10,7 @@ export type Order = {
   userId: string;
   total: string | number;
   status: string;
+  cancellationRequestedAt: string | null;
   orderItems: OrderItem[];
   createdAt: string;
   updatedAt: string;
@@ -44,6 +45,7 @@ export type OrderItem = {
   price: string | number;
   product: {
     name: string;
+    collection?: string | null;
     productImages: { url: string; isThumbnail: boolean }[];
   };
 };
@@ -57,10 +59,11 @@ export const orderApi = {
   get: (orderId: string) =>
     request<{ msg: string; order: Order }>(`/orders/${orderId}`),
   listMine: () => request<{ msg: string; orders: Order[] }>("/orders/mine"),
-  cancel: (orderId: string) =>
-    request<{ msg: string; order: Order }>(`/orders/${orderId}/cancel`, {
-      method: "POST",
-    }),
+  requestCancellation: (orderId: string) =>
+    request<{
+      msg: string;
+      order: Pick<Order, "id" | "status" | "cancellationRequestedAt">;
+    }>(`/orders/${orderId}/cancellation-request`, { method: "POST" }),
   admin: {
     list: (
       params: {
@@ -93,9 +96,12 @@ export const orderApi = {
             name: string;
             email: string;
             phoneNumber: string | null;
+            ordersCount: number;
           };
+          stripePaymentIntentId: string | null;
           deliveryAddressLine1: string;
           deliveryAddressLine2: string | null;
+          deliveryFee: number;
           deliveryCity: string;
           deliveryState: string | null;
           deliveryPostcode: string;
@@ -108,6 +114,24 @@ export const orderApi = {
         body: JSON.stringify({ status }),
       }),
     cancel: (orderId: string) =>
-      request<Order>(`/admin/orders/${orderId}/cancel`, { method: "PATCH" }),
+      request<{ order: Order; refundStatus: string | null }>(
+        `/admin/orders/${orderId}/cancel`,
+        { method: "PATCH" },
+      ),
+    approveCancellationRequest: (orderId: string) =>
+      request<{ order: Order; refundStatus: string | null }>(
+        `/admin/orders/${orderId}/cancellation-request/approve`,
+        { method: "POST" },
+      ),
+    rejectCancellationRequest: (orderId: string) =>
+      request<Order>(`/admin/orders/${orderId}/cancellation-request/reject`, {
+        method: "POST",
+      }),
+    refund: (orderId: string) =>
+      request<{
+        status: string;
+        refundId: string | null;
+        alreadyRefunded: boolean;
+      }>(`/admin/orders/${orderId}/refund`, { method: "POST" }),
   },
 };

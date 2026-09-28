@@ -22,11 +22,7 @@ import {
 import type { ColumnDef } from "@tanstack/react-table";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
-
-const money = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
+import { yenCurrency as money } from "@/src/lib/currency";
 
 function getImageSrc(value: string | null | undefined) {
   const imageUrl = value?.trim();

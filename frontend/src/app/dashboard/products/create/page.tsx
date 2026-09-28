@@ -7,6 +7,7 @@ import { useEffect, useState } from "react";
 import { productApi } from "../../../../api/product.api";
 import { categoryApi } from "../../../../api/category.api";
 import { toast } from "@/components/ui/toast";
+import { formatYen } from "@/src/lib/currency";
 
 export default function CreateProductPage() {
   const [productName, setProductName] = useState("");
@@ -243,7 +244,7 @@ export default function CreateProductPage() {
                 <SectionTitle title="Pricing" />
                 <div className="space-y-4">
                   <CurrencyField
-                    label="Price (RM)"
+                    label="Price (¥)"
                     value={price}
                     onChange={setPrice}
                   />
@@ -336,7 +337,7 @@ export default function CreateProductPage() {
                     {productName || "Product Name"}
                   </p>
                   <p className="meta-font text-primary mt-1 text-sm">
-                    RM {price || "0.00"}
+                    {formatYen(price || "0")}
                   </p>
                 </div>
               </div>
@@ -394,7 +395,7 @@ function CurrencyField({
     <Field label={label}>
       <div className="relative">
         <span className="meta-font text-text-muted absolute top-1/2 left-3 -translate-y-1/2 text-xs">
-          RM
+          ¥
         </span>
         <input
           type="number"

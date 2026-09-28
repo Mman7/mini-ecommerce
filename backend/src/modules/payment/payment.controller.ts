@@ -55,6 +55,13 @@ export const stripeWebhook = async (req: Request, res: Response) => {
       await paymentService.fulfillPaymentIntent(
         event.data.object as Stripe.PaymentIntent,
       );
+    } else if (
+      event.type === "refund.created" ||
+      event.type === "refund.updated"
+    ) {
+      await paymentService.markRefundCompleted(
+        event.data.object as Stripe.Refund,
+      );
     }
     return res.sendStatus(200);
   } catch (error) {

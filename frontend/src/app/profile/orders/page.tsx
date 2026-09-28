@@ -1,11 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, Heart, ShoppingCart } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { ArrowRight, ShoppingCart } from "lucide-react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { orderApi, type Order } from "@/src/api/order.api";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
+import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
+import { formatYen } from "@/src/lib/currency";
 
 const getImage = (order: Order) =>
   order.orderItems[0]?.product.productImages.find((image) => image.isThumbnail)
@@ -14,9 +17,28 @@ const getImage = (order: Order) =>
   DEFAULT_PRODUCT_IMAGE;
 
 export default function MyOrdersPage() {
+  const queryClient = useQueryClient();
+  const [cancellationOrderId, setCancellationOrderId] = useState<string | null>(
+    null,
+  );
   const ordersQuery = useQuery({
     queryKey: ["my-orders"],
     queryFn: async () => (await orderApi.listMine()).orders,
+  });
+  const cancellationMutation = useMutation({
+    mutationFn: orderApi.requestCancellation,
+    onSuccess: ({ order: updatedOrder }) => {
+      queryClient.setQueryData<Order[]>(["my-orders"], (current) =>
+        current?.map((order) =>
+          order.id === updatedOrder.id
+            ? {
+                ...order,
+                cancellationRequestedAt: updatedOrder.cancellationRequestedAt,
+              }
+            : order,
+        ),
+      );
+    },
   });
   const orders: Order[] = ordersQuery.data ?? [];
   const error = ordersQuery.error
@@ -36,10 +58,15 @@ export default function MyOrdersPage() {
         </p>
       </header>
       {error && <p className="text-error text-sm">{error}</p>}
+      {cancellationMutation.error ? (
+        <p className="text-error text-sm" role="alert">
+          {cancellationMutation.error.message}
+        </p>
+      ) : null}
       {ordersQuery.isPending ? (
         <p className="text-text-muted text-sm">Loading your orders...</p>
       ) : error ? null : orders.length === 0 ? (
-        <div className="bg-surface-1 flex min-h-96 flex-col items-center justify-center rounded-xl border border-(--glass-border) px-6 py-12 text-center">
+        <div className="bg-surface-1 flex min-h-96 flex-col items-center justify-center rounded-md px-6 py-12 text-center">
           <ShoppingCart
             className="mb-5 fill-pink-300 text-pink-300"
             size={32}
@@ -67,7 +94,7 @@ export default function MyOrdersPage() {
             return (
               <article
                 key={order.id}
-                className="bg-surface-1 flex flex-col gap-5 rounded-lg border border-(--glass-border) p-5 sm:flex-row sm:items-center sm:p-6"
+                className="bg-surface-1 flex flex-col gap-5 rounded-md p-5 sm:flex-row sm:items-center sm:p-6"
               >
                 {image ? (
                   <div className="bg-surface-3 relative h-28 w-full shrink-0 overflow-hidden rounded-md sm:h-24 sm:w-32">
@@ -99,21 +126,55 @@ export default function MyOrdersPage() {
                   </h2>
                   <p className="text-text-muted text-base">
                     Placed on {new Date(order.createdAt).toLocaleDateString()} ·
-                    RM {Number(order.total).toFixed(2)}
+                    {formatYen(order.total)}
                   </p>
                 </div>
-                <Link
-                  href={`/profile/orders/${order.id}`}
-                  className="meta-font bg-surface-3 hover:bg-primary hover:text-primary-ink flex w-full shrink-0 items-center justify-center gap-2 rounded-lg border border-(--glass-border) px-6 py-3 text-sm font-semibold transition sm:w-auto"
-                >
-                  View Order
-                  <ArrowRight size={15} />
-                </Link>
+                <div className="flex w-full shrink-0 flex-col gap-2 sm:w-auto">
+                  <Link
+                    href={`/profile/orders/${order.id}`}
+                    className="meta-font bg-surface-3 hover:bg-primary hover:text-primary-ink flex w-full items-center justify-center gap-2 rounded-lg border border-(--glass-border) px-6 py-3 text-sm font-semibold transition"
+                  >
+                    View Order
+                    <ArrowRight size={15} />
+                  </Link>
+                  {order.cancellationRequestedAt ? (
+                    <span className="text-text-muted px-3 py-2 text-center text-xs">
+                      Cancellation requested
+                    </span>
+                  ) : ["PENDING", "PAID", "PROCESSING"].includes(
+                      order.status,
+                    ) ? (
+                    <button
+                      type="button"
+                      disabled={cancellationMutation.isPending}
+                      onClick={() => setCancellationOrderId(order.id)}
+                      className="meta-font border-error/30 text-error hover:border-error hover:bg-error/10 flex w-full cursor-pointer items-center justify-center rounded-lg border px-4 py-3 text-sm font-semibold transition duration-150 hover:-translate-y-0.5 hover:shadow-md active:translate-y-0 disabled:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+                    >
+                      {cancellationMutation.isPending &&
+                      cancellationMutation.variables === order.id
+                        ? "Sending request..."
+                        : "Request cancellation"}
+                    </button>
+                  ) : null}
+                </div>
               </article>
             );
           })}
         </div>
       )}
+      <ConfirmDialog
+        open={Boolean(cancellationOrderId)}
+        onOpenChange={(open) => {
+          if (!open) setCancellationOrderId(null);
+        }}
+        title="Request order cancellation?"
+        description="Your order will remain active until an admin reviews this request."
+        confirmLabel="Send request"
+        onConfirm={() => {
+          if (cancellationOrderId)
+            cancellationMutation.mutate(cancellationOrderId);
+        }}
+      />
     </div>
   );
 }

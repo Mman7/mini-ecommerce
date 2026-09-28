@@ -36,15 +36,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { yenCurrency as currency } from "@/src/lib/currency";
 
 const chartConfig = {
   amount: { label: "Revenue", color: "#e98b2c" },
 } satisfies ChartConfig;
-
-const currency = new Intl.NumberFormat("en-MY", {
-  style: "currency",
-  currency: "MYR",
-});
 
 const dateRanges = [
   { value: "1d", label: "Today", days: 1 },

@@ -339,6 +339,17 @@ a {
   @apply focus:border-primary focus:ring-primary/20 focus:ring-2;
 }
 
+.number-input-no-spinner {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.number-input-no-spinner::-webkit-inner-spin-button,
+.number-input-no-spinner::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 input:-webkit-autofill,
 input:-webkit-autofill:hover,
 input:-webkit-autofill:focus,
