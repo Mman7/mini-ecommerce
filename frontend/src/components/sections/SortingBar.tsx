@@ -1,7 +1,13 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const options = [
   ["productId:asc", "Featured"],
@@ -10,7 +16,6 @@ const options = [
   ["price:desc", "Price: High to Low"],
   ["name:asc", "Name: A to Z"],
 ] as const;
-// TODO add mobile filter with drawer
 
 export default function SortingBar({ total }: { total: number }) {
   const router = useRouter();
@@ -37,23 +42,27 @@ export default function SortingBar({ total }: { total: number }) {
         <span className="text-on-surface/50 hidden text-sm md:block">
           Sort by:
         </span>
-        <div className="relative">
-          <select
-            value={selected}
-            onChange={(event) => updateSort(event.target.value)}
-            className="text-primary bg-surface-2 appearance-none rounded-md border border-(--outline-strong) px-3 py-2 pr-10 text-sm font-semibold"
+        <Select
+          value={selected}
+          items={options.map(([value, label]) => ({ value, label }))}
+          onValueChange={(value) => {
+            if (value) updateSort(value);
+          }}
+        >
+          <SelectTrigger
+            aria-label="Sort products"
+            className="text-primary bg-surface-2 w-48 border-(--outline-strong) font-semibold"
           >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent align="end">
             {options.map(([value, label]) => (
-              <option key={value} value={value}>
+              <SelectItem key={value} value={value}>
                 {label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-          <ChevronDown
-            aria-hidden="true"
-            className="text-on-surface/60 pointer-events-none absolute top-1/2 right-3 size-4 -translate-y-1/2"
-          />
-        </div>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );

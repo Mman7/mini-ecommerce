@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useDebounce } from "use-debounce";
 import type { Category } from "../../api/category.api";
 import {
   Field,
@@ -13,6 +14,7 @@ import {
 import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Toggle } from "@/components/ui/toggle";
+import { Input } from "@/components/ui/input";
 import { formatYen } from "@/src/lib/currency";
 
 const PRICE_MAX = 5000;
@@ -32,16 +34,27 @@ function normalizePrice(value: string | null, fallback: number) {
 
 export default function FiltersSidebar({
   categories,
+  idPrefix = "product-filter",
 }: {
   categories: Category[];
+  idPrefix?: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const priceUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastUrlSearchName = useRef(searchParams.get("name") ?? "");
+  const skipNextSearchUpdate = useRef(false);
+  const [searchName, setSearchName] = useState(
+    () => searchParams.get("name") ?? "",
+  );
+  const [debouncedSearchName] = useDebounce(searchName, 350);
   const [priceRange, setPriceRange] = useState<[number, number]>(() => [
     normalizePrice(searchParams.get("minPrice"), 0),
     normalizePrice(searchParams.get("maxPrice"), PRICE_MAX),
   ]);
+  const searchInputId = `${idPrefix}-search`;
+  const priceRangeId = `${idPrefix}-price-range`;
+  const inStockId = `${idPrefix}-in-stock`;
 
   function getPriceRange(): [number, number] {
     return [
@@ -53,6 +66,31 @@ export default function FiltersSidebar({
   useEffect(() => {
     setPriceRange(getPriceRange());
   }, [searchParams]);
+
+  useEffect(() => {
+    const urlSearchName = searchParams.get("name") ?? "";
+    if (urlSearchName === lastUrlSearchName.current) return;
+
+    lastUrlSearchName.current = urlSearchName;
+    skipNextSearchUpdate.current = true;
+    setSearchName(urlSearchName);
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (skipNextSearchUpdate.current) {
+      skipNextSearchUpdate.current = false;
+      return;
+    }
+
+    const name = debouncedSearchName.trim();
+    if (name === (searchParams.get("name") ?? "")) return;
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (name) params.set("name", name);
+    else params.delete("name");
+    params.delete("page");
+    router.replace(`/products?${params.toString()}`, { scroll: false });
+  }, [debouncedSearchName, router, searchParams]);
 
   useEffect(() => {
     return () => {
@@ -97,6 +135,27 @@ export default function FiltersSidebar({
         <h3 className="heading-font text-foreground mb-6 text-4xl leading-none font-semibold">
           Filters
         </h3>
+        <FieldSet className="mb-7 gap-0">
+          <FieldLegend
+            variant="label"
+            className="meta-font text-text-muted mb-4 text-[12px] font-semibold tracking-[0.12em] uppercase"
+          >
+            Search Products
+          </FieldLegend>
+          <FieldGroup>
+            <FieldLabel className="sr-only" htmlFor={searchInputId}>
+              Search products
+            </FieldLabel>
+            <Input
+              id={searchInputId}
+              type="search"
+              value={searchName}
+              onChange={(event) => setSearchName(event.target.value)}
+              placeholder="Search products..."
+              className="h-10"
+            />
+          </FieldGroup>
+        </FieldSet>
         <FieldSet className="mb-lg gap-0">
           <FieldLegend
             variant="label"
@@ -144,11 +203,11 @@ export default function FiltersSidebar({
             Price Range
           </FieldLegend>
           <FieldGroup className="gap-3">
-            <FieldLabel className="sr-only" htmlFor="price-range">
+            <FieldLabel className="sr-only" htmlFor={priceRangeId}>
               Price range
             </FieldLabel>
             <Slider
-              id="price-range"
+              id={priceRangeId}
               aria-label="Price range"
               min={0}
               max={PRICE_MAX}
@@ -165,13 +224,13 @@ export default function FiltersSidebar({
         </FieldSet>
         <Field orientation="horizontal" className="items-center gap-3">
           <Checkbox
-            id="in-stock"
+            id={inStockId}
             checked={searchParams.get("inStock") === "true"}
             onCheckedChange={(checked) =>
               updateFilter("inStock", checked ? "true" : "")
             }
           />
-          <FieldLabel htmlFor="in-stock" className="cursor-pointer">
+          <FieldLabel htmlFor={inStockId} className="cursor-pointer">
             In stock only
           </FieldLabel>
         </Field>

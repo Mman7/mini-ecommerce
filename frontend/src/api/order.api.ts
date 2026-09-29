@@ -44,6 +44,7 @@ export type OrderItem = {
   quantity: number;
   price: string | number;
   product: {
+    slug: string;
     name: string;
     collection?: string | null;
     productImages: { url: string; isThumbnail: boolean }[];

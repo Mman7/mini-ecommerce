@@ -1,5 +1,4 @@
 "use client";
-// TODO: when initial laod,showing unable to load check is it because the auth status didnt refresh
 import Link from "next/link";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowRight, Minus, Plus, RefreshCw, Trash2 } from "lucide-react";
@@ -49,7 +48,6 @@ function CartItemRow({
   const unavailable = !item.product.isActive || stock < 1;
   const quantityLimit = Math.max(stock, 1);
   const isPending = pending === item.id;
-
   return (
     <motion.article
       layout
@@ -80,7 +78,12 @@ function CartItemRow({
       <div className="flex min-w-0 flex-col justify-between gap-4">
         <div>
           <h2 className="heading-font text-foreground text-xl font-medium">
-            {item.product.name}
+            <Link
+              href={`/products/${item.product.slug}`}
+              className="hover:text-primary-soft transition-colors"
+            >
+              {item.product.name}
+            </Link>
           </h2>
           <p className="text-text-muted mt-1 text-sm">SKU {item.productId}</p>
           <p className="meta-font text-primary-soft mt-3 text-sm font-semibold">

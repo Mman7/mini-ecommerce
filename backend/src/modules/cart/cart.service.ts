@@ -11,6 +11,7 @@ const cartItemSelect = {
       product: {
         select: {
           name: true,
+          slug: true,
           description: true,
           price: true,
           isActive: true,

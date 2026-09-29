@@ -13,6 +13,7 @@ export type CartProduct = {
   price: string | number;
   isActive: boolean;
   stock: number;
+  slug: string;
   productImages: CartProductImage[];
 };
 

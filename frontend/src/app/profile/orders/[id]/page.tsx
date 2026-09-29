@@ -186,9 +186,11 @@ export default function OrderDetailPage({
                   <div className="bg-surface-3 h-20 w-20 shrink-0 rounded-md" />
                 )}
                 <div className="flex-1">
-                  <h3 className="meta-font text-sm font-semibold">
-                    {item.product.name}
-                  </h3>
+                  <Link href={`/products/${item.product.slug}`}>
+                    <h3 className="meta-font text-sm font-semibold">
+                      {item.product.name}
+                    </h3>
+                  </Link>
                   <p className="text-text-muted mt-1 text-xs">
                     Qty: {item.quantity}
                   </p>
