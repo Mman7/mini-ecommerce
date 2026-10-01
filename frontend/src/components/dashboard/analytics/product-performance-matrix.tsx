@@ -1,6 +1,7 @@
 import { Filter, Search } from "lucide-react";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import type { DashboardOverview } from "@/src/api/dashboard.api";
+import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { Panel } from "./analytics-primitives";
 
 export function ProductPerformanceMatrix({
@@ -71,11 +72,16 @@ export function ProductPerformanceMatrix({
               >
                 <td className="px-5 py-3">
                   <div className="flex items-center gap-3">
-                    <img
-                      src={product.image?.url || DEFAULT_PRODUCT_IMAGE}
-                      alt=""
-                      className="h-8 w-8 rounded object-cover"
-                    />
+                    <div className="bg-surface-3 relative h-8 w-8 shrink-0 overflow-hidden rounded">
+                      <ImageWithFallback
+                        src={product.image?.url || DEFAULT_PRODUCT_IMAGE}
+                        alt={product.name}
+                        fill
+                        sizes="32px"
+                        className="object-cover"
+                        fallbackSrc={DEFAULT_PRODUCT_IMAGE}
+                      />
+                    </div>
                     <p className="font-medium">{product.name}</p>
                   </div>
                 </td>
