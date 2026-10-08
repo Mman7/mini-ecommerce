@@ -1782,6 +1782,7 @@ stripe login
 
 ```bash
 stripe listen \
+  --events charge.refunded,refund.created,refund.updated,refund.failed \
   --forward-to localhost:4000/api/webhooks/stripe
 ```
 

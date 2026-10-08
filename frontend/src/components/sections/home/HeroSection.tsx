@@ -13,20 +13,20 @@ export function HeroSection() {
         <div className="pointer-events-none absolute inset-0 z-20 bg-linear-to-r from-black/50 via-black/60 to-transparent" />
 
         <div className="padding-inline absolute inset-0 z-30 flex items-end pb-10 sm:items-center sm:pb-0">
-          <div className="relative z-30 max-w-xl space-y-4 sm:space-y-5">
+          <div className="relative z-30 max-w-xl space-y-4 sm:space-y-5 xl:max-w-3xl xl:space-y-7">
             <TextInView
-              className="meta-font text-secondary border-secondary bg-secondary/15 inline-flex rounded-full border px-3 py-1 text-xs tracking-[0.12em]"
+              className="meta-font text-secondary border-secondary bg-secondary/15 inline-flex rounded-full border px-3 py-1 text-xs tracking-[0.12em] xl:px-4 xl:py-1.5 xl:text-sm"
               delay={0.12}
             >
               <p>Tokyo's Curated Sanctuary</p>
             </TextInView>
             <TextInView delay={0.16}>
-              <h1 className="title-font text-3xl leading-tight font-semibold sm:text-5xl">
+              <h1 className="title-font text-3xl leading-tight font-semibold sm:text-5xl xl:text-6xl">
                 Curating Moments of Joy
               </h1>
             </TextInView>
             <TextInView
-              className="text-text-muted text-sm leading-relaxed sm:text-base"
+              className="text-text-muted text-sm leading-relaxed sm:text-base xl:max-w-2xl xl:text-lg xl:leading-relaxed"
               delay={0.24}
             >
               <p
@@ -43,7 +43,7 @@ export function HeroSection() {
               </p>
             </TextInView>
             <TextInView
-              className="flex flex-col gap-3 sm:flex-row sm:flex-wrap"
+              className="flex flex-col gap-3 sm:flex-row sm:flex-wrap xl:gap-4"
               delay={0.36}
             >
               <Button

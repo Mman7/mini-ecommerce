@@ -191,6 +191,20 @@ export const getProducts = async ({
   };
 };
 
+export const getProductSuggestions = async (query: string) => {
+  const products = await prisma.product.findMany({
+    where: {
+      isActive: true,
+      name: { contains: query, mode: "insensitive" },
+    },
+    include: productInclude,
+    orderBy: { productId: "asc" },
+    take: 6,
+  });
+
+  return products.map(serializeProduct);
+};
+
 export type AdminProductQuery = {
   page: number;
   limit: number;

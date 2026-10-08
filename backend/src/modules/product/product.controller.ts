@@ -273,6 +273,27 @@ export const getProducts = async (req: Request, res: Response) => {
   }
 };
 
+export const getProductSuggestions = async (req: Request, res: Response) => {
+  const query = req.query.q;
+  if (query !== undefined && typeof query !== "string") {
+    return res.status(400).json({ message: "Invalid product search query" });
+  }
+  const normalizedQuery = (query ?? "").trim();
+  if (normalizedQuery.length > 80) {
+    return res
+      .status(400)
+      .json({ message: "Product search query is too long" });
+  }
+
+  try {
+    return res
+      .status(200)
+      .json(await productService.getProductSuggestions(normalizedQuery));
+  } catch {
+    return res.status(500).json({ message: "Failed to search products" });
+  }
+};
+
 export const getProduct = async (req: Request, res: Response) => {
   const { id } = req.params;
   if (id === undefined) {

@@ -3,7 +3,9 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useDebounce } from "use-debounce";
-import type { Category } from "../../api/category.api";
+import { useQuery } from "@tanstack/react-query";
+import type { Category } from "@/src/api/category.api";
+import { productApi, type Product } from "@/src/api/product.api";
 import {
   Field,
   FieldGroup,
@@ -15,7 +17,7 @@ import { Slider } from "@/components/ui/slider";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Toggle } from "@/components/ui/toggle";
 import { Input } from "@/components/ui/input";
-import { formatYen } from "@/src/lib/currency";
+import { formatYen, yenCurrency } from "@/src/lib/currency";
 
 const PRICE_MAX = 5000;
 const PRICE_STEP = 100;
@@ -42,12 +44,20 @@ export default function FiltersSidebar({
   const router = useRouter();
   const searchParams = useSearchParams();
   const priceUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
   const lastUrlSearchName = useRef(searchParams.get("name") ?? "");
   const skipNextSearchUpdate = useRef(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [searchName, setSearchName] = useState(
     () => searchParams.get("name") ?? "",
   );
   const [debouncedSearchName] = useDebounce(searchName, 350);
+  const suggestionsQuery = useQuery({
+    queryKey: ["product-search-suggestions", debouncedSearchName.trim()],
+    queryFn: () => productApi.search(debouncedSearchName.trim()),
+    enabled: showSuggestions,
+    staleTime: 30_000,
+  });
   const [priceRange, setPriceRange] = useState<[number, number]>(() => [
     normalizePrice(searchParams.get("minPrice"), 0),
     normalizePrice(searchParams.get("maxPrice"), PRICE_MAX),
@@ -98,6 +108,19 @@ export default function FiltersSidebar({
     };
   }, []);
 
+  useEffect(() => {
+    const closeSuggestions = (event: PointerEvent) => {
+      if (
+        searchContainerRef.current &&
+        !searchContainerRef.current.contains(event.target as Node)
+      ) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("pointerdown", closeSuggestions);
+    return () => document.removeEventListener("pointerdown", closeSuggestions);
+  }, []);
+
   function cancelPriceUpdate() {
     if (!priceUpdateTimeout.current) return;
     clearTimeout(priceUpdateTimeout.current);
@@ -129,6 +152,73 @@ export default function FiltersSidebar({
     router.push(`/products?${params.toString()}`);
   }
 
+  function selectSearch(query: string) {
+    const name = query.trim();
+    cancelPriceUpdate();
+    setSearchName(name);
+    setShowSuggestions(false);
+
+    const params = new URLSearchParams(searchParams.toString());
+    if (name) params.set("name", name);
+    else params.delete("name");
+    params.delete("page");
+    router.push(`/products?${params.toString()}`);
+  }
+
+  function renderSuggestions() {
+    const suggestions = suggestionsQuery.data ?? [];
+    return (
+      <div
+        id={`${searchInputId}-suggestions`}
+        className="bg-surface-1 border-surface-3 absolute top-full right-0 left-0 z-50 mt-2 overflow-hidden rounded-md border shadow-xl"
+      >
+        <p className="text-text-muted px-4 pt-3 pb-2 text-xs font-semibold">
+          {debouncedSearchName.trim() ? "Matching products" : "Popular picks"}
+        </p>
+        {suggestionsQuery.isFetching ? (
+          <p className="text-text-muted px-4 py-3 text-sm">Searching...</p>
+        ) : suggestions.length ? (
+          <ul>
+            {suggestions.map((product: Product) => (
+              <li key={product.productId}>
+                <button
+                  type="button"
+                  onClick={() => selectSearch(product.name)}
+                  className="hover:bg-surface-2 flex w-full items-center justify-between gap-4 px-4 py-3 text-left transition-colors"
+                >
+                  <span className="min-w-0">
+                    <span className="text-foreground block truncate text-sm font-medium">
+                      {product.name}
+                    </span>
+                    <span className="text-text-muted block truncate text-xs">
+                      {product.category?.name ?? "Atelier selection"}
+                    </span>
+                  </span>
+                  <span className="text-text-muted shrink-0 text-sm">
+                    {yenCurrency.format(product.price)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-text-muted px-4 py-3 text-sm">
+            No matching products
+          </p>
+        )}
+        {searchName.trim() && (
+          <button
+            type="button"
+            onClick={() => selectSearch(searchName)}
+            className="text-primary-soft border-surface-3 w-full border-t px-4 py-3 text-left text-sm font-semibold"
+          >
+            Search for “{searchName.trim()}”
+          </button>
+        )}
+      </div>
+    );
+  }
+
   return (
     <aside className="space-y-6">
       <div className="bg-surface-1 rounded-[14px] border border-(--outline-strong)/35 p-6 shadow-[inset_0_1px_0_rgba(230,225,228,0.03)]">
@@ -146,14 +236,23 @@ export default function FiltersSidebar({
             <FieldLabel className="sr-only" htmlFor={searchInputId}>
               Search products
             </FieldLabel>
-            <Input
-              id={searchInputId}
-              type="search"
-              value={searchName}
-              onChange={(event) => setSearchName(event.target.value)}
-              placeholder="Search products..."
-              className="h-10"
-            />
+            <div ref={searchContainerRef} className="relative">
+              <Input
+                id={searchInputId}
+                type="search"
+                value={searchName}
+                aria-expanded={showSuggestions}
+                aria-controls={`${searchInputId}-suggestions`}
+                onFocus={() => setShowSuggestions(true)}
+                onChange={(event) => {
+                  setSearchName(event.target.value);
+                  setShowSuggestions(true);
+                }}
+                placeholder="Search products..."
+                className="h-10"
+              />
+              {showSuggestions && renderSuggestions()}
+            </div>
           </FieldGroup>
         </FieldSet>
         <FieldSet className="mb-lg gap-0">

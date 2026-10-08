@@ -34,8 +34,6 @@ services:
     environment:
       - WATCHPACK_POLLING=true
       - CHOKIDAR_USEPOLLING=true
-    volumes:
-      - /app/node_modules
     develop:
       watch:
         - action: sync

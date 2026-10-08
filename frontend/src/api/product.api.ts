@@ -83,6 +83,8 @@ export const productApi = {
   count: () => request<{ count: number }>("/products/count"),
   recommended: (limit: number = 4) =>
     request<Product[]>(`/products/recommended?limit=${limit}`),
+  search: (query: string) =>
+    request<Product[]>(`/products/search?q=${encodeURIComponent(query)}`),
   admin: {
     list: (params: AdminProductListParams = {}) => {
       const searchParams = new URLSearchParams();

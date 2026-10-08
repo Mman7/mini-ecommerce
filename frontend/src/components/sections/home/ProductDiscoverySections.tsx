@@ -10,6 +10,13 @@ import {
 } from "@/src/path/fallback_image_path";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
 import { formatYen } from "@/src/lib/currency";
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 function toDisplayProduct(
   product: Product,
@@ -107,34 +114,45 @@ function ProductTile({
 
 export async function KomorebiEditSection() {
   const products = await loadProducts(
-    () => productApi.recommended(4),
+    () => productApi.recommended(8),
     fallbackProducts2,
   );
   return (
     <section className="padding-inline mt-28 md:mt-36">
-      <div className="mb-8 flex items-end justify-between gap-5">
-        <div>
-          <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
-            A small selection
-          </p>
-          <h2 className="title-font mt-3 text-3xl font-semibold sm:text-4xl">
-            The Komorebi Edit
-          </h2>
+      <Carousel opts={{ align: "start", loop: true }} continuous speed={7}>
+        <div className="mb-8 flex items-end justify-between gap-5">
+          <div>
+            <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
+              A small selection
+            </p>
+            <h2 className="title-font mt-3 text-3xl font-semibold sm:text-4xl">
+              The Komorebi Edit
+            </h2>
+          </div>
+          <div className="flex items-center gap-3">
+            <CarouselPrevious className="static my-0 shrink-0" />
+            <CarouselNext className="static my-0 shrink-0" />
+            <a
+              href="/products"
+              className="meta-font text-primary-soft hidden items-center gap-2 text-xs sm:flex"
+            >
+              View All <ArrowRight className="size-4" />
+            </a>
+          </div>
         </div>
-        <a
-          href="/products"
-          className="meta-font text-primary-soft hidden items-center gap-2 text-xs sm:flex"
-        >
-          View All <ArrowRight className="size-4" />
-        </a>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product, index) => (
-          <TextInView key={product.id} delay={index * 0.1}>
-            <ProductTile key={product.id} product={product} index={index} />
-          </TextInView>
-        ))}
-      </div>
+        <CarouselContent>
+          {products.map((product, index) => (
+            <CarouselItem
+              key={product.id}
+              className="basis-[78%] sm:basis-[48%] lg:basis-[32%] xl:basis-[24%]"
+            >
+              <TextInView delay={index * 0.1}>
+                <ProductTile product={product} index={index} />
+              </TextInView>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
     </section>
   );
 }
@@ -143,7 +161,7 @@ export async function NewArrivalsSection() {
   const products = await loadProducts(async () => {
     const response = await productApi.list({
       page: 1,
-      limit: 4,
+      limit: 8,
       sortBy: "createdAt",
       sortOrder: "desc",
     });
@@ -151,32 +169,43 @@ export async function NewArrivalsSection() {
   }, fallbackProducts2);
   return (
     <section className="padding-inline mt-28 md:mt-36">
-      <div className="mb-8 flex items-end justify-between gap-5">
-        <div>
-          <p className="meta-font text-tertiary text-xs tracking-[0.2em] uppercase">
-            Fresh from the atelier
-          </p>
-          <h2 className="title-font mt-3 text-3xl font-semibold sm:text-4xl">
-            New Arrivals
-          </h2>
-          <p className="text-text-muted mt-2 text-sm">
-            New arrivals, freshly curated.
-          </p>
+      <Carousel opts={{ align: "start", loop: true }} continuous speed={7}>
+        <div className="mb-8 flex items-end justify-between gap-5">
+          <div>
+            <p className="meta-font text-tertiary text-xs tracking-[0.2em] uppercase">
+              Fresh from the atelier
+            </p>
+            <h2 className="title-font mt-3 text-3xl font-semibold sm:text-4xl">
+              New Arrivals
+            </h2>
+            <p className="text-text-muted mt-2 text-sm">
+              New arrivals, freshly curated.
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <CarouselPrevious className="static my-0 shrink-0" />
+            <CarouselNext className="static my-0 shrink-0" />
+            <a
+              href="/products"
+              className="meta-font text-primary-soft hidden items-center gap-2 text-xs sm:flex"
+            >
+              View All <ArrowRight className="size-4" />
+            </a>
+          </div>
         </div>
-        <a
-          href="/products"
-          className="meta-font text-primary-soft hidden items-center gap-2 text-xs sm:flex"
-        >
-          View All <ArrowRight className="size-4" />
-        </a>
-      </div>
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product, index) => (
-          <TextInView key={product.id} delay={index * 0.1}>
-            <ProductTile product={product} index={index} />
-          </TextInView>
-        ))}
-      </div>
+        <CarouselContent>
+          {products.map((product, index) => (
+            <CarouselItem
+              key={product.id}
+              className="basis-[78%] sm:basis-[48%] lg:basis-[32%] xl:basis-[24%]"
+            >
+              <TextInView delay={index * 0.1}>
+                <ProductTile product={product} index={index} />
+              </TextInView>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+      </Carousel>
       <div className="sr-only">
         <Heart aria-hidden="true" />
       </div>

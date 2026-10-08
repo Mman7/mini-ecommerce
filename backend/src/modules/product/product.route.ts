@@ -14,6 +14,7 @@ productRoutes.get(
   validateRecommendedLimit,
   productController.getRecommendedProducts,
 );
+productRoutes.get("/search", productController.getProductSuggestions);
 productRoutes.get("/:id", productController.getProduct);
 
 export default productRoutes;
