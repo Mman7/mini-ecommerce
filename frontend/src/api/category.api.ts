@@ -12,6 +12,18 @@ export type AdminCategory = Category & {
   productCount: number;
 };
 
+export type AdminCategoryProduct = {
+  productId: number;
+  name: string;
+  sku: string | null;
+  price: number;
+  stock: number;
+};
+
+export type AdminCategoryDetail = AdminCategory & {
+  products: AdminCategoryProduct[];
+};
+
 export type AdminCategoryListResponse = {
   items: AdminCategory[];
   statistics: { all: number; active: number };
@@ -48,16 +60,7 @@ export const categoryApi = {
       );
     },
     get: (categoryId: number) =>
-      request<
-        AdminCategory & {
-          products: Array<{
-            productId: number;
-            name: string;
-            price: number;
-            stock: number;
-          }>;
-        }
-      >(`/admin/categories/${categoryId}`),
+      request<AdminCategoryDetail>(`/admin/categories/${categoryId}`),
     create: (data: { name: string }) =>
       request<AdminCategory>("/admin/categories", {
         method: "POST",
@@ -68,6 +71,20 @@ export const categoryApi = {
         method: "PATCH",
         body: JSON.stringify(data),
       }),
+    addProduct: (categoryId: number, productId: number) =>
+      request<unknown>(
+        `/admin/categories/${categoryId}/products/${productId}`,
+        {
+          method: "POST",
+        },
+      ),
+    removeProduct: (categoryId: number, productId: number) =>
+      request<unknown>(
+        `/admin/categories/${categoryId}/products/${productId}`,
+        {
+          method: "DELETE",
+        },
+      ),
     delete: (categoryId: number) =>
       request<{ message: string }>(`/admin/categories/${categoryId}`, {
         method: "DELETE",
