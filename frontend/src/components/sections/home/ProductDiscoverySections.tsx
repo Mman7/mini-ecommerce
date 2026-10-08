@@ -3,7 +3,6 @@ import Link from "next/link";
 import { productApi, type Product } from "@/src/api/product.api";
 import { FavoriteButton } from "@/src/components/ui/FavoriteButton";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
-import { TextInView } from "@/src/components/motion/TextInView";
 import {
   DisplayProduct,
   fallbackProducts2,
@@ -54,7 +53,7 @@ async function loadProducts(
     const products = await loader();
     return products.length
       ? products
-          .slice(0, 4)
+          .slice(0, 8)
           .map((product, index) =>
             toDisplayProduct(product, index, fallbackSet),
           )
@@ -119,7 +118,7 @@ export async function KomorebiEditSection() {
   );
   return (
     <section className="padding-inline mt-28 md:mt-36">
-      <Carousel opts={{ align: "start", loop: true }} continuous speed={7}>
+      <Carousel opts={{ align: "start", loop: true }} continuous speed={20}>
         <div className="mb-8 flex items-end justify-between gap-5">
           <div>
             <p className="meta-font text-primary-soft text-xs tracking-[0.2em] uppercase">
@@ -146,9 +145,7 @@ export async function KomorebiEditSection() {
               key={product.id}
               className="basis-[78%] sm:basis-[48%] lg:basis-[32%] xl:basis-[24%]"
             >
-              <TextInView delay={index * 0.1}>
-                <ProductTile product={product} index={index} />
-              </TextInView>
+              <ProductTile product={product} index={index} />
             </CarouselItem>
           ))}
         </CarouselContent>
@@ -169,7 +166,7 @@ export async function NewArrivalsSection() {
   }, fallbackProducts2);
   return (
     <section className="padding-inline mt-28 md:mt-36">
-      <Carousel opts={{ align: "start", loop: true }} continuous speed={7}>
+      <Carousel opts={{ align: "start", loop: true }} continuous speed={20}>
         <div className="mb-8 flex items-end justify-between gap-5">
           <div>
             <p className="meta-font text-tertiary text-xs tracking-[0.2em] uppercase">
@@ -199,9 +196,7 @@ export async function NewArrivalsSection() {
               key={product.id}
               className="basis-[78%] sm:basis-[48%] lg:basis-[32%] xl:basis-[24%]"
             >
-              <TextInView delay={index * 0.1}>
-                <ProductTile product={product} index={index} />
-              </TextInView>
+              <ProductTile product={product} index={index} />
             </CarouselItem>
           ))}
         </CarouselContent>

@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import { cn } from "cn";
+import AutoScroll from "embla-carousel-auto-scroll";
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from "embla-carousel-react";
@@ -63,12 +64,24 @@ function Carousel({
       ...(continuous ? { loop: true } : {}),
       axis: orientation === "horizontal" ? "x" : "y",
     },
-    plugins,
+    React.useMemo(() => {
+      if (!continuous) return plugins;
+
+      return [
+        ...(plugins ?? []),
+        AutoScroll({
+          direction: opts?.direction === "rtl" ? "backward" : "forward",
+          speed: speed / 60,
+          startDelay: 0,
+          playOnInit: true,
+          stopOnInteraction: false,
+          stopOnMouseEnter: false,
+        }),
+      ];
+    }, [continuous, opts?.direction, plugins, speed]),
   );
   const [canScrollPrev, setCanScrollPrev] = React.useState(false);
   const [canScrollNext, setCanScrollNext] = React.useState(false);
-  const [isHovered, setIsHovered] = React.useState(false);
-  const isInteracting = React.useRef(false);
 
   const onSelect = React.useCallback((api: CarouselApi) => {
     if (!api) return;
@@ -76,13 +89,32 @@ function Carousel({
     setCanScrollNext(api.canScrollNext());
   }, []);
 
-  const scrollPrev = React.useCallback(() => {
-    api?.scrollPrev();
-  }, [api]);
+  const navigate = React.useCallback(
+    (direction: "prev" | "next") => {
+      if (!api) return;
 
-  const scrollNext = React.useCallback(() => {
-    api?.scrollNext();
-  }, [api]);
+      const autoScroll = api.plugins().autoScroll;
+      if (!continuous || !autoScroll?.isPlaying()) {
+        if (direction === "prev") api.scrollPrev();
+        else api.scrollNext();
+        return;
+      }
+
+      autoScroll.stop();
+      const resumeAutoScroll = () => {
+        api.off("settle", resumeAutoScroll);
+        autoScroll.play(0);
+      };
+      api.on("settle", resumeAutoScroll);
+
+      if (direction === "prev") api.scrollPrev();
+      else api.scrollNext();
+    },
+    [api, continuous],
+  );
+
+  const scrollPrev = React.useCallback(() => navigate("prev"), [navigate]);
+  const scrollNext = React.useCallback(() => navigate("next"), [navigate]);
 
   const handleKeyDown = React.useCallback(
     (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -113,75 +145,6 @@ function Carousel({
     };
   }, [api, onSelect]);
 
-  React.useEffect(() => {
-    if (!api || !continuous || isHovered) return;
-
-    let frameId = 0;
-    let previousTime = 0;
-
-    const stop = () => {
-      cancelAnimationFrame(frameId);
-      frameId = 0;
-      previousTime = 0;
-    };
-
-    const animate = (time: number) => {
-      if (isHovered || isInteracting.current) {
-        stop();
-        return;
-      }
-      if (!previousTime) previousTime = time;
-
-      const elapsed = Math.min((time - previousTime) / 1000, 0.05);
-      previousTime = time;
-      const distance = speed * elapsed;
-      const engine = api.internalEngine();
-
-      engine.location.add(-distance);
-      engine.offsetLocation.add(-distance);
-      engine.previousLocation.add(-distance);
-      engine.target.add(-distance);
-      engine.scrollLooper.loop(-1);
-      engine.slideLooper.loop();
-      engine.translate.to(engine.location.get());
-
-      frameId = requestAnimationFrame(animate);
-    };
-
-    const start = () => {
-      if (!frameId && !isHovered && !isInteracting.current) {
-        frameId = requestAnimationFrame(animate);
-      }
-    };
-    const pauseForInteraction = () => {
-      isInteracting.current = true;
-      stop();
-    };
-    const resumeAfterInteraction = () => {
-      isInteracting.current = false;
-      start();
-    };
-    const onPointerUp = () => {
-      if (api.internalEngine().scrollBody.settled()) {
-        resumeAfterInteraction();
-      }
-    };
-
-    api.on("pointerDown", pauseForInteraction);
-    api.on("pointerUp", onPointerUp);
-    api.on("select", pauseForInteraction);
-    api.on("settle", resumeAfterInteraction);
-    start();
-
-    return () => {
-      stop();
-      api.off("pointerDown", pauseForInteraction);
-      api.off("pointerUp", onPointerUp);
-      api.off("select", pauseForInteraction);
-      api.off("settle", resumeAfterInteraction);
-    };
-  }, [api, continuous, isHovered, speed]);
-
   return (
     <CarouselContext.Provider
       value={{
@@ -199,11 +162,9 @@ function Carousel({
       <div
         onKeyDownCapture={handleKeyDown}
         onMouseEnter={(event) => {
-          setIsHovered(true);
           onMouseEnter?.(event);
         }}
         onMouseLeave={(event) => {
-          setIsHovered(false);
           onMouseLeave?.(event);
         }}
         className={cn("relative", className)}
