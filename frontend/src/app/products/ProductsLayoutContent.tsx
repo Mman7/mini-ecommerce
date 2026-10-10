@@ -54,7 +54,7 @@ function ProductsLayoutView({ children }: { children: ReactNode }) {
           </p>
         </div>
       </section>
-      <div className="padding-inline mt-10 grid grid-cols-1 gap-4 lg:grid-cols-12">
+      <div className="mt-10 grid grid-cols-1 gap-4 p-6 lg:grid-cols-12">
         <ProductsAside categories={categories} />
         <div className="lg:col-span-9">{children}</div>
       </div>

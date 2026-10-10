@@ -7,11 +7,15 @@ import { stripeWebhook } from "./modules/payment/payment.controller.ts";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+// Stripe webhook endpoint for handling payment events.
+// Stripe need raw body for webhook signature verification.
 app.post(
   "/api/webhooks/stripe",
   express.raw({ type: "application/json" }),
   stripeWebhook,
 );
+
 // Set the upload directory, defaulting to a relative path if not specified in the environment
 // if cant find the UPLOAD_DIR in the environment variables, it will default to a directory named "uploads" located one level above the current working directory.
 const uploadDir =

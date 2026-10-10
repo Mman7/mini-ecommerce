@@ -21,7 +21,6 @@ import { formatYen, yenCurrency } from "@/src/lib/currency";
 
 const PRICE_MAX = 5000;
 const PRICE_STEP = 100;
-const PRICE_UPDATE_DELAY = 300;
 
 function normalizePrice(value: string | null, fallback: number) {
   // Normalize the price value from the URL search params, ensuring it falls within the allowed range.
@@ -43,7 +42,6 @@ export default function FiltersSidebar({
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const priceUpdateTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const lastUrlSearchName = useRef(searchParams.get("name") ?? "");
   const skipNextSearchUpdate = useRef(false);
@@ -103,12 +101,6 @@ export default function FiltersSidebar({
   }, [debouncedSearchName, router, searchParams]);
 
   useEffect(() => {
-    return () => {
-      cancelPriceUpdate();
-    };
-  }, []);
-
-  useEffect(() => {
     const closeSuggestions = (event: PointerEvent) => {
       if (
         searchContainerRef.current &&
@@ -121,10 +113,10 @@ export default function FiltersSidebar({
     return () => document.removeEventListener("pointerdown", closeSuggestions);
   }, []);
 
-  function cancelPriceUpdate() {
-    if (!priceUpdateTimeout.current) return;
-    clearTimeout(priceUpdateTimeout.current);
-    priceUpdateTimeout.current = null;
+  function previewPriceRange(value: number | readonly number[]) {
+    if (!Array.isArray(value)) return;
+    const [minPrice, maxPrice] = value;
+    setPriceRange([minPrice, maxPrice]);
   }
 
   function updatePriceRange(value: number | readonly number[]) {
@@ -132,19 +124,14 @@ export default function FiltersSidebar({
     const [minPrice, maxPrice] = value;
     setPriceRange([minPrice, maxPrice]);
 
-    cancelPriceUpdate();
-    priceUpdateTimeout.current = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      params.set("minPrice", String(minPrice));
-      params.set("maxPrice", String(maxPrice));
-      params.delete("page");
-      router.push(`/products?${params.toString()}`);
-      priceUpdateTimeout.current = null;
-    }, PRICE_UPDATE_DELAY);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("minPrice", String(minPrice));
+    params.set("maxPrice", String(maxPrice));
+    params.delete("page");
+    router.push(`/products?${params.toString()}`);
   }
 
   function updateFilter(key: string, value: string) {
-    cancelPriceUpdate();
     const params = new URLSearchParams(searchParams.toString());
     if (value) params.set(key, value);
     else params.delete(key);
@@ -154,7 +141,6 @@ export default function FiltersSidebar({
 
   function selectSearch(query: string) {
     const name = query.trim();
-    cancelPriceUpdate();
     setSearchName(name);
     setShowSuggestions(false);
 
@@ -312,7 +298,8 @@ export default function FiltersSidebar({
               max={PRICE_MAX}
               step={PRICE_STEP}
               value={priceRange}
-              onValueChange={updatePriceRange}
+              onValueChange={previewPriceRange}
+              onValueCommitted={updatePriceRange}
               className="py-2"
             />
             <div className="text-text-muted flex justify-between text-xs">
@@ -336,7 +323,6 @@ export default function FiltersSidebar({
         <button
           type="button"
           onClick={() => {
-            cancelPriceUpdate();
             setPriceRange([0, PRICE_MAX]);
             router.push("/products");
           }}

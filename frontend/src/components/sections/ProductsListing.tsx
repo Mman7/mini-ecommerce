@@ -1,10 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { Search } from "lucide-react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
 import type { ProductListResponse } from "../../api/product.api";
 import ProductGrid from "./ProductGrid";
 import SortingBar from "./SortingBar";
@@ -43,41 +39,8 @@ export default function ProductsListing({
   result: ProductListResponse | undefined;
   hasError: boolean;
 }) {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const query = searchParams.get("name") ?? "";
-  const [searchInput, setSearchInput] = useState(query);
-
-  useEffect(() => setSearchInput(query), [query]);
-
-  const debouncedSearch = useDebouncedCallback((value: string) => {
-    const params = new URLSearchParams(searchParams.toString());
-    const normalizedValue = value.trim();
-    if (normalizedValue) params.set("name", normalizedValue);
-    else params.delete("name");
-    params.delete("page");
-    const queryString = params.toString();
-    router.replace(queryString ? `/products?${queryString}` : "/products", {
-      scroll: false,
-    });
-  }, 300);
-
   return (
     <div id="catalog" className="md:col-span-9">
-      <label className="bg-surface-2 border-surface-3 mb-5 flex max-w-xl items-center gap-3 rounded-md border px-4 py-3">
-        <Search size={18} className="text-text-muted shrink-0" />
-        <input
-          type="search"
-          aria-label="Search products"
-          placeholder="Search the collection..."
-          value={searchInput}
-          onChange={(event) => {
-            setSearchInput(event.target.value);
-            debouncedSearch(event.target.value);
-          }}
-          className="text-foreground placeholder:text-text-muted w-full bg-transparent text-sm outline-none"
-        />
-      </label>
       <SortingBar total={result?.pagination.total ?? 0} />
       {hasError ? (
         <div className="padding-inline py-40 text-center">

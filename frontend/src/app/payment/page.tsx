@@ -169,21 +169,17 @@ export default function PaymentPage() {
     }
   }
   function continuePayment() {
-    paymentFormRef.current?.submit();
-  }
-  function submitPayment(confirmedPaymentIntentId: string) {
-    setPaymentIntentId(confirmedPaymentIntentId);
     setActionError("");
     completeStep(2);
   }
-  async function placeOrder() {
-    if (!address || items.length === 0) return;
-    setActionError("");
-    setAction("processing");
+  function submitPayment(confirmedPaymentIntentId: string) {
+    setPaymentIntentId(confirmedPaymentIntentId);
+    void waitForOrder(confirmedPaymentIntentId);
+  }
+  async function waitForOrder(confirmedPaymentIntentId: string) {
     try {
-      if (!paymentIntentId) throw new Error("Payment session is missing.");
       for (let attempt = 0; attempt < 15; attempt += 1) {
-        const payment = await paymentApi.status(paymentIntentId);
+        const payment = await paymentApi.status(confirmedPaymentIntentId);
         if (payment.order) {
           clearCart();
           setAction("success");
@@ -206,6 +202,20 @@ export default function PaymentPage() {
       );
       setAction("idle");
     }
+  }
+  function placeOrder() {
+    if (!address || items.length === 0) return;
+    setActionError("");
+    if (!paymentIntentId || !paymentFormRef.current) {
+      setActionError("The payment form is not ready. Please try again.");
+      return;
+    }
+    setAction("processing");
+    paymentFormRef.current.submit();
+  }
+  function handlePaymentError(message: string) {
+    setActionError(message);
+    setAction("idle");
   }
 
   if (loadState === PaymentLoadState.Loading)
@@ -318,7 +328,7 @@ export default function PaymentPage() {
                     onSelectAddress={setSelectedAddressId}
                   />
                 </StepperContent>
-                <StepperContent value={2} className="space-y-6">
+                <StepperContent value={2} forceMount className="space-y-6">
                   {clientSecret && (
                     <Elements
                       stripe={stripePromise}
@@ -326,7 +336,7 @@ export default function PaymentPage() {
                     >
                       <PaymentStep
                         ref={paymentFormRef}
-                        onError={setActionError}
+                        onError={handlePaymentError}
                         onValid={submitPayment}
                       />
                     </Elements>
@@ -487,7 +497,7 @@ function ShippingStep({
           </p>
           <Link
             href="/profile/addresses"
-            className="bg-primary-soft text-primary-foreground focus-amber hover:bg-primary mt-4 inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition"
+            className="bg-primary-soft text-primary-foreground! focus-amber hover:bg-primary mt-4 inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-semibold transition"
           >
             Add delivery address
           </Link>

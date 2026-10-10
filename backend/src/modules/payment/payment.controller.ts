@@ -23,6 +23,7 @@ export const createPaymentIntent = async (req: Request, res: Response) => {
   }
 };
 
+// for frontend to check the status of a specific payment intent
 export const getPaymentStatus = async (req: Request, res: Response) => {
   const { userId } = req.user as { userId: string };
   try {
@@ -41,7 +42,7 @@ export const getPaymentStatus = async (req: Request, res: Response) => {
   }
 };
 
-// The frontend uses this endpoint while waiting for webhook fulfillment.
+// Stripe webhook endpoint for handling payment events such as payment success and refunds.
 export const stripeWebhook = async (req: Request, res: Response) => {
   try {
     const signature = req.header("stripe-signature");

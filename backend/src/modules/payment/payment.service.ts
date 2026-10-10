@@ -1,10 +1,10 @@
 import Stripe from "stripe";
+import { stripe } from "../../configs/configs.js";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 import * as orderService from "../order/order.service.ts";
 import type { OrderItemInput } from "../../types/order.js";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "");
 const shippingCost = 500;
 const currency = process.env.STRIPE_CURRENCY ?? "jpy";
 
@@ -14,6 +14,9 @@ const requireStripeKey = () => {
   }
 };
 
+// Creates a payment intent for the authenticated user's current cart and specified delivery address.
+// this will create a PaymentIntent on Stripe and return the client secret
+// everytime the client checkout process is initiated.
 export const createPaymentIntent = async (
   userId: string,
   addressId: number,
@@ -35,10 +38,12 @@ export const createPaymentIntent = async (
     throw new Error("Your cart contains an inactive product");
   }
 
+  // Prepare the order items for the payment metadata.
   const items: OrderItemInput[] = cart.items.map((item) => ({
     productId: item.productId,
     quantity: item.quantity,
   }));
+  // Calculate the total amount including shipping cost.
   const amount =
     cart.items.reduce(
       (sum, item) => sum + Number(item.product.price) * item.quantity,
