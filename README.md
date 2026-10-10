@@ -4,6 +4,28 @@ A learning-focused full-stack storefront for a small gift and stationery shop. T
 
 This project is still evolving. Some frontend areas are connected to the API while others remain mock, seeded, or presentation-focused. The Compose setup is for development and is not production-ready as-is; see [Deployment](#deployment).
 
+## # Video Showcase
+See the storefront and admin experience in action, including product browsing, product details, cart and checkout flows, customer account pages, wishlist functionality, and the admin dashboard.
+
+<!-- Replace the placeholder with the actual showcase video URL/embed. -->
+
+🎥 HomePage
+
+
+
+https://github.com/user-attachments/assets/d591ddfa-5da0-4175-903d-c004be329d1d
+
+https://github.com/user-attachments/assets/17c4f8f1-e4d0-46bf-9723-484a24a44771
+
+
+
+
+
+
+
+The showcase demonstrates the current state of the application and highlights both completed API-connected workflows and frontend areas that are still using mock or seeded data.
+
+
 ## What It Builds
 
 - A customer storefront with product browsing, product details, cart, checkout, profile, address, order, and wishlist screens.
