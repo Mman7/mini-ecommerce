@@ -18,6 +18,11 @@ services:
       - cron.database_name=${POSTGRES_DB}
       - -c
       - cron.timezone=Asia/Kuala_Lumpur
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   backend:
     build:
@@ -25,13 +30,25 @@ services:
       dockerfile: Dockerfile
     container_name: backend_api
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     env_file:
       - ./backend/.env.docker
     environment:
       - UPLOAD_DIR=/app/uploads
     volumes:
       - ./uploads:/app/uploads
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:5000/healthz').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   frontend:
     build:
@@ -39,9 +56,21 @@ services:
       dockerfile: Dockerfile
     container_name: frontend_app
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
     environment:
       - BACKEND_URL=http://backend:5000
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://localhost:3000').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
 volumes:
   postgres_data:

@@ -3,10 +3,33 @@ import { stripe } from "../../configs/configs.js";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 import * as orderService from "../order/order.service.ts";
-import type { OrderItemInput } from "../../types/order.js";
 
 const shippingCost = 500;
-const currency = process.env.STRIPE_CURRENCY ?? "jpy";
+const currency = (process.env.STRIPE_CURRENCY ?? "jpy").toLowerCase();
+const reservationDurationMs = 30 * 60 * 1000;
+const zeroDecimalCurrencies = new Set([
+  "bif",
+  "clp",
+  "djf",
+  "gnf",
+  "jpy",
+  "kmf",
+  "krw",
+  "mga",
+  "pyg",
+  "rwf",
+  "ugx",
+  "vnd",
+  "vuv",
+  "xaf",
+  "xof",
+  "xpf",
+]);
+
+const currencyFactor = (code: string) =>
+  zeroDecimalCurrencies.has(code) ? 1 : 100;
+const amountInMinorUnits = (amount: number, code: string) =>
+  Math.round(amount * currencyFactor(code));
 
 const requireStripeKey = () => {
   if (!process.env.STRIPE_SECRET_KEY) {
@@ -22,50 +45,160 @@ export const createPaymentIntent = async (
   addressId: number,
 ) => {
   requireStripeKey();
+  await releaseExpiredReservations();
 
-  // Re-read the cart and prices on the server so the client cannot change the payable amount.
-  const [cart, address] = await Promise.all([
-    prisma.cart.findUnique({
-      where: { userId },
-      include: { items: { include: { product: true } } },
-    }),
-    prisma.userAddress.findFirst({ where: { id: addressId, userId } }),
-  ]);
-
-  if (!address) throw new Error("Delivery address not found");
-  if (!cart?.items.length) throw new Error("Your cart is empty");
-  if (cart.items.some((item) => !item.product.isActive)) {
-    throw new Error("Your cart contains an inactive product");
+  const existingReservation = await prisma.checkoutReservation.findUnique({
+    where: { activeUserId: userId },
+  });
+  if (existingReservation) {
+    if (!existingReservation.paymentIntentId) {
+      throw new Error(
+        "A checkout is already being prepared. Please retry shortly.",
+      );
+    }
+    const existingIntent = await stripe.paymentIntents.retrieve(
+      existingReservation.paymentIntentId,
+    );
+    if (existingIntent.status === "canceled") {
+      await releaseReservation(existingReservation.id);
+    } else if (existingIntent.status === "succeeded") {
+      await fulfillPaymentIntent(existingIntent);
+      throw new Error("Payment already completed. Please view your orders.");
+    } else {
+      return {
+        clientSecret: existingIntent.client_secret,
+        paymentIntentId: existingIntent.id,
+        amount: Number(existingReservation.amount),
+        currency: existingReservation.currency,
+      };
+    }
   }
 
-  // Prepare the order items for the payment metadata.
-  const items: OrderItemInput[] = cart.items.map((item) => ({
-    productId: item.productId,
-    quantity: item.quantity,
-  }));
-  // Calculate the total amount including shipping cost.
-  const amount =
-    cart.items.reduce(
-      (sum, item) => sum + Number(item.product.price) * item.quantity,
-      0,
-    ) + shippingCost;
+  const expiresAt = new Date(Date.now() + reservationDurationMs);
+  const reservation = await prisma.$transaction(async (transaction) => {
+    const address = await transaction.userAddress.findFirst({
+      where: { id: addressId, userId },
+    });
+    if (!address) throw new Error("Delivery address not found");
 
-  // Store the order context on Stripe so the webhook can fulfill the payment without trusting the browser.
-  const paymentIntent = await stripe.paymentIntents.create({
-    amount: Math.round(amount),
-    currency,
-    automatic_payment_methods: { enabled: true },
-    metadata: {
-      userId,
-      addressId: String(addressId),
-      items: JSON.stringify(items),
-    },
+    const user = await transaction.user.findUnique({
+      where: { userId },
+      select: { name: true },
+    });
+    if (!user) throw new Error("Account not found");
+
+    const cart = await transaction.cart.findUnique({
+      where: { userId },
+      include: {
+        items: {
+          include: {
+            product: {
+              include: {
+                inventory: true,
+                productImages: {
+                  where: { isThumbnail: true },
+                  take: 1,
+                  select: { url: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    if (!cart?.items.length) throw new Error("Your cart is empty");
+
+    const quantities = new Map<number, number>();
+    for (const item of cart.items) {
+      quantities.set(
+        item.productId,
+        (quantities.get(item.productId) ?? 0) + item.quantity,
+      );
+    }
+
+    const products = new Map(
+      cart.items.map((item) => [item.productId, item.product]),
+    );
+    const reservationItems = [...quantities.entries()].map(
+      ([productId, quantity]) => {
+        const product = products.get(productId);
+        if (!product || !product.isActive) {
+          throw new Error(`Product ${productId} is inactive or unavailable`);
+        }
+        if (!Number.isInteger(quantity) || quantity < 1) {
+          throw new Error(`Invalid quantity for product ${productId}`);
+        }
+        return {
+          productId,
+          quantity,
+          productName: product.name,
+          productSlug: product.slug,
+          productImageUrl: product.productImages[0]?.url ?? null,
+          unitPrice: product.price,
+        };
+      },
+    );
+
+    const subtotal = reservationItems.reduce(
+      (sum, item) => sum + Number(item.unitPrice) * item.quantity,
+      0,
+    );
+    const amount =
+      amountInMinorUnits(subtotal + shippingCost, currency) /
+      currencyFactor(currency);
+
+    for (const item of reservationItems) {
+      const reserved = await transaction.inventory.updateMany({
+        where: { productId: item.productId, stock: { gte: item.quantity } },
+        data: { stock: { decrement: item.quantity } },
+      });
+      if (reserved.count !== 1) {
+        throw new Error(`Insufficient stock for product ${item.productId}`);
+      }
+    }
+
+    return transaction.checkoutReservation.create({
+      data: {
+        userId,
+        activeUserId: userId,
+        amount,
+        currency,
+        expiresAt,
+        deliveryName: user.name,
+        deliveryAddressLine1: address.addressLine,
+        deliveryCity: address.city,
+        deliveryState: address.state,
+        deliveryPostcode: address.postalCode,
+        deliveryCountry: address.country,
+        items: { create: reservationItems },
+      },
+    });
   });
+
+  let paymentIntent: Stripe.PaymentIntent;
+  try {
+    paymentIntent = await stripe.paymentIntents.create(
+      {
+        amount: amountInMinorUnits(Number(reservation.amount), currency),
+        currency,
+        automatic_payment_methods: { enabled: true },
+        metadata: { userId, reservationId: reservation.id },
+      },
+      { idempotencyKey: `checkout-${reservation.id}` },
+    );
+    await prisma.checkoutReservation.update({
+      where: { id: reservation.id },
+      data: { paymentIntentId: paymentIntent.id },
+    });
+  } catch (error) {
+    await releaseReservation(reservation.id);
+    throw error;
+  }
 
   return {
     clientSecret: paymentIntent.client_secret,
     paymentIntentId: paymentIntent.id,
-    amount,
+    amount: Number(reservation.amount),
     currency,
   };
 };
@@ -73,19 +206,94 @@ export const createPaymentIntent = async (
 export const fulfillPaymentIntent = async (
   paymentIntent: Stripe.PaymentIntent,
 ) => {
-  // PaymentIntent metadata is the link between Stripe's payment and our order.
-  const { userId, addressId, items } = paymentIntent.metadata;
-  if (!userId || !addressId || !items) {
+  const { userId, reservationId } = paymentIntent.metadata;
+  if (!userId || !reservationId || paymentIntent.status !== "succeeded") {
     throw new Error("PaymentIntent metadata is incomplete");
   }
-
-  // The order service uses the PaymentIntent ID as a unique idempotency key.
-  return orderService.createOrderFromPaymentIntent({
-    paymentIntentId: paymentIntent.id,
-    userId,
-    addressId: Number(addressId),
-    items: JSON.parse(items) as OrderItemInput[],
+  const reservation = await prisma.checkoutReservation.findUnique({
+    where: { id: reservationId },
   });
+  if (
+    !reservation ||
+    reservation.userId !== userId ||
+    reservation.paymentIntentId !== paymentIntent.id ||
+    reservation.currency !== paymentIntent.currency ||
+    amountInMinorUnits(Number(reservation.amount), reservation.currency) !==
+      paymentIntent.amount ||
+    paymentIntent.amount_received !== paymentIntent.amount
+  ) {
+    throw new Error("PaymentIntent does not match its checkout reservation");
+  }
+  return orderService.fulfillReservedOrder(reservation.id, paymentIntent.id);
+};
+
+export const releaseReservation = async (reservationId: string) =>
+  prisma.$transaction(async (transaction) => {
+    const reservation = await transaction.checkoutReservation.findUnique({
+      where: { id: reservationId },
+      include: { items: true },
+    });
+    if (!reservation || reservation.status !== "RESERVED") return false;
+
+    const released = await transaction.checkoutReservation.updateMany({
+      where: { id: reservationId, status: "RESERVED" },
+      data: { status: "RELEASED", activeUserId: null },
+    });
+    if (released.count !== 1) return false;
+
+    for (const item of reservation.items) {
+      await transaction.inventory.update({
+        where: { productId: item.productId },
+        data: { stock: { increment: item.quantity } },
+      });
+    }
+    return true;
+  });
+
+export const releaseExpiredReservations = async () => {
+  if (!process.env.STRIPE_SECRET_KEY) return;
+  const expired = await prisma.checkoutReservation.findMany({
+    where: { status: "RESERVED", expiresAt: { lte: new Date() } },
+    include: { items: true },
+    take: 100,
+  });
+
+  for (const reservation of expired) {
+    if (reservation.paymentIntentId) {
+      try {
+        let intent = await stripe.paymentIntents.retrieve(
+          reservation.paymentIntentId,
+        );
+        if (intent.status === "succeeded") {
+          await fulfillPaymentIntent(intent);
+          continue;
+        }
+        if (intent.status !== "canceled") {
+          intent = await stripe.paymentIntents.cancel(intent.id);
+        }
+        if (intent.status !== "canceled") {
+          throw new Error("PaymentIntent cannot be canceled yet");
+        }
+      } catch {
+        await prisma.checkoutReservation.updateMany({
+          where: { id: reservation.id, status: "RESERVED" },
+          data: { expiresAt: new Date(Date.now() + 5 * 60 * 1000) },
+        });
+        continue;
+      }
+    }
+    await releaseReservation(reservation.id);
+  }
+};
+
+export const releaseCanceledPaymentIntent = async (
+  paymentIntent: Stripe.PaymentIntent,
+) => {
+  const reservation = await prisma.checkoutReservation.findFirst({
+    where: { paymentIntentId: paymentIntent.id, status: "RESERVED" },
+    select: { id: true },
+  });
+  if (reservation) await releaseReservation(reservation.id);
 };
 
 export const markRefundCompleted = async (refund: Stripe.Refund) => {
@@ -178,6 +386,10 @@ export const getPaymentStatus = async (
 ) => {
   requireStripeKey();
   const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+  if (paymentIntent.metadata.userId !== userId) {
+    throw new Error("Payment not found");
+  }
+
   let order = await orderService.getOrderByPaymentIntentId(paymentIntentId);
   if (order && order.userId !== userId) throw new Error("Payment not found");
 
@@ -185,6 +397,9 @@ export const getPaymentStatus = async (
   // In production, the normal path is the payment_intent.succeeded webhook.
   if (!order && paymentIntent.status === "succeeded") {
     order = await fulfillPaymentIntent(paymentIntent);
+  }
+  if (paymentIntent.status === "canceled") {
+    await releaseCanceledPaymentIntent(paymentIntent);
   }
 
   return { status: paymentIntent.status, order };

@@ -35,6 +35,7 @@ export const createProduct = async ({
   slug: requestedSlug,
   description,
   price,
+  sku,
   productImages,
   categoryId,
   stock = 0,
@@ -53,6 +54,7 @@ export const createProduct = async ({
           slug,
           description,
           price,
+          ...(sku ? { sku } : {}),
           ...(categoryId !== undefined ? { categoryId } : {}),
           productImages: {
             create: productImages.map(
@@ -396,23 +398,9 @@ export const deleteProductImageById = async (
 };
 
 export const deleteProductById = async (id: number) => {
-  const images = await prisma.productImage.findMany({
+  return prisma.product.update({
     where: { productId: id },
-    select: { url: true },
-  });
-  // guard if there are no images to delete
-  if (images.length > 0) {
-    await Promise.all(images.map(({ url }) => deleteFileByPath(url)));
-  }
-
-  return prisma.$transaction(async (transaction) => {
-    await transaction.productImage.deleteMany({
-      where: { productId: id },
-    });
-
-    return transaction.product.delete({
-      where: { productId: id },
-    });
+    data: { isActive: false },
   });
 };
 

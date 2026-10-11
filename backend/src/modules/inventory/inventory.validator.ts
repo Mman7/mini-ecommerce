@@ -21,8 +21,7 @@ export const validateStockBody = (
   if (
     !Number.isInteger(productId) ||
     productId < 1 ||
-    typeof stock !== "number" ||
-    !Number.isFinite(stock) ||
+    !Number.isInteger(stock) ||
     stock < 0
   ) {
     return res.status(400).json({
@@ -42,8 +41,7 @@ export const validateStockUpdate = (
   if (
     typeof req.params.productId !== "string" ||
     !req.params.productId ||
-    typeof stock !== "number" ||
-    !Number.isFinite(stock) ||
+    !Number.isInteger(stock) ||
     stock < 0
   ) {
     return res.status(400).json({

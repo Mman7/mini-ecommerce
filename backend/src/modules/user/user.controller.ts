@@ -62,15 +62,12 @@ export const handleUpdateUser = async (req: Request, res: Response) => {
 
 export const handleDeleteUser = async (req: Request, res: Response) => {
   if (!req.user) return res.status(401).json({ message: "Unauthorized" });
-  // check if the user is trying to delete their own account
-  if (req.user.userId !== req.params.id) {
-    return res
-      .status(403)
-      .json({ message: "Forbidden: You can only delete your own account." });
+  try {
+    await userService.deleteUserData(req.user.userId);
+    return res.status(200).json({ message: "Account deleted successfully" });
+  } catch {
+    return res.status(500).json({ message: "Unable to delete account" });
   }
-  await userService.deleteUserData(req.user.userId);
-
-  return res.status(200).json({ message: "User deleted successfully!" });
 };
 
 export const handleGetAddresses = async (req: Request, res: Response) => {
@@ -251,8 +248,11 @@ export const getCustomerExport = async (req: Request, res: Response) => {
   try {
     const query = { ...res.locals.adminCustomerQuery, page: 1, limit: 100000 };
     const { items } = await userService.getCustomersForAdmin(query);
-    const escape = (value: string | number | null) =>
-      `"${String(value ?? "").replaceAll('"', '""')}"`;
+    const escape = (value: string | number | null) => {
+      const text = String(value ?? "");
+      const safeText = /^[\t\r ]*[=+\-@]/.test(text) ? `'${text}` : text;
+      return `"${safeText.replaceAll('"', '""')}"`;
+    };
     const rows = [
       "Customer ID,Name,Email,Phone,Orders,Total Spent,Last Order,Status,Created At",
     ];

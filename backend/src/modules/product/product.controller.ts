@@ -117,7 +117,13 @@ export const createProduct = async (req: Request, res: Response) => {
     });
   }
 
-  if (!name || !description || !price) {
+  if (
+    typeof name !== "string" ||
+    !name.trim() ||
+    typeof description !== "string" ||
+    !description.trim() ||
+    price === undefined
+  ) {
     return res
       .status(400)
       .json({ error: "Name, description, and price are required" });
@@ -129,10 +135,27 @@ export const createProduct = async (req: Request, res: Response) => {
 
     // try parse price to number
     const parsedPrice = Number(price);
-    if (isNaN(parsedPrice) || parsedPrice < 0) {
+    if (!Number.isFinite(parsedPrice) || parsedPrice < 0) {
       return res
         .status(400)
         .json({ error: "Price must be a non-negative number" });
+    }
+    const parsedStock = stock === undefined ? 0 : Number(stock);
+    const parsedReorderAt =
+      reorderAt === undefined ? undefined : Number(reorderAt);
+    const parsedCategoryId =
+      categoryId === undefined ? undefined : Number(categoryId);
+    if (
+      !Number.isInteger(parsedStock) ||
+      parsedStock < 0 ||
+      (parsedReorderAt !== undefined &&
+        (!Number.isInteger(parsedReorderAt) || parsedReorderAt < 0)) ||
+      (parsedCategoryId !== undefined &&
+        (!Number.isInteger(parsedCategoryId) || parsedCategoryId < 1))
+    ) {
+      return res
+        .status(400)
+        .json({ error: "Stock, reorder point, or category is invalid" });
     }
 
     const thumbnailImage: ProductImage = {
@@ -167,9 +190,11 @@ export const createProduct = async (req: Request, res: Response) => {
       createdAt: new Date(),
       updatedAt: new Date(),
       productImages: [thumbnailImage, ...imageList],
-      stock: stock === undefined ? 0 : Number(stock),
-      ...(categoryId ? { categoryId: Number(categoryId) } : {}),
-      ...(reorderAt === undefined ? {} : { reorderAt: Number(reorderAt) }),
+      stock: parsedStock,
+      ...(parsedCategoryId !== undefined
+        ? { categoryId: parsedCategoryId }
+        : {}),
+      ...(parsedReorderAt === undefined ? {} : { reorderAt: parsedReorderAt }),
     };
 
     const product = await productService.createProduct(productData);
@@ -350,6 +375,19 @@ export const updateProduct = async (req: Request, res: Response) => {
     return res
       .status(400)
       .json({ message: "At least one field must be provided for update" });
+  }
+
+  if (
+    (price !== undefined && (!Number.isFinite(price) || price < 0)) ||
+    (name !== undefined && (typeof name !== "string" || !name.trim())) ||
+    (description !== undefined &&
+      (typeof description !== "string" || !description.trim())) ||
+    (isActive !== undefined && typeof isActive !== "boolean") ||
+    (categoryId !== undefined &&
+      categoryId !== null &&
+      (!Number.isInteger(categoryId) || categoryId < 1))
+  ) {
+    return res.status(400).json({ message: "Invalid product update fields" });
   }
 
   try {

@@ -212,7 +212,7 @@ export default function CustomerDetailPage() {
                 label="Total spent"
                 labelClassName="text-sm tracking-widest"
                 value={money.format(customer.totalSpent)}
-                valueClassName="text-primary"
+                valueClassName="text-primary text-3xl"
                 action={<p>Lifetime gross</p>}
                 actionClassName="text-text-muted text-sm"
               />
@@ -226,7 +226,7 @@ export default function CustomerDetailPage() {
               />
               <Info
                 label="Last order"
-                valueClassName="text-2xl"
+                valueClassName="text-3xl"
                 value={
                   customer.lastOrder
                     ? new Date(customer.lastOrder).toLocaleDateString()

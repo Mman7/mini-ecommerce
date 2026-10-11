@@ -4,8 +4,15 @@ import fs from "fs";
 import path from "path";
 import { randomUUID } from "crypto";
 import type { Request } from "express";
+import type { NextFunction, Response } from "express";
+import { fileTypeFromFile } from "file-type";
 
 const allowedMimeTypes = ["image/jpeg", "image/png", "image/webp"];
+const imageExtensions: Record<string, string> = {
+  "image/jpeg": ".jpg",
+  "image/png": ".png",
+  "image/webp": ".webp",
+};
 
 // create the uploads directory if it doesn't exist
 const uploadDir =
@@ -18,7 +25,8 @@ const storage = multer.diskStorage({
   destination: uploadDir,
 
   filename: (_req: Request, file: Express.Multer.File, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext =
+      imageExtensions[file.mimetype] ?? path.extname(file.originalname);
     cb(null, `${randomUUID()}${ext}`);
   },
 });
@@ -42,3 +50,40 @@ export const upload = multer({
     fileSize: 5 * 1024 * 1024,
   },
 });
+
+export const validateUploadedImages = async (
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) => {
+  const files = [
+    ...(req.file ? [req.file] : []),
+    ...Object.values(req.files ?? {}).flat(),
+  ];
+
+  try {
+    for (const file of files) {
+      const detected = await fileTypeFromFile(file.path);
+      if (!detected || !allowedMimeTypes.includes(detected.mime)) {
+        await Promise.all(
+          files.map((uploaded) =>
+            fs.promises.unlink(uploaded.path).catch(() => undefined),
+          ),
+        );
+        return res
+          .status(400)
+          .json({
+            message: "Uploaded file is not a valid JPEG, PNG, or WebP image",
+          });
+      }
+    }
+    next();
+  } catch (error) {
+    await Promise.all(
+      files.map((uploaded) =>
+        fs.promises.unlink(uploaded.path).catch(() => undefined),
+      ),
+    );
+    next(error);
+  }
+};

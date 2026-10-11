@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 import type { UserUpdateInput } from "../../generated/prisma/models.ts";
@@ -356,10 +357,43 @@ export const deleteAddress = async (userId: string, addressId: number) => {
 };
 
 export const deleteUserData = async (accessTokenSub: string) => {
-  const user = await prisma.user.delete({
-    where: { userId: accessTokenSub },
+  return prisma.$transaction(async (transaction) => {
+    await transaction.refreshToken.deleteMany({
+      where: { userId: accessTokenSub },
+    });
+    await transaction.userAddress.deleteMany({
+      where: { userId: accessTokenSub },
+    });
+    await transaction.cartItem.deleteMany({
+      where: { cart: { userId: accessTokenSub } },
+    });
+    await transaction.cart.deleteMany({ where: { userId: accessTokenSub } });
+    await transaction.favourite.deleteMany({
+      where: { userId: accessTokenSub },
+    });
+    await transaction.order.updateMany({
+      where: { userId: accessTokenSub },
+      data: {
+        deliveryName: null,
+        deliveryAddressLine1: "Removed",
+        deliveryAddressLine2: null,
+        deliveryCity: "Removed",
+        deliveryCountry: "Removed",
+        deliveryPostcode: "Removed",
+        deliveryState: null,
+      },
+    });
+    return transaction.user.update({
+      where: { userId: accessTokenSub },
+      data: {
+        name: "Deleted account",
+        email: `deleted+${accessTokenSub}@invalid.local`,
+        phoneNumber: null,
+        passwordHash: randomUUID(),
+        isActive: false,
+      },
+    });
   });
-  return user;
 };
 
 export const activeUser = async (userId: string) => {
@@ -372,10 +406,12 @@ export const activeUser = async (userId: string) => {
 };
 
 export const inactiveUser = async (userId: string) => {
-  // update user status to inactive in the database using prisma
-  const user = await prisma.user.update({
-    where: { userId },
-    data: { isActive: false },
+  const user = await prisma.$transaction(async (transaction) => {
+    await transaction.refreshToken.deleteMany({ where: { userId } });
+    return transaction.user.update({
+      where: { userId },
+      data: { isActive: false },
+    });
   });
   return user;
 };

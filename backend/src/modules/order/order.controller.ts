@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import * as orderService from "./order.service.ts";
-import type { OrderItemInput } from "../../types/order.js";
 import { OrderStatus } from "../../enums/order_status.ts";
 
 const parseAdminPageQuery = (req: Request) => {
@@ -99,35 +98,6 @@ export const cancelAdminOrder = async (req: Request, res: Response) => {
       message:
         error instanceof Error ? error.message : "Failed to cancel order",
     });
-  }
-};
-
-export const createOrder = async (req: Request, res: Response) => {
-  const { userId } = req.user as { userId: string };
-
-  try {
-    const { orderProduct, addressId } = req.body as {
-      orderProduct: OrderItemInput[];
-      addressId: number;
-    };
-
-    // create order in the database
-    const order = await orderService.createOrder(
-      userId,
-      orderProduct,
-      addressId,
-    );
-
-    res.status(201).json({ msg: "Order created successfully", order });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message === "Delivery address not found"
-    ) {
-      return res.status(404).json({ error: error.message });
-    }
-    console.error(error);
-    res.status(500).json({ error: "Failed to create order" });
   }
 };
 

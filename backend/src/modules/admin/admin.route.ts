@@ -8,7 +8,10 @@ import {
 import * as productController from "../product/product.controller.ts";
 import * as categoryController from "../category/category.controller.ts";
 import * as userController from "../user/user.controller.ts";
-import { upload } from "../../middleware/upload.middleware.ts";
+import {
+  upload,
+  validateUploadedImages,
+} from "../../middleware/upload.middleware.ts";
 import { handleSingleImageUploadError } from "../../middleware/upload-error.middleware.ts";
 import {
   validateCategoryId,
@@ -36,18 +39,21 @@ adminRoute.post(
     { name: "thumbnail", maxCount: 1 },
     { name: "images", maxCount: 5 },
   ]),
+  validateUploadedImages,
   productController.createProduct,
 );
 adminRoute.patch("/products/:id", productController.updateProduct);
 adminRoute.patch(
   "/products/:productId/images/:imageId",
   upload.single("image"),
+  validateUploadedImages,
   handleSingleImageUploadError,
   productController.updateProductImage,
 );
 adminRoute.post(
   "/products/:productId/images",
   upload.single("image"),
+  validateUploadedImages,
   handleSingleImageUploadError,
   productController.createProductImage,
 );

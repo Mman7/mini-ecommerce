@@ -4,6 +4,8 @@ services:
       - "5432:5432"
 
   backend:
+    build:
+      target: development
     ports:
       - "5000:5000"
     command: npm run dev
@@ -28,6 +30,8 @@ services:
           path: ./backend/Dockerfile
 
   frontend:
+    build:
+      target: development
     ports:
       - "3000:3000"
     command: npm run dev

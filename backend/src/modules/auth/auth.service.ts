@@ -84,6 +84,7 @@ export async function loginAccount(
   });
 
   if (!user) throw new Error("Invalid email or password");
+  if (!user.isActive) throw new Error("Invalid email or password");
   if (!user.passwordHash) throw new Error("User does not have a password set");
 
   // Generate access token and refresh token
@@ -137,10 +138,18 @@ export async function refreshAccessToken(
 ): Promise<ServiceResponse> {
   try {
     const { trustedUserId } = await validateUserRefreshToken(refreshToken);
-    const { userId, email, role, name } = await prisma.user.findUniqueOrThrow({
-      where: { userId: trustedUserId },
-      select: { userId: true, email: true, role: true, name: true },
-    });
+    const { userId, email, role, name, isActive } =
+      await prisma.user.findUniqueOrThrow({
+        where: { userId: trustedUserId },
+        select: {
+          userId: true,
+          email: true,
+          role: true,
+          name: true,
+          isActive: true,
+        },
+      });
+    if (!isActive) throw new Error("Invalid refresh token");
 
     const newAccessToken = signAccessToken({
       sub: trustedUserId,

@@ -1,4 +1,3 @@
-import type { OrderItemInput } from "../../types/order.js";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 
@@ -64,123 +63,69 @@ Order Flow
 Pending → Paid → Processing → Shipped → Delivered
 */
 
-export const createOrder = async (
-  userId: string,
-  items: OrderItemInput[],
-  addressId: number,
-  stripePaymentIntentId?: string,
-) => {
-  if (!Number.isInteger(addressId) || addressId < 1) {
-    throw new Error("A valid delivery address is required");
-  }
-
-  if (
-    items.length === 0 ||
-    items.some(
-      (item) =>
-        !Number.isInteger(item.productId) ||
-        !Number.isInteger(item.quantity) ||
-        item.quantity <= 0,
-    )
-  ) {
-    throw new Error("Each order item must have a valid product and quantity");
-  }
-
-  if (stripePaymentIntentId) {
-    const existingOrder = await prisma.order.findUnique({
-      where: { stripePaymentIntentId },
+export const fulfillReservedOrder = async (
+  reservationId: string,
+  paymentIntentId: string,
+) =>
+  prisma.$transaction(async (transaction) => {
+    const existingOrder = await transaction.order.findUnique({
+      where: { stripePaymentIntentId: paymentIntentId },
     });
     if (existingOrder) return existingOrder;
-  }
 
-  return prisma.$transaction(async (transaction) => {
-    const address = await transaction.userAddress.findFirst({
-      where: { id: addressId, userId },
-      select: {
-        addressLine: true,
-        city: true,
-        state: true,
-        postalCode: true,
-        country: true,
-      },
+    const reservation = await transaction.checkoutReservation.findUnique({
+      where: { id: reservationId },
+      include: { items: true },
     });
-    if (!address) throw new Error("Delivery address not found");
-
-    const productIds = [...new Set(items.map((item) => item.productId))];
-    const products = await transaction.product.findMany({
-      where: { productId: { in: productIds } },
-      select: { productId: true, price: true, isActive: true },
-    });
-    const productsById = new Map(
-      products.map((product) => [product.productId, product]),
-    );
-    const productsWithPrices = [];
-
-    for (const item of items) {
-      const product = productsById.get(item.productId);
-
-      if (!product) throw new Error(`Product ${item.productId} not found`);
-      if (!product.isActive) {
-        throw new Error(`Product ${item.productId} is inactive`);
-      }
-
-      const stockUpdate = await transaction.inventory.updateMany({
-        where: {
-          productId: item.productId,
-          stock: { gte: item.quantity },
-        },
-        data: { stock: { decrement: item.quantity } },
-      });
-
-      if (stockUpdate.count !== 1) {
-        throw new Error(`Insufficient stock for product ${item.productId}`);
-      }
-
-      productsWithPrices.push({ ...item, price: product.price });
+    if (!reservation || reservation.paymentIntentId !== paymentIntentId) {
+      throw new Error("Checkout reservation not found");
+    }
+    if (reservation.status !== "RESERVED") {
+      throw new Error("Checkout reservation is no longer active");
     }
 
-    const subtotal = productsWithPrices.reduce(
-      (sum, item) => sum + Number(item.price) * item.quantity,
-      0,
-    );
-    const total = subtotal + shippingCost;
-    await transaction.cartItem.deleteMany({
-      where: { cart: { userId } },
+    const claimed = await transaction.checkoutReservation.updateMany({
+      where: { id: reservationId, status: "RESERVED" },
+      data: { status: "FULFILLED", activeUserId: null },
     });
+    if (claimed.count !== 1) {
+      const concurrentOrder = await transaction.order.findUnique({
+        where: { stripePaymentIntentId: paymentIntentId },
+      });
+      if (concurrentOrder) return concurrentOrder;
+      throw new Error("Checkout reservation has already been claimed");
+    }
+
+    await transaction.cartItem.deleteMany({
+      where: { cart: { userId: reservation.userId } },
+    });
+
     return transaction.order.create({
       data: {
-        userId,
-        total,
+        userId: reservation.userId,
+        total: reservation.amount,
         status: OrderStatus.PAID,
-        ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
-        deliveryAddressLine1: address.addressLine,
-        deliveryCity: address.city,
-        deliveryState: address.state,
-        deliveryPostcode: address.postalCode,
-        deliveryCountry: address.country,
+        stripePaymentIntentId: paymentIntentId,
+        deliveryName: reservation.deliveryName,
+        deliveryAddressLine1: reservation.deliveryAddressLine1,
+        deliveryAddressLine2: reservation.deliveryAddressLine2,
+        deliveryCity: reservation.deliveryCity,
+        deliveryState: reservation.deliveryState,
+        deliveryPostcode: reservation.deliveryPostcode,
+        deliveryCountry: reservation.deliveryCountry,
         orderItems: {
-          create: productsWithPrices.map((item) => ({
+          create: reservation.items.map((item) => ({
             productId: item.productId,
+            productName: item.productName,
+            productSlug: item.productSlug,
+            productImageUrl: item.productImageUrl,
             quantity: item.quantity,
-            price: item.price,
+            price: item.unitPrice,
           })),
         },
       },
     });
   });
-};
-
-export const createOrderFromPaymentIntent = async ({
-  paymentIntentId,
-  userId,
-  addressId,
-  items,
-}: {
-  paymentIntentId: string;
-  userId: string;
-  addressId: number;
-  items: OrderItemInput[];
-}) => createOrder(userId, items, addressId, paymentIntentId);
 
 export const getOrderByPaymentIntentId = async (paymentIntentId: string) =>
   prisma.order.findUnique({
@@ -202,11 +147,31 @@ export const getOrderById = async (orderId: string) => {
       },
     },
   });
-  return order;
+  if (!order) return null;
+  return {
+    ...order,
+    orderItems: order.orderItems.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        name: item.productName,
+        slug: item.productSlug,
+        productImages: item.productImageUrl
+          ? [
+              {
+                url: item.productImageUrl,
+                altText: item.productName,
+                isThumbnail: true,
+              },
+            ]
+          : item.product.productImages,
+      },
+    })),
+  };
 };
 
 export const getOrdersByUser = async (userId: string) => {
-  return prisma.order.findMany({
+  const orders = await prisma.order.findMany({
     where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
@@ -219,6 +184,26 @@ export const getOrdersByUser = async (userId: string) => {
       },
     },
   });
+  return orders.map((order) => ({
+    ...order,
+    orderItems: order.orderItems.map((item) => ({
+      ...item,
+      product: {
+        ...item.product,
+        name: item.productName,
+        slug: item.productSlug,
+        productImages: item.productImageUrl
+          ? [
+              {
+                url: item.productImageUrl,
+                altText: item.productName,
+                isThumbnail: true,
+              },
+            ]
+          : item.product.productImages,
+      },
+    })),
+  }));
 };
 
 export const getTotalOrders = () => prisma.order.count();
@@ -340,6 +325,17 @@ export const getOrderForAdmin = async (orderId: string) => {
         price: Number(item.price),
         product: {
           ...product,
+          name: item.productName,
+          slug: item.productSlug,
+          productImages: item.productImageUrl
+            ? [
+                {
+                  url: item.productImageUrl,
+                  altText: item.productName,
+                  isThumbnail: true,
+                },
+              ]
+            : product.productImages,
           collection: category?.name ?? null,
           price: Number(product.price),
           createdAt: serializeDate(product.createdAt),

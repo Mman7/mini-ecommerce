@@ -56,6 +56,10 @@ export const stripeWebhook = async (req: Request, res: Response) => {
       await paymentService.fulfillPaymentIntent(
         event.data.object as Stripe.PaymentIntent,
       );
+    } else if (event.type === "payment_intent.canceled") {
+      await paymentService.releaseCanceledPaymentIntent(
+        event.data.object as Stripe.PaymentIntent,
+      );
     } else if (
       event.type === "refund.created" ||
       event.type === "refund.updated"

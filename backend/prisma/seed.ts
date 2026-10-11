@@ -88,6 +88,8 @@ type UserData = {
 type ProductData = {
   productId: number;
   name: string;
+  slug: string;
+  imageUrl: string;
   price: Prisma.Decimal;
 };
 
@@ -715,6 +717,13 @@ async function main() {
 
       name: product.name,
 
+      slug: product.slug,
+
+      imageUrl:
+        `https://placehold.co/1000x1000?text=` +
+        encodeURIComponent(definition.name) +
+        "-1",
+
       price: product.price,
     });
 
@@ -1093,6 +1102,12 @@ async function main() {
         orderItems.push({
           productId: product.productId,
 
+          productName: product.name,
+
+          productSlug: product.slug,
+
+          productImageUrl: product.imageUrl,
+
           quantity,
 
           price: product.price,
@@ -1141,6 +1156,12 @@ async function main() {
           orderItems: {
             create: orderItems.map((item) => ({
               productId: item.productId,
+
+              productName: item.productName,
+
+              productSlug: item.productSlug,
+
+              productImageUrl: item.productImageUrl,
 
               quantity: item.quantity,
 

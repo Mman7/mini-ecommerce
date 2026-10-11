@@ -1,5 +1,10 @@
 import { defineConfig, env } from "prisma/config";
-import envFile from "./src/configs/configs.ts";
+import dotenv from "dotenv";
+import { expand } from "dotenv-expand";
+
+const envFile =
+  process.env.ENV_FILE === "docker" ? ".env.docker" : ".env.local";
+expand(dotenv.config({ path: envFile }));
 
 console.log(
   `Using environment file: ${envFile} from prisma.config.ts at ${new Date().toISOString()}`,

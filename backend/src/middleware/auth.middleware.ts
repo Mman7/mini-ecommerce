@@ -1,6 +1,7 @@
 import type { AuthUserData, UserData } from "../interfaces/user.interface.ts";
 import { verifyAccessToken } from "../utils/jwt.ts";
 import type { Request, Response, NextFunction } from "express";
+import { prisma } from "../utils/prisma.ts";
 
 declare global {
   namespace Express {
@@ -10,7 +11,7 @@ declare global {
   }
 }
 
-export function authMiddleware(
+export async function authMiddleware(
   req: Request,
   res: Response,
   next: NextFunction,
@@ -21,16 +22,32 @@ export function authMiddleware(
   }
 
   try {
-    // Verify the access token and decode it
     const decoded = verifyAccessToken(accessToken);
+    const user = await prisma.user.findUnique({
+      where: { userId: decoded.sub },
+      select: {
+        userId: true,
+        role: true,
+        name: true,
+        email: true,
+        phoneNumber: true,
+        isActive: true,
+      },
+    });
+    if (!user || !user.isActive) {
+      return res
+        .status(401)
+        .json({ message: "Account is inactive or unavailable" });
+    }
+
     const userData: AuthUserData = {
-      userId: decoded.sub,
-      role: decoded.role,
-      name: decoded.name,
-      email: decoded.email,
-      phoneNumber: null, // Initialize with null; you may want to fetch this from the database if needed
+      userId: user.userId,
+      role: user.role,
+      name: user.name,
+      email: user.email,
+      phoneNumber: user.phoneNumber,
     };
-    req.user = userData; // Attach the decoded payload to the request object
+    req.user = userData;
     next();
   } catch {
     return res.status(401).json({ message: "Invalid token" });

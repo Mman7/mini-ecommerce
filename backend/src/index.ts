@@ -4,9 +4,12 @@ import cookieParser from "cookie-parser";
 import path from "node:path";
 import "./configs/configs.js";
 import { stripeWebhook } from "./modules/payment/payment.controller.ts";
+import { releaseExpiredReservations } from "./modules/payment/payment.service.ts";
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+
+app.get("/healthz", (_req, res) => res.sendStatus(200));
 
 // Stripe webhook endpoint for handling payment events.
 // Stripe need raw body for webhook signature verification.
@@ -47,3 +50,10 @@ app.use("/api", mainRouter);
 app.listen(port, () => {
   console.log(`⚡️[server]: Server is running at http://localhost:${port}`);
 });
+
+const reservationCleanup = setInterval(() => {
+  void releaseExpiredReservations().catch((error) => {
+    console.error("Checkout reservation cleanup failed", error);
+  });
+}, 60 * 1000);
+reservationCleanup.unref();
