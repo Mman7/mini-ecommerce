@@ -13,7 +13,9 @@ See the storefront and admin experience in action, including product browsing, p
 
 
 
-https://github.com/user-attachments/assets/d591ddfa-5da0-4175-903d-c004be329d1d
+
+
+https://github.com/user-attachments/assets/3ba2d6fe-7b0e-4345-b36f-d531f19da3d5
 
 https://github.com/user-attachments/assets/17c4f8f1-e4d0-46bf-9723-484a24a44771
 
