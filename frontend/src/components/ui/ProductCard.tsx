@@ -6,17 +6,23 @@ import { useState, type KeyboardEvent, type MouseEvent } from "react";
 import type { Product } from "../../types/product";
 import { cartApi } from "../../api/cart.api";
 import { useCartStore } from "../../store/cart.store";
-import { Button } from "./Button";
 import { FavoriteButton } from "./FavoriteButton";
 import { ImageWithFallback } from "./ImageWithFallback";
-import { ShoppingCart } from "lucide-react";
+import { Plus } from "lucide-react";
 import { toast } from "@/components/ui/toast";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+
+const NEW_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
 
 export default function ProductCard({ product }: { product: Product }) {
   const router = useRouter();
   const [isAdding, setIsAdding] = useState(false);
   const setCart = useCartStore((state) => state.setCart);
+  const isNew =
+    Date.now() - new Date(product.createdAt).getTime() < NEW_WINDOW_MS;
+  const thumbnail =
+    product.productImages.find((image) => image.isThumbnail) ??
+    product.productImages[0];
 
   function navigateToProduct() {
     router.push(`/products/${product.slug}`);
@@ -72,68 +78,63 @@ export default function ProductCard({ product }: { product: Product }) {
 
   return (
     <article
-      className="group hover:border-primary/30 bg-surface-2 relative aspect-square cursor-pointer overflow-hidden rounded-md border border-white/6 shadow-[0_10px_28px_rgba(0,0,0,0.26)] transition-all duration-500"
+      className="group relative cursor-pointer transition-transform duration-500 hover:-translate-y-[3px] motion-reduce:transition-none motion-reduce:hover:translate-y-0"
       onClick={handleCardClick}
       onKeyDown={handleCardKeyDown}
       role="link"
       tabIndex={0}
     >
-      <Link
-        href={`/products/${product.slug}`}
-        className="bg-surface-container-high absolute inset-0 overflow-hidden"
-      >
-        <ImageWithFallback
-          src={
-            product.productImages.find((image) => image.isThumbnail)?.url ??
-            product.productImages[0]?.url ??
-            DEFAULT_PRODUCT_IMAGE
-          }
-          fallbackSrc={DEFAULT_PRODUCT_IMAGE}
-          alt={
-            product.productImages.find((image) => image.isThumbnail)?.altText ??
-            product.productImages[0]?.altText ??
-            product.name
-          }
-          sizes="(min-width: 768px) 33vw, 100vw"
-          className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.05]"
-        />
-        <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/55 to-transparent" />
-        {product.stock === 0 && (
-          <span className="meta-font bg-surface-1 absolute top-4 left-4 rounded-full px-3 py-1 text-[11px] font-semibold uppercase">
+      <div className="bg-surface-2 group-hover:border-primary/40 relative aspect-square overflow-hidden rounded-2xl border border-white/6 transition-all duration-500 group-hover:shadow-[0_12px_32px_rgba(233,139,44,0.22)]">
+        <Link
+          href={`/products/${product.slug}`}
+          className="bg-surface-container-high absolute inset-0"
+        >
+          <ImageWithFallback
+            src={thumbnail?.url ?? DEFAULT_PRODUCT_IMAGE}
+            fallbackSrc={DEFAULT_PRODUCT_IMAGE}
+            alt={thumbnail?.altText ?? product.name}
+            sizes="(min-width: 1536px) 20vw, (min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"
+            className="size-full object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+          />
+        </Link>
+        {product.stock === 0 ? (
+          <span className="meta-font bg-surface-1 absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase">
             Out of stock
           </span>
+        ) : (
+          isNew && (
+            <span className="meta-font bg-primary text-primary-ink absolute top-3 left-3 rounded-full px-2.5 py-1 text-[11px] font-bold uppercase">
+              New
+            </span>
+          )
         )}
-      </Link>
-      <FavoriteButton
-        productId={product.productId}
-        productName={product.name}
-      />
-      <div className="text-on-surface absolute inset-x-0 bottom-0 z-10 space-y-2 p-4 pt-16">
-        <div className="flex items-start justify-between">
-          <Link
-            href={`/products/${product.slug}`}
-            className="text-headline-md font-headline-md group-hover:text-primary leading-tight transition-colors"
-          >
-            {product.name}
-          </Link>
-        </div>
-        <p className="meta-font text-on-surface/70 text-[11px] font-semibold tracking-tight uppercase">
+        <FavoriteButton
+          productId={product.productId}
+          productName={product.name}
+        />
+        <button
+          type="button"
+          aria-label={`Add ${product.name} to cart`}
+          disabled={product.stock === 0 || isAdding}
+          onClick={addToCart}
+          className="bg-primary hover:bg-primary-soft focus-amber absolute right-3 bottom-3 z-10 flex size-11 items-center justify-center rounded-full text-(--primary-ink) shadow-(--glow) transition-colors disabled:pointer-events-none disabled:opacity-50"
+        >
+          <Plus aria-hidden="true" className="size-5" />
+        </button>
+      </div>
+      <div className="mt-3 space-y-1 px-1">
+        <Link
+          href={`/products/${product.slug}`}
+          className="text-on-surface group-hover:text-primary block truncate text-base font-medium transition-colors"
+        >
+          {product.name}
+        </Link>
+        <p className="meta-font text-on-surface/55 text-[11px] font-semibold tracking-tight uppercase">
           {product.category?.name ?? "Komorebi collection"}
         </p>
-        <div className="flex items-center justify-between pt-2">
-          <span className="text-headline-md font-display-lg title-font text-primary-soft! text-md leading-none font-semibold tracking-wide">
-            ¥{Number(product.price).toLocaleString()}
-          </span>
-          <Button
-            variant="primary"
-            disabled={product.stock === 0 || isAdding}
-            onClick={addToCart}
-            className="meta-font flex scale-100 cursor-pointer items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-[13px] font-semibold transition-transform active:scale-90 disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            <ShoppingCart className="h-3.5 w-3.5 stroke-current" />
-            {product.stock === 0 ? "Out of stock" : isAdding ? "Adding" : "Add"}
-          </Button>
-        </div>
+        <p className="title-font text-primary-soft! text-md pt-1 leading-none font-semibold tracking-wide">
+          ¥{Number(product.price).toLocaleString()}
+        </p>
       </div>
     </article>
   );

@@ -17,7 +17,7 @@ const options = [
   ["name:asc", "Name: A to Z"],
 ] as const;
 
-export default function SortingBar({ total }: { total: number }) {
+export default function SortingBar() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const selected = `${searchParams.get("sortBy") ?? "productId"}:${searchParams.get("sortOrder") ?? "asc"}`;
@@ -32,38 +32,31 @@ export default function SortingBar({ total }: { total: number }) {
   }
 
   return (
-    <div className="mb-3 flex items-center justify-between">
-      <p className="text-on-surface/65 mx-auto text-sm">
-        Showing
-        <span className="text-on-surface font-semibold">{` ${total} `}</span>
-        products
-      </p>
-      <div className="meta-font flex items-center gap-3">
-        <span className="text-on-surface/50 hidden text-sm md:block">
-          Sort by:
-        </span>
-        <Select
-          value={selected}
-          items={options.map(([value, label]) => ({ value, label }))}
-          onValueChange={(value) => {
-            if (value) updateSort(value);
-          }}
+    <div className="meta-font flex shrink-0 items-center gap-3">
+      <span className="text-on-surface/50 hidden text-sm md:block">
+        Sort by:
+      </span>
+      <Select
+        value={selected}
+        items={options.map(([value, label]) => ({ value, label }))}
+        onValueChange={(value) => {
+          if (value) updateSort(value);
+        }}
+      >
+        <SelectTrigger
+          aria-label="Sort products"
+          className="text-primary bg-surface-2 h-9 w-44 border-(--outline-strong) font-semibold"
         >
-          <SelectTrigger
-            aria-label="Sort products"
-            className="text-primary bg-surface-2 w-48 border-(--outline-strong) font-semibold"
-          >
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent align="end">
-            {options.map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent align="end">
+          {options.map(([value, label]) => (
+            <SelectItem key={value} value={value}>
+              {label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </div>
   );
 }

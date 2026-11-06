@@ -42,7 +42,12 @@ export function NavbarSection() {
     if (!navbar) return;
 
     const updateNavbarHeight = () => {
-      setNavbarHeight(navbar.getBoundingClientRect().height);
+      const height = navbar.getBoundingClientRect().height;
+      setNavbarHeight(height);
+      document.documentElement.style.setProperty(
+        "--navbar-height",
+        `${height}px`,
+      );
     };
 
     updateNavbarHeight();
@@ -177,32 +182,32 @@ export function NavbarSection() {
                 ))}
               </ul>
 
-              {!isProductsPage && (
-                <div className="relative ml-6 w-85">
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      openProductSearch(productSearch);
+              <div
+                className={`relative ml-6 ${isProductsPage ? "w-56" : "w-85"}`}
+              >
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    openProductSearch(productSearch);
+                  }}
+                  className="bg-surface-3 flex items-center gap-2 rounded-full px-3 py-1.5"
+                >
+                  <Search size={14} className="text-text-muted" />
+                  <input
+                    type="search"
+                    aria-label="Search products"
+                    placeholder="Search treasures..."
+                    value={productSearch}
+                    onFocus={() => setShowSuggestions(true)}
+                    onChange={(event) => {
+                      setProductSearch(event.target.value);
+                      setShowSuggestions(true);
                     }}
-                    className="bg-surface-3 flex items-center gap-3 rounded-full px-3 py-2"
-                  >
-                    <Search size={16} className="text-text-muted" />
-                    <input
-                      type="search"
-                      aria-label="Search products"
-                      placeholder="Search treasures..."
-                      value={productSearch}
-                      onFocus={() => setShowSuggestions(true)}
-                      onChange={(event) => {
-                        setProductSearch(event.target.value);
-                        setShowSuggestions(true);
-                      }}
-                      className="placeholder:text-text-muted text-foreground w-full bg-transparent outline-none"
-                    />
-                  </form>
-                  {showSuggestions && renderSuggestions()}
-                </div>
-              )}
+                    className="placeholder:text-text-muted text-foreground w-full bg-transparent text-sm outline-none"
+                  />
+                </form>
+                {showSuggestions && renderSuggestions()}
+              </div>
             </div>
 
             <div className="relative flex items-center gap-6">
