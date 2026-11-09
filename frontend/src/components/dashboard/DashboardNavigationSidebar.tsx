@@ -9,13 +9,7 @@ import {
 import Link from "next/link";
 
 export type DashboardSection =
-  | "overview"
-  | "products"
-  | "categories"
-  | "orders"
-  | "customers"
-  | "analytics"
-  | "settings";
+  "overview" | "products" | "categories" | "orders" | "customers" | "analytics";
 
 const navigation = [
   {

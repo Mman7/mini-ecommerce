@@ -3,8 +3,9 @@ import { stripe } from "../../configs/configs.js";
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
 import * as orderService from "../order/order.service.ts";
+import { SHIPPING_COST } from "../../configs/shipping.js";
 
-const shippingCost = 500;
+const shippingCost = SHIPPING_COST;
 const currency = (process.env.STRIPE_CURRENCY ?? "jpy").toLowerCase();
 const reservationDurationMs = 30 * 60 * 1000;
 const zeroDecimalCurrencies = new Set([
@@ -393,9 +394,12 @@ export const getPaymentStatus = async (
   let order = await orderService.getOrderByPaymentIntentId(paymentIntentId);
   if (order && order.userId !== userId) throw new Error("Payment not found");
 
-  // This fallback supports local development when Stripe CLI forwarding is not running.
-  // In production, the normal path is the payment_intent.succeeded webhook.
-  if (!order && paymentIntent.status === "succeeded") {
+  // Local-only fallback when Stripe CLI forwarding is off; production relies on the webhook.
+  if (
+    !order &&
+    paymentIntent.status === "succeeded" &&
+    process.env.NODE_ENV !== "production"
+  ) {
     order = await fulfillPaymentIntent(paymentIntent);
   }
   if (paymentIntent.status === "canceled") {

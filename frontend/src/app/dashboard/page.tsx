@@ -99,7 +99,6 @@ export default function DashboardPage() {
     try {
       const dates = getDateRange(range);
       const data = await dashboardApi.overview(dates.from, dates.to);
-      console.log(data);
       setOverview(data);
     } catch (error) {
       setError(

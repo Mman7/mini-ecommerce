@@ -38,9 +38,10 @@ import {
   StepperTrigger,
 } from "@/src/components/reui/stepper";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { SHIPPING_COST } from "@/src/lib/shipping";
 
 const checkoutSteps = ["Shipping", "Payment", "Review"];
-const shippingCost = 500;
+const shippingCost = SHIPPING_COST;
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
 const stripePromise = loadStripe(
   process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "",

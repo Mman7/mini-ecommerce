@@ -54,34 +54,23 @@ type ProductFormSnapshot = {
   images: ProductImage[];
 };
 
-const initialImages: ProductImage[] = [
-  {
-    id: "hero",
-    src: DEFAULT_PRODUCT_IMAGE,
-    primary: true,
-  },
-  { id: "detail", src: "/homepage/plush-toys-on-wooden-shelf.png" },
-  { id: "lifestyle", src: "/homepage/komorebi-gift-atelier-wrapped-boxes.png" },
-];
-
 export default function EditProductPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const [name, setName] = useState("Sakura Fox Plush");
+  const [loading, setLoading] = useState(true);
+  const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
-  const [sku, setSku] = useState("PLUSH-SAK-001");
-  const [description, setDescription] = useState(
-    "A soft and adorable bunny plush inspired by Japanese kawaii gift culture. Made with premium minky fabric and filled with hypoallergenic stuffing. Features delicate embroidered sakura blossoms on the ears and tail. Perfect as a comforting companion or a collector's display piece.",
-  );
-  const [price, setPrice] = useState("48.00");
-  const [stock, setStock] = useState("12");
-  const [threshold, setThreshold] = useState("3");
-  const [category, setCategory] = useState("Plushies");
+  const [sku, setSku] = useState("");
+  const [description, setDescription] = useState("");
+  const [price, setPrice] = useState("");
+  const [stock, setStock] = useState("");
+  const [threshold, setThreshold] = useState("");
+  const [category, setCategory] = useState("");
   const [categories, setCategories] = useState<
     Array<{ categoryId: number; name: string }>
   >([]);
   const [visible, setVisible] = useState(true);
-  const [images, setImages] = useState(initialImages);
+  const [images, setImages] = useState<ProductImage[]>([]);
   const [initialForm, setInitialForm] = useState<ProductFormSnapshot | null>(
     null,
   );
@@ -108,6 +97,12 @@ export default function EditProductPage() {
   useEffect(() => {
     Promise.all([productApi.admin.get(Number(id)), categoryApi.list()])
       .then(([product, categoryList]) => {
+        const loadedThreshold = String(product.reorderAt ?? 5);
+        const loadedImages = product.productImages.map((image) => ({
+          id: String(image.id),
+          src: image.url,
+          primary: image.isThumbnail,
+        }));
         setName(product.name);
         setSlug(product.slug);
         setSku(product.sku ?? "");
@@ -115,15 +110,10 @@ export default function EditProductPage() {
         setPrice(String(product.price));
         setVisible(product.isActive);
         setStock(String(product.stock));
+        setThreshold(loadedThreshold);
         setCategory(String(product.category?.categoryId ?? ""));
         setCategories(categoryList);
-        setImages(
-          product.productImages.map((image) => ({
-            id: String(image.id),
-            src: image.url,
-            primary: image.isThumbnail,
-          })),
-        );
+        setImages(loadedImages);
         setInitialForm({
           name: product.name,
           slug: product.slug,
@@ -131,17 +121,14 @@ export default function EditProductPage() {
           description: product.description,
           price: String(product.price),
           stock: String(product.stock),
-          threshold,
+          threshold: loadedThreshold,
           category: String(product.category?.categoryId ?? ""),
           visible: product.isActive,
-          images: product.productImages.map((image) => ({
-            id: String(image.id),
-            src: image.url,
-            primary: image.isThumbnail,
-          })),
+          images: loadedImages,
         });
       })
-      .catch(() => setMessage("Unable to load this product."));
+      .catch(() => setMessage("Unable to load this product."))
+      .finally(() => setLoading(false));
   }, [id]);
 
   async function handleSave(event: FormEvent<HTMLFormElement>) {
@@ -314,6 +301,14 @@ export default function EditProductPage() {
         type: "error",
       });
     }
+  }
+
+  if (loading) {
+    return (
+      <p className="text-text-muted py-12 text-center text-sm">
+        Loading product...
+      </p>
+    );
   }
 
   return (

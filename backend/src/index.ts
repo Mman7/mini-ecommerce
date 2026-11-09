@@ -8,6 +8,8 @@ import { releaseExpiredReservations } from "./modules/payment/payment.service.ts
 
 const app: Express = express();
 const port = process.env.PORT || 3000;
+// Required so rate limiting keys on the client IP when behind a reverse proxy.
+app.set("trust proxy", 1);
 
 app.get("/healthz", (_req, res) => res.sendStatus(200));
 

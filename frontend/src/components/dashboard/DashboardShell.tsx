@@ -159,7 +159,6 @@ function DashboardBreadcrumb({
     orders: "Orders",
     customers: "Customers",
     analytics: "Analytics",
-    settings: "Settings",
   };
   const sectionLabel = sectionLabels[activeSection];
   const isDetailPage = pathname.split("/").filter(Boolean).length > 2;

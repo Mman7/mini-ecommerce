@@ -8,9 +8,10 @@ import { orderApi, type Order } from "@/src/api/order.api";
 import { ImageWithFallback } from "@/src/components/ui/ImageWithFallback";
 import { ConfirmDialog } from "@/src/components/ui/ConfirmDialog";
 import { DEFAULT_PRODUCT_IMAGE } from "@/src/path/product_image_path";
+import { SHIPPING_COST } from "@/src/lib/shipping";
 
 const fallbackImage = DEFAULT_PRODUCT_IMAGE;
-const shippingCost = 500;
+const shippingCost = SHIPPING_COST;
 
 function formatYen(value: string | number) {
   return `¥${Number(value).toLocaleString("ja-JP")}`;

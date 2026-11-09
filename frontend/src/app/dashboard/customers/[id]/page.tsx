@@ -40,9 +40,8 @@ export default function CustomerDetailPage() {
       .then((result) => {
         setCustomer(result);
       })
-      .catch((e) => {
+      .catch(() => {
         setError("Unable to load this customer.");
-        console.log(e);
       })
       .finally(() => setLoading(false));
   }, [id]);

@@ -1,5 +1,6 @@
 import { prisma } from "../../utils/prisma.ts";
 import { OrderStatus } from "../../enums/order_status.ts";
+import { SHIPPING_COST } from "../../configs/shipping.js";
 
 export type AdminOrderQuery = {
   page: number;
@@ -13,7 +14,7 @@ export type AdminOrderQuery = {
 };
 
 const serializeDate = (value: Date) => value.toISOString();
-const shippingCost = 500;
+const shippingCost = SHIPPING_COST;
 
 const orderTransitions: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.PENDING]: [OrderStatus.PAID],

@@ -128,6 +128,7 @@ export const serializeProduct = (
   })),
   category: product.category,
   stock: product.inventory?.stock ?? 0,
+  reorderAt: product.inventory?.reorderAt ?? null,
 });
 
 export const getProductById = (id: number) => {

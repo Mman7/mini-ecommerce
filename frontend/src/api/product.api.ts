@@ -24,6 +24,7 @@ export type Product = {
   productImages: ProductImage[];
   category: { categoryId: number; name: string } | null;
   stock: number;
+  reorderAt?: number | null;
 };
 
 export type ProductPagination = {

@@ -1,4 +1,3 @@
-// TODO check and fix profile page rendering and form submission
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
@@ -10,10 +9,6 @@ import { ProfileHeader } from "@/src/components/profile/ProfileHeader";
 import { AuthStatus } from "@/src/types/user";
 
 export default function ProfilePage() {
-  const [isMounted, setIsMounted] = useState(false);
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
   const [user, setUser] = useState<User | null>(null);
   const [addresses, setAddresses] = useState<SavedAddress[]>([]);
   const [form, setForm] = useState({ name: "", email: "", phoneNumber: "" });

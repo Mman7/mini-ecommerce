@@ -10,10 +10,7 @@ export type Favourite = {
 };
 
 export const favouriteApi = {
-  list: () =>
-    request<{ favourites: Favourite[] }>("/favourites").catch(() => ({
-      favourites: [],
-    })),
+  list: () => request<{ favourites: Favourite[] }>("/favourites"),
   add: (productId: number) =>
     request<{ favourite: Favourite }>("/favourites", {
       method: "POST",

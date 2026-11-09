@@ -85,7 +85,11 @@ function CartItemRow({
               {item.product.name}
             </Link>
           </h2>
-          <p className="text-text-muted mt-1 text-sm">SKU {item.productId}</p>
+          {item.product.sku ? (
+            <p className="text-text-muted mt-1 text-sm">
+              SKU {item.product.sku}
+            </p>
+          ) : null}
           <p className="meta-font text-primary-soft mt-3 text-sm font-semibold">
             {formatPrice(item.product.price)} each
           </p>

@@ -56,4 +56,5 @@ export type ProductResponse = {
   }>;
   category: { categoryId: number; name: string } | null;
   stock: number;
+  reorderAt: number | null;
 };
